@@ -10,6 +10,7 @@ import com.linkit.company.core.designsystem.foundation.radius.LinkitRadius
 import com.linkit.company.core.designsystem.foundation.radius.LocalRadius
 import com.linkit.company.core.designsystem.foundation.typography.LinkitTypography
 import com.linkit.company.core.designsystem.foundation.typography.LocalTypography
+import com.linkit.company.core.designsystem.foundation.typography.provideDefaultFontFamily
 
 @Composable
 fun LinkitTheme(
@@ -20,7 +21,7 @@ fun LinkitTheme(
 ) {
     CompositionLocalProvider(
         LocalColor provides color,
-        LocalTypography provides typography,
+        LocalTypography provides typography.provideDefaultFontFamily(),
         LocalRadius provides radius,
     ) {
         ProvideTextStyle(value = typography.base1Medium, content = content)
