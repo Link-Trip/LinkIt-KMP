@@ -21,7 +21,7 @@ internal fun rememberDefaultFontFamily(): FontFamily {
 }
 
 @Composable
-internal fun LinkitTypography.provideDefaultFontFamily(): LinkitTypography {
+internal fun LinkItTypography.provideDefaultFontFamily(): LinkItTypography {
     val defaultFontFamily = rememberDefaultFontFamily()
     return remember(defaultFontFamily) {
         this.copy(

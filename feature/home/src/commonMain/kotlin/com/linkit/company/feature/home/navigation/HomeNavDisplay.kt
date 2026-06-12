@@ -23,11 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.savedstate.serialization.SavedStateConfiguration
-import com.linkit.company.core.designsystem.theme.G2
-import com.linkit.company.core.designsystem.theme.G8
-import com.linkit.company.core.designsystem.theme.G9
-import com.linkit.company.core.designsystem.theme.LinkItTextStyle
-import com.linkit.company.core.designsystem.theme.White
+import com.linkit.company.core.designsystem.legacy.theme.G2
+import com.linkit.company.core.designsystem.legacy.theme.G8
+import com.linkit.company.core.designsystem.legacy.theme.G9
+import com.linkit.company.core.designsystem.legacy.theme.LinkItTextStyle
+import com.linkit.company.core.designsystem.legacy.theme.White
 import com.linkit.company.core.navigation.LinkItNavDisplay
 import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LinkItNavigator
