@@ -1,6 +1,6 @@
 # Spec Command Center Feature List Schema
 
-> Schema version: `spec-command-center.feature-list.v1`  
+> Schema version: `spec-command-center.feature-list.v1.1`  
 > Canonical data: `/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.json`  
 > Browser wrapper: `/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.js`
 
@@ -8,9 +8,9 @@
 
 이 규격은 화면별 Markdown 스펙을 Spec Command Center에서 조회 가능한 Feature List로 정규화하기 위한 데이터 계약이다.
 
-Markdown 문서는 제품 스펙의 원천이고, Feature List는 팀 협업/작업 분배/상태 추적을 위한 읽기 전용 registry다. 실제 구현 진행 상태, 담당자, Issue, PR은 이 registry 위에 붙는 추적 정보로 관리한다.
+Markdown 문서는 제품 스펙의 원천이고, Feature List는 팀 협업/작업 분배를 위한 읽기 전용 registry다. 실제 구현 진행 상태, 개발자, Issue, PR은 `feature-tracking.json`에서 관리한다.
 
-`status.delivery`와 `ownership.owner`의 초기값은 원천 스펙의 확정 수준과 Feature 유형에서 계산한 준비도/추천 역할이다. 실제 작업 진행률, 실제 담당자, Issue, PR이 확정되면 해당 추적 필드를 별도로 갱신해야 한다.
+생성 직후의 작업 추적 필드는 모두 초기 상태로 둔다. `status.delivery`는 `not_started`, `assignment.developer`는 `Unassigned`, Issue/PR/branch와 검증 결과는 비어 있는 상태가 기본이다. SCC에서 보여주는 실제 작업 상태는 `feature-tracking.json`이 있으면 그 값을 우선한다.
 
 ## Top-Level Shape
 
@@ -19,7 +19,7 @@ Markdown 문서는 제품 스펙의 원천이고, Feature List는 팀 협업/작
 | `schemaVersion` | string | Feature List 규격 버전 |
 | `generatedAt` | ISO datetime | 생성 시각 |
 | `project` | object | 프로젝트와 기준 Figma 정보 |
-| `enums` | object | 상태/타입/담당자 enum |
+| `enums` | object | 상태/타입/개발자 enum |
 | `specDocuments` | array | 화면별 스펙 문서 목록 |
 | `imageAssets` | array | 문서별 이미지 근거 매핑 |
 | `tbdItems` | array | 문서별 미정/정책 필요 항목 |
@@ -51,11 +51,11 @@ Markdown 문서에는 `IMG-01`, `TBD-01`, `VIDEO_LINK_INPUT`처럼 문서별 loc
 | `classification.tags` | string[] | 검색/필터용 태그 |
 | `status.spec` | enum | 스펙 확정도 |
 | `status.evidence` | enum | 근거 수준 |
-| `status.delivery` | enum | 개발 진행 상태 |
+| `status.delivery` | enum | 개발 진행 상태. 생성 시 기본값은 `not_started` |
 | `status.raw` | string | Markdown의 원문 확정 수준 |
-| `ownership.owner` | string | 현재 담당자 또는 기본 추천 역할 |
-| `ownership.issue` | string/null | 연결 Issue |
-| `ownership.pr` | string/null | 연결 PR |
+| `assignment.developer` | string | 현재 개발 담당자. 배정 전에는 `Unassigned` |
+| `assignment.issue` | string/null | 연결 Issue |
+| `assignment.pr` | string/null | 연결 PR |
 | `verification.testStatus` | enum/string | 테스트 상태 |
 | `verification.screenshotStatus` | enum/string | 스크린샷 검증 상태 |
 | `links.imageRefs` | string[] | 관련 이미지 UID 목록 |
@@ -133,9 +133,12 @@ node docs/specs/generate-feature-list.mjs
 |---|---|
 | `feature-list.json` | canonical Feature List |
 | `feature-list.js` | `file://` HTML에서 읽기 위한 wrapper |
+| `feature-tracking.json` | 개발자/상태/Issue/PR/검증 추적 source |
+| `feature-tracking.js` | `file://` HTML에서 tracking을 읽기 위한 wrapper |
+| `feature-events.jsonl` | 작업 상태 변경 append-only log |
 
 ## Dashboard Contract
 
-Spec Command Center는 `feature-list.js`를 로드하고 `window.SPEC_COMMAND_CENTER_FEATURE_LIST`를 읽는다.
+Spec Command Center는 `feature-list.js`와 `feature-tracking.js`를 로드한다.
 
-브라우저 화면에서 사용하는 테이블/필터/drawer 모델은 이 registry를 view model로 변환한 결과이며, 원천 데이터는 항상 `feature-list.json`을 기준으로 본다.
+브라우저 화면에서 사용하는 테이블/필터/drawer 모델은 Feature registry에 tracking을 overlay한 view model이다. Feature 정의는 항상 `feature-list.json`을 기준으로 보고, 작업 진행 상태는 `feature-tracking.json`을 기준으로 본다.

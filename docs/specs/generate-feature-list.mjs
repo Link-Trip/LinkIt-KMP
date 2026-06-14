@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const specsDir = path.resolve('docs/specs');
-const schemaVersion = 'spec-command-center.feature-list.v1';
+const schemaVersion = 'spec-command-center.feature-list.v1.1';
 
 const specInputs = [
   { slug: 'onboarding', file: 'onboarding-screen.md', title: '온보딩/최초진입', area: 'Onboarding', figmaSection: '15091:142439', accent: '#0f9f8f' },
@@ -63,13 +63,6 @@ function resolveEvidenceLevel(rawStatus) {
   return 'mixed';
 }
 
-function resolveDeliveryStatus(specStatus, tbdRefs) {
-  if (specStatus === 'needs_policy' || specStatus === 'variant') return 'blocked';
-  if (specStatus === 'partial' && tbdRefs.length > 0) return 'blocked';
-  if (specStatus === 'inferred') return 'not_started';
-  return 'ready';
-}
-
 function resolveFeatureType(featureId, title, trigger, response) {
   const text = `${featureId} ${title} ${trigger} ${response}`;
   return (typeMatchers.find(([, matcher]) => matcher.test(text)) || ['display_state'])[0];
@@ -117,14 +110,6 @@ function resolveSubarea(screenSlug, featureId, title, response) {
     ],
   };
   return (maps[screenSlug].find(([, matcher]) => matcher.test(text)) || ['general'])[0];
-}
-
-function resolveOwner(feature) {
-  if (feature.status.spec === 'needs_policy' || feature.status.spec === 'variant') return 'PM';
-  if (feature.classification.type === 'map_interaction') return 'KMP';
-  if (['validation', 'input', 'async_process'].includes(feature.classification.type)) return 'KMP';
-  if (feature.classification.type === 'modal_dialog') return 'Design';
-  return 'Unassigned';
 }
 
 function linkTbds(screenSlug, feature) {
@@ -236,7 +221,7 @@ function buildRegistry() {
           title: cells[1] || '',
           description: cells[2] || '',
           status: 'open',
-          owner: 'PM',
+          resolver: 'PM',
           impact: { featureRefs: [] },
           source: { path: specInput.file, line: index + 1 },
         });
@@ -270,8 +255,8 @@ function buildRegistry() {
           delivery: 'not_started',
           raw: rawStatus,
         },
-        ownership: {
-          owner: 'Unassigned',
+        assignment: {
+          developer: 'Unassigned',
           issue: null,
           pr: null,
           branch: null,
@@ -294,8 +279,6 @@ function buildRegistry() {
       };
 
       feature.links.tbdRefs = linkTbds(specInput.slug, feature);
-      feature.status.delivery = resolveDeliveryStatus(specStatus, feature.links.tbdRefs);
-      feature.ownership.owner = resolveOwner(feature);
       feature.classification.tags = [
         feature.classification.screenSlug,
         feature.classification.subarea,
@@ -338,7 +321,7 @@ function buildRegistry() {
       evidenceLevel: ['figma_confirmed', 'sitemap_based', 'memo_based', 'agent_inferred', 'mixed'],
       deliveryStatus: ['not_started', 'ready', 'in_progress', 'in_review', 'implemented', 'verified', 'blocked', 'deferred'],
       featureType: typeMatchers.map(([type]) => type),
-      owner: ['Unassigned', 'PM', 'Design', 'KMP', 'QA'],
+      developer: ['Unassigned'],
     },
     specDocuments,
     imageAssets,

@@ -25,11 +25,17 @@
 
 | 문서 | 용도 |
 |---|---|
-| [index.html](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/index.html) | Feature List를 화면군/상태/담당/정책 기준으로 탐색하는 HTML 대시보드 |
+| [index.html](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/index.html) | Feature List를 화면군/상태/개발자/정책 기준으로 탐색하는 HTML 대시보드 |
+| [spec-command-center-policy.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/spec-command-center-policy.md) | SCC 운영 정책, source of truth, 상태 전이, 자동화 기준 |
+| [scc-action-bridge.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/scc-action-bridge.md) | SCC 버튼에서 CLI/AI 스킬로 이어지는 action bridge 설계 |
 | [feature-list.schema.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.schema.md) | Spec Command Center Feature List 규격 |
 | [feature-list.json](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.json) | 화면별 스펙에서 생성한 canonical Feature List |
 | [feature-list.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.js) | `file://` HTML에서 Feature List를 읽기 위한 wrapper |
+| [feature-tracking.json](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.json) | Feature 개발자/상태/Issue/PR/검증 추적 source |
+| [feature-tracking.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.js) | `file://` HTML에서 tracking을 읽기 위한 wrapper |
+| [feature-events.jsonl](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-events.jsonl) | SCC 상태 변경 append-only event log |
 | [generate-feature-list.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/generate-feature-list.mjs) | Feature List 재생성 스크립트 |
+| [scc-action.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/scc-action.mjs) | SCC/AI 스킬/CLI가 공통으로 사용하는 Feature tracking action runner |
 
 ## 공통 기준
 

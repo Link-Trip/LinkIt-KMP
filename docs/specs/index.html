@@ -108,6 +108,31 @@
       gap: 8px;
     }
 
+    .agent-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 34px;
+      padding: 4px 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .agent-picker select {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      min-height: 24px;
+      padding: 0;
+      outline: none;
+      font-weight: 800;
+    }
+
     .link-button,
     .ghost-button,
     .seg-button {
@@ -122,6 +147,10 @@
       align-items: center;
       gap: 6px;
       white-space: nowrap;
+    }
+
+    .link-button {
+      text-decoration: none;
     }
 
     .link-button:hover,
@@ -727,7 +756,8 @@
       gap: 8px;
     }
 
-    .source-links a {
+    .source-links a,
+    .source-links button {
       border: 1px solid var(--border);
       border-radius: 8px;
       min-height: 32px;
@@ -736,6 +766,33 @@
       background: var(--panel);
       font-size: 12px;
       font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .action-button {
+      justify-content: center;
+      min-height: 36px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .command-preview {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      overflow: auto;
     }
 
     .modal {
@@ -776,6 +833,150 @@
       font-weight: 750;
     }
 
+    .markdown-modal-card {
+      width: min(1120px, 94vw);
+      height: min(880px, 90vh);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .markdown-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .markdown-body {
+      overflow: auto;
+      padding: 24px 30px 34px;
+      color: #1f2937;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4 {
+      color: var(--text);
+      letter-spacing: 0;
+      line-height: 1.3;
+    }
+
+    .markdown-body h1 {
+      font-size: 26px;
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .markdown-body h2 {
+      font-size: 20px;
+      margin: 30px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .markdown-body h3 {
+      font-size: 16px;
+      margin: 22px 0 8px;
+    }
+
+    .markdown-body h4 {
+      font-size: 14px;
+      margin: 18px 0 8px;
+    }
+
+    .markdown-body p,
+    .markdown-body ul,
+    .markdown-body ol,
+    .markdown-body blockquote,
+    .markdown-body pre,
+    .markdown-body table {
+      margin: 0 0 14px;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      padding-left: 22px;
+    }
+
+    .markdown-body blockquote {
+      border-left: 3px solid var(--border-strong);
+      padding: 8px 12px;
+      color: var(--muted);
+      background: var(--panel-soft);
+    }
+
+    .markdown-body code {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 5px;
+      background: var(--panel-soft);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+
+    .markdown-body pre {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    .markdown-body pre code {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 12px;
+    }
+
+    .markdown-body a {
+      color: var(--blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .markdown-body img {
+      display: block;
+      max-width: 100%;
+      max-height: 560px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 12px 0 18px;
+      background: #f8fafc;
+    }
+
+    .markdown-table-wrap {
+      overflow: auto;
+      margin: 0 0 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .markdown-body table {
+      margin: 0;
+      min-width: 620px;
+      font-size: 13px;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      vertical-align: top;
+    }
+
+    .markdown-error {
+      border: 1px solid var(--amber);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--amber-soft);
+      color: #78350f;
+    }
+
     .modal img {
       display: block;
       max-width: 100%;
@@ -814,9 +1015,16 @@
         </div>
       </div>
       <div class="header-actions">
-        <a class="link-button" href="./README.md">스펙 인덱스</a>
-        <a class="link-button" href="./feature-list.schema.md">Feature 규격</a>
+        <button class="link-button" type="button" data-markdown-doc="README.md">스펙 인덱스</button>
+        <button class="link-button" type="button" data-markdown-doc="spec-command-center-policy.md">SCC 정책</button>
+        <button class="link-button" type="button" data-markdown-doc="feature-list.schema.md">Feature 규격</button>
         <a class="link-button" href="./feature-list.json">Feature List</a>
+        <label class="agent-picker">AI
+          <select id="agentSelect" aria-label="AI 에이전트">
+            <option value="codex">Codex</option>
+            <option value="claude">Claude</option>
+          </select>
+        </label>
         <button class="ghost-button" type="button" id="resetFilters">필터 초기화</button>
       </div>
     </div>
@@ -844,15 +1052,15 @@
       </div>
 
       <div class="filter-group">
-        <p class="field-label">Owner</p>
-        <select class="select" id="ownerFilter"></select>
+        <p class="field-label">Developer</p>
+        <select class="select" id="developerFilter"></select>
       </div>
 
       <div class="filter-group">
         <p class="field-label">Quick Filters</p>
         <div class="quick-filters">
           <button class="chip" type="button" data-quick="blocked">Blocked</button>
-          <button class="chip" type="button" data-quick="noOwner">No owner</button>
+          <button class="chip" type="button" data-quick="noDeveloper">No developer</button>
           <button class="chip" type="button" data-quick="hasEvidence">Has evidence</button>
           <button class="chip" type="button" data-quick="hasTbd">Has TBD</button>
         </div>
@@ -880,7 +1088,7 @@
                 <th>Area</th>
                 <th>Spec</th>
                 <th>Delivery</th>
-                <th>Owner</th>
+                <th>Developer</th>
                 <th>Evidence</th>
                 <th>TBD</th>
               </tr>
@@ -919,14 +1127,30 @@
     </div>
   </div>
 
+  <div class="modal" id="markdownModal" role="dialog" aria-modal="true" aria-label="Markdown viewer">
+    <div class="modal-card markdown-modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="markdownTitle">Markdown viewer</div>
+        <div class="markdown-actions">
+          <a class="link-button" id="markdownRawLink" href="#" target="_blank" rel="noopener">원본 열기</a>
+          <button class="ghost-button" type="button" id="closeMarkdownModal">닫기</button>
+        </div>
+      </div>
+      <div class="markdown-body" id="markdownBody"></div>
+    </div>
+  </div>
+
   <script src="./feature-list.js"></script>
+  <script src="./feature-tracking.js"></script>
   <script>
     function normalizeFeatureList(registry) {
+      const tracking = window.SPEC_COMMAND_CENTER_FEATURE_TRACKING || { features: {} };
+      const trackingByUid = tracking.features || {};
       return {
         generatedAt: registry.generatedAt,
         schemaVersion: registry.schemaVersion,
         project: registry.project,
-        owners: registry.enums.owner,
+        developers: registry.enums.developer || ['Unassigned'],
         specs: registry.specDocuments.map((spec) => ({
           slug: spec.slug,
           title: spec.title,
@@ -953,36 +1177,46 @@
           title: tbd.title,
           description: tbd.description,
           decisionStatus: tbd.status,
-          owner: tbd.owner,
+          resolver: tbd.resolver || 'PM',
           sourceLine: tbd.source.line,
           featureRefs: tbd.impact.featureRefs
         })),
-        features: registry.features.map((feature) => ({
-          uid: feature.uid,
-          featureId: feature.featureId,
-          screenSlug: feature.classification.screenSlug,
-          area: feature.classification.area,
-          subarea: feature.classification.subarea,
-          type: feature.classification.type,
-          tags: feature.classification.tags,
-          title: feature.title,
-          trigger: feature.behavior.trigger,
-          response: feature.behavior.response,
-          rawStatus: feature.status.raw,
-          specStatus: feature.status.spec,
-          evidenceLevel: feature.status.evidence,
-          deliveryStatus: feature.status.delivery,
-          owner: feature.ownership.owner,
-          issue: feature.ownership.issue,
-          pr: feature.ownership.pr,
-          imageRefs: feature.links.imageRefs,
-          tbdRefs: feature.links.tbdRefs,
-          relatedFeatureRefs: feature.links.relatedFeatureRefs,
-          source: {
-            file: feature.links.specPath,
-            line: feature.links.sourceLine
-          }
-        }))
+        features: registry.features.map((feature) => {
+          const tracked = trackingByUid[feature.uid] || {};
+          return {
+            uid: feature.uid,
+            featureId: feature.featureId,
+            screenSlug: feature.classification.screenSlug,
+            area: feature.classification.area,
+            subarea: feature.classification.subarea,
+            type: feature.classification.type,
+            tags: feature.classification.tags,
+            title: feature.title,
+            trigger: feature.behavior.trigger,
+            response: feature.behavior.response,
+            rawStatus: feature.status.raw,
+            specStatus: feature.status.spec,
+            evidenceLevel: feature.status.evidence,
+            deliveryStatus: tracked.workStatus || feature.status.delivery,
+            developer: tracked.developer || feature.assignment.developer || 'Unassigned',
+            issue: tracked.issue || feature.assignment.issue,
+            pr: tracked.pr || feature.assignment.pr,
+            branch: tracked.branch || feature.assignment.branch,
+            testStatus: tracked.testStatus || feature.verification.testStatus,
+            screenshotStatus: tracked.screenshotStatus || feature.verification.screenshotStatus,
+            blockedReason: tracked.blockedReason || null,
+            trackingNotes: tracked.notes || '',
+            trackingUpdatedAt: tracked.updatedAt || null,
+            trackingUpdatedBy: tracked.updatedBy || null,
+            imageRefs: feature.links.imageRefs,
+            tbdRefs: feature.links.tbdRefs,
+            relatedFeatureRefs: feature.links.relatedFeatureRefs,
+            source: {
+              file: feature.links.specPath,
+              line: feature.links.sourceLine
+            }
+          };
+        })
       };
     }
 
@@ -1008,7 +1242,19 @@
       async_process: 'Async',
       selection: 'Selection',
       variant_experiment: 'Variant',
-      display_state: 'Display'
+      display_state: 'Display',
+      passed: 'Passed',
+      failed: 'Failed',
+      not_applicable: 'N/A'
+    };
+
+    const actionLabels = {
+      assign: '개발자 배정',
+      start: '작업 시작',
+      review: 'PR 리뷰 연결',
+      done: '구현 완료 처리',
+      verify: '검증 완료 처리',
+      block: '작업 차단'
     };
 
     const state = {
@@ -1016,10 +1262,11 @@
       type: 'all',
       specStatus: 'all',
       delivery: 'all',
-      owner: 'all',
+      developer: 'all',
       query: '',
       quick: new Set(),
       view: 'table',
+      agent: 'codex',
       selectedUid: data.features[0]?.uid
     };
 
@@ -1050,6 +1297,283 @@
         .replaceAll("'", '&#039;');
     }
 
+    function docTitle(path) {
+      const titles = new Map([
+        ['README.md', '스펙 인덱스'],
+        ['spec-command-center-policy.md', 'SCC 정책'],
+        ['feature-list.schema.md', 'Feature 규격'],
+        ['scc-action-bridge.md', 'SCC Action Bridge'],
+        ...data.specs.map((spec) => [spec.path, spec.title])
+      ]);
+      return titles.get(path) || path;
+    }
+
+    function normalizeMarkdownPath(path) {
+      return String(path || '')
+        .replace(/^\.?\//, '')
+        .replace(/^docs\/specs\//, '')
+        .replace(/^docs\//, '../')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\/specs\//, '')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\//, '../');
+    }
+
+    function isMarkdownPath(path) {
+      return /\.md(?:#.*)?$/i.test(normalizeMarkdownPath(path));
+    }
+
+    function resolveMarkdownUrl(path) {
+      const normalized = normalizeMarkdownPath(path);
+      return normalized.startsWith('../') ? normalized : `./${normalized}`;
+    }
+
+    function resolveMarkdownAssetUrl(path) {
+      return String(path || '')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\/specs\//, './')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\//, '../');
+    }
+
+    function inlineMarkdown(value) {
+      let html = escapeHtml(value);
+      html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+        const cleanSrc = escapeHtml(resolveMarkdownAssetUrl(src));
+        return `<img src="${cleanSrc}" alt="${escapeHtml(alt)}" />`;
+      });
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, href) => {
+        const normalized = normalizeMarkdownPath(href);
+        const attrs = isMarkdownPath(href)
+          ? `href="${escapeHtml(resolveMarkdownUrl(normalized))}" data-markdown-doc="${escapeHtml(normalized)}"`
+          : `href="${escapeHtml(href)}" target="_blank" rel="noopener"`;
+        return `<a ${attrs}>${escapeHtml(text)}</a>`;
+      });
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      return html;
+    }
+
+    function splitTableRow(line) {
+      return line
+        .trim()
+        .replace(/^\|/, '')
+        .replace(/\|$/, '')
+        .split('|')
+        .map((cell) => cell.trim());
+    }
+
+    function isTableDivider(line) {
+      return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = String(markdown || '').replace(/\r\n/g, '\n').split('\n');
+      const blocks = [];
+      let index = 0;
+
+      while (index < lines.length) {
+        const line = lines[index];
+
+        if (!line.trim()) {
+          index += 1;
+          continue;
+        }
+
+        if (line.startsWith('```')) {
+          const code = [];
+          index += 1;
+          while (index < lines.length && !lines[index].startsWith('```')) {
+            code.push(lines[index]);
+            index += 1;
+          }
+          index += 1;
+          blocks.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`);
+          continue;
+        }
+
+        const heading = line.match(/^(#{1,4})\s+(.+)$/);
+        if (heading) {
+          const level = heading[1].length;
+          blocks.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);
+          index += 1;
+          continue;
+        }
+
+        if (/^\s*[-*]\s+/.test(line)) {
+          const items = [];
+          while (index < lines.length && /^\s*[-*]\s+/.test(lines[index])) {
+            items.push(lines[index].replace(/^\s*[-*]\s+/, ''));
+            index += 1;
+          }
+          blocks.push(`<ul>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}</ul>`);
+          continue;
+        }
+
+        if (/^\s*\d+\.\s+/.test(line)) {
+          const items = [];
+          while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
+            items.push(lines[index].replace(/^\s*\d+\.\s+/, ''));
+            index += 1;
+          }
+          blocks.push(`<ol>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}</ol>`);
+          continue;
+        }
+
+        if (/^\s*>/.test(line)) {
+          const quote = [];
+          while (index < lines.length && /^\s*>/.test(lines[index])) {
+            quote.push(lines[index].replace(/^\s*>\s?/, ''));
+            index += 1;
+          }
+          blocks.push(`<blockquote>${quote.map(inlineMarkdown).join('<br>')}</blockquote>`);
+          continue;
+        }
+
+        if (line.includes('|') && lines[index + 1] && isTableDivider(lines[index + 1])) {
+          const headers = splitTableRow(line);
+          const rows = [];
+          index += 2;
+          while (index < lines.length && lines[index].includes('|') && lines[index].trim()) {
+            rows.push(splitTableRow(lines[index]));
+            index += 1;
+          }
+          blocks.push([
+            '<div class="markdown-table-wrap"><table>',
+            `<thead><tr>${headers.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join('')}</tr></thead>`,
+            `<tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`).join('')}</tbody>`,
+            '</table></div>'
+          ].join(''));
+          continue;
+        }
+
+        const paragraph = [line.trim()];
+        index += 1;
+        while (
+          index < lines.length &&
+          lines[index].trim() &&
+          !lines[index].startsWith('```') &&
+          !/^(#{1,4})\s+/.test(lines[index]) &&
+          !/^\s*[-*]\s+/.test(lines[index]) &&
+          !/^\s*\d+\.\s+/.test(lines[index]) &&
+          !/^\s*>/.test(lines[index]) &&
+          !(lines[index].includes('|') && lines[index + 1] && isTableDivider(lines[index + 1]))
+        ) {
+          paragraph.push(lines[index].trim());
+          index += 1;
+        }
+        blocks.push(`<p>${inlineMarkdown(paragraph.join(' '))}</p>`);
+      }
+
+      return blocks.join('\n');
+    }
+
+    async function openMarkdown(path) {
+      const normalized = normalizeMarkdownPath(path);
+      const url = resolveMarkdownUrl(normalized);
+      byId('markdownTitle').textContent = docTitle(normalized);
+      byId('markdownRawLink').href = url;
+      byId('markdownBody').innerHTML = '<div class="empty-state">Markdown 문서를 불러오는 중입니다.</div>';
+      byId('markdownModal').classList.add('active');
+
+      try {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const markdown = await response.text();
+        byId('markdownBody').innerHTML = renderMarkdown(markdown);
+        bindMarkdownLinks(byId('markdownBody'));
+      } catch (error) {
+        byId('markdownBody').innerHTML = `
+          <div class="markdown-error">
+            <strong>Markdown 문서를 뷰어로 불러오지 못했습니다.</strong><br>
+            현재 브라우저가 로컬 파일 읽기를 제한했을 수 있습니다. 저장소 루트에서
+            <code>python3 -m http.server 8000</code>을 실행한 뒤
+            <code>http://127.0.0.1:8000/docs/specs/index.html</code>로 열면 SCC 안에서 렌더링됩니다.
+            <p style="margin: 10px 0 0;">대상: ${escapeHtml(normalized)} · 오류: ${escapeHtml(error.message)}</p>
+          </div>
+        `;
+      }
+    }
+
+    function bindMarkdownLinks(root = document) {
+      root.querySelectorAll('[data-markdown-doc]').forEach((item) => {
+        item.addEventListener('click', (event) => {
+          event.preventDefault();
+          openMarkdown(item.dataset.markdownDoc || item.getAttribute('href'));
+        });
+      });
+    }
+
+    function shellQuote(value) {
+      return `'${String(value).replaceAll("'", "'\\''")}'`;
+    }
+
+    function trackingCommandFor(action, feature) {
+      const base = `node docs/specs/scc-action.mjs ${action} --feature ${shellQuote(feature.uid)} --agent ${state.agent}`;
+      const commands = {
+        assign: `${base} --developer '<개발자명>'`,
+        start: `${base} --developer '<개발자명>'`,
+        review: `${base} --pr '#123'`,
+        done: `${base} --tests passed --screenshots passed`,
+        verify: base,
+        block: `${base} --reason '<차단 사유>'`
+      };
+      return commands[action] || base;
+    }
+
+    function commandFor(action, feature) {
+      const trackingCommand = trackingCommandFor(action, feature);
+      const agentGuide = state.agent === 'codex'
+        ? '`linkit-spec` 스킬을 사용해서'
+        : 'Claude용 LinkIt SCC 작업 절차에 따라';
+      if (action === 'start') {
+        const prompt = [
+          'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 작업 시작 준비를 해줘.',
+          `대상 Feature: ${feature.uid}`,
+          `작업: ${actionLabels[action] || action}`,
+          '중요: 아직 개발을 바로 시작하지 마. 코드 수정, 커밋, SCC 상태 변경도 하지 마.',
+          '먼저 아래 내용을 한국어로 정리해줘.',
+          '1. Feature 스펙, 연결 이미지, TBD, 관련 문서에서 확인해야 할 내용',
+          '2. 구현 범위와 영향을 받을 가능성이 높은 파일/모듈',
+          '3. 필요한 작업 목록을 작은 체크리스트로 분해한 내용',
+          '4. 필요한 테스트와 스크린샷 검증 항목',
+          '5. 진행 전에 사용자 확인이 필요한 질문 또는 리스크',
+          '정리 마지막에는 "이 작업 목록으로 진행할까요?"라고 묻고 사용자 답변을 기다려.',
+          '사용자가 진행을 승인한 뒤에만 아래 SCC start 명령을 실행하고 audit을 돌린 다음 개발을 시작해.',
+          trackingCommand,
+          '승인 후 실행할 audit 명령: node docs/specs/scc-action.mjs audit',
+        ].join('\n');
+        return `${state.agent} ${shellQuote(prompt)}`;
+      }
+      const prompt = [
+        'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 아래 작업을 진행해줘.',
+        `대상 Feature: ${feature.uid}`,
+        `작업: ${actionLabels[action] || action}`,
+        `${agentGuide} 다음 SCC 명령을 실행해줘.`,
+        trackingCommand,
+        '명령 실행 후 `node docs/specs/scc-action.mjs audit`를 실행하고, 변경된 상태와 경고가 있으면 한국어로 요약해줘.',
+      ].join('\n');
+      return `${state.agent} ${shellQuote(prompt)}`;
+    }
+
+    async function copyText(value) {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value);
+          return;
+        }
+      } catch {
+        // Fall back to the legacy copy path below in file:// contexts.
+      }
+
+      const textarea = document.createElement('textarea');
+      textarea.value = value;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+
     function getImages(feature) {
       return feature.imageRefs.map((uid) => imageByUid.get(uid)).filter(Boolean);
     }
@@ -1061,8 +1585,8 @@
     function screenStats(slug) {
       const features = data.features.filter((feature) => feature.screenSlug === slug);
       const tbds = data.tbds.filter((tbd) => tbd.screenSlug === slug);
-      const blocked = features.filter((feature) => feature.deliveryStatus === 'blocked').length;
-      return { features: features.length, tbds: tbds.length, blocked };
+      const notStarted = features.filter((feature) => feature.deliveryStatus === 'not_started').length;
+      return { features: features.length, tbds: tbds.length, notStarted };
     }
 
     function filteredFeatures() {
@@ -1072,12 +1596,16 @@
         const typeMatch = state.type === 'all' || feature.type === state.type;
         const specMatch = state.specStatus === 'all' || feature.specStatus === state.specStatus;
         const deliveryMatch = state.delivery === 'all' || feature.deliveryStatus === state.delivery;
-        const ownerMatch = state.owner === 'all' || feature.owner === state.owner;
+        const developerMatch = state.developer === 'all' || feature.developer === state.developer;
         const searchText = [
           feature.featureId,
           feature.title,
           feature.trigger,
           feature.response,
+          feature.developer,
+          feature.branch,
+          feature.issue,
+          feature.pr,
           feature.rawStatus,
           feature.subarea,
           specBySlug.get(feature.screenSlug)?.title,
@@ -1086,27 +1614,26 @@
         const queryMatch = !query || searchText.includes(query);
         const quickMatch = [...state.quick].every((quick) => {
           if (quick === 'blocked') return feature.deliveryStatus === 'blocked';
-          if (quick === 'noOwner') return feature.owner === 'Unassigned';
+          if (quick === 'noDeveloper') return feature.developer === 'Unassigned';
           if (quick === 'hasEvidence') return getImages(feature).length > 0;
           if (quick === 'hasTbd') return getTbds(feature).length > 0;
           return true;
         });
-        return screenMatch && typeMatch && specMatch && deliveryMatch && ownerMatch && queryMatch && quickMatch;
+        return screenMatch && typeMatch && specMatch && deliveryMatch && developerMatch && queryMatch && quickMatch;
       });
     }
 
     function renderKpis() {
       const total = data.features.length;
-      const ready = data.features.filter((feature) => ['ready', 'in_progress', 'in_review', 'verified'].includes(feature.deliveryStatus)).length;
-      const blocked = data.features.filter((feature) => feature.deliveryStatus === 'blocked').length;
-      const inProgress = data.features.filter((feature) => feature.deliveryStatus === 'in_progress').length;
+      const notStarted = data.features.filter((feature) => feature.deliveryStatus === 'not_started').length;
+      const unassigned = data.features.filter((feature) => feature.developer === 'Unassigned').length;
       const prLinked = data.features.filter((feature) => feature.pr).length;
       const evidenceMissing = data.features.filter((feature) => getImages(feature).length === 0).length;
       const kpis = [
         ['Total Features', total, `${data.specs.length} specs`],
-        ['Ready for Dev', ready, 'usable scope'],
-        ['Blocked by TBD', blocked, `${data.tbds.length} open TBDs`],
-        ['In Progress', inProgress, 'tracked'],
+        ['Not Started', notStarted, 'initial scope'],
+        ['Unassigned Dev', unassigned, 'needs assignment'],
+        ['Open TBD', data.tbds.length, 'policy queue'],
         ['PR Linked', prLinked, 'connected'],
         ['Evidence Missing', evidenceMissing, 'needs review']
       ];
@@ -1120,14 +1647,14 @@
 
     function renderScreens() {
       const allActive = state.screen === 'all' ? 'active' : '';
-      const allStats = { features: data.features.length, tbds: data.tbds.length, blocked: data.features.filter((feature) => feature.deliveryStatus === 'blocked').length };
+      const allStats = { features: data.features.length, tbds: data.tbds.length, notStarted: data.features.filter((feature) => feature.deliveryStatus === 'not_started').length };
       const cards = [`
         <button class="screen-card ${allActive}" type="button" data-screen="all">
           <div class="screen-card-top">
             <span class="screen-name">All Screens</span>
             <span class="screen-version">registry</span>
           </div>
-          <div class="screen-stats"><span>${allStats.features} features</span><span>${allStats.tbds} TBD</span><span>${allStats.blocked} blocked</span></div>
+          <div class="screen-stats"><span>${allStats.features} features</span><span>${allStats.tbds} TBD</span><span>${allStats.notStarted} not started</span></div>
         </button>
       `];
       cards.push(...data.specs.map((spec) => {
@@ -1138,7 +1665,7 @@
               <span class="screen-name">${escapeHtml(spec.title)}</span>
               <span class="screen-version">${escapeHtml(spec.version)}</span>
             </div>
-            <div class="screen-stats"><span>${stats.features} features</span><span>${stats.tbds} TBD</span><span>${stats.blocked} blocked</span></div>
+            <div class="screen-stats"><span>${stats.features} features</span><span>${stats.tbds} TBD</span><span>${stats.notStarted} not started</span></div>
           </button>
         `;
       }));
@@ -1156,11 +1683,11 @@
       fillSelect('typeFilter', 'all', 'All types', uniq(data.features.map((feature) => feature.type)));
       fillSelect('specStatusFilter', 'all', 'All spec status', uniq(data.features.map((feature) => feature.specStatus)));
       fillSelect('deliveryFilter', 'all', 'All delivery status', uniq(data.features.map((feature) => feature.deliveryStatus)));
-      fillSelect('ownerFilter', 'all', 'All owners', uniq(data.features.map((feature) => feature.owner)));
+      fillSelect('developerFilter', 'all', 'All developers', uniq(data.features.map((feature) => feature.developer)));
       byId('typeFilter').value = state.type;
       byId('specStatusFilter').value = state.specStatus;
       byId('deliveryFilter').value = state.delivery;
-      byId('ownerFilter').value = state.owner;
+      byId('developerFilter').value = state.developer;
     }
 
     function fillSelect(id, allValue, allLabel, values) {
@@ -1195,7 +1722,7 @@
             </td>
             <td>${badge(feature.specStatus)}</td>
             <td>${badge(feature.deliveryStatus)}</td>
-            <td>${escapeHtml(feature.owner)}</td>
+            <td>${escapeHtml(feature.developer)}</td>
             <td><span class="count-pill">${images.length}</span></td>
             <td><span class="count-pill">${tbds.length}</span></td>
           </tr>
@@ -1209,12 +1736,12 @@
     function renderBoard() {
       const features = filteredFeatures();
       const lanes = [
-        ['blocked', 'Blocked'],
+        ['not_started', 'Not Started'],
         ['ready', 'Ready'],
+        ['blocked', 'Blocked'],
         ['in_progress', 'In Progress'],
         ['in_review', 'Review'],
-        ['verified', 'Verified'],
-        ['not_started', 'Not Started']
+        ['verified', 'Verified']
       ];
       byId('boardView').innerHTML = lanes.map(([status, title]) => {
         const laneFeatures = features.filter((feature) => feature.deliveryStatus === status);
@@ -1305,8 +1832,25 @@
               <dt>Trigger</dt><dd>${escapeHtml(feature.trigger)}</dd>
               <dt>Response</dt><dd>${escapeHtml(feature.response)}</dd>
               <dt>Raw status</dt><dd>${escapeHtml(feature.rawStatus)}</dd>
-              <dt>Owner</dt><dd>${escapeHtml(feature.owner)}</dd>
+              <dt>Developer</dt><dd>${escapeHtml(feature.developer)}</dd>
+              <dt>Branch</dt><dd>${escapeHtml(feature.branch || '-')}</dd>
+              <dt>Issue / PR</dt><dd>${escapeHtml(feature.issue || '-')} / ${escapeHtml(feature.pr || '-')}</dd>
+              <dt>Checks</dt><dd>${label(feature.testStatus)} · ${label(feature.screenshotStatus)}</dd>
+              ${feature.blockedReason ? `<dt>Blocked</dt><dd>${escapeHtml(feature.blockedReason)}</dd>` : ''}
             </dl>
+          </div>
+          <div class="section">
+            <h3>SCC 작업</h3>
+            <div class="action-grid">
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('assign', feature))}">배정 명령 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('start', feature))}">시작 명령 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('review', feature))}">PR 명령 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('done', feature))}">완료 명령 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('verify', feature))}">검증 명령 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('block', feature))}">차단 명령 복사</button>
+            </div>
+            <div class="command-preview" id="commandPreview">${escapeHtml(commandFor('start', feature))}</div>
+            <p class="subtitle">정적 모드: 버튼은 선택된 AI 에이전트용 한국어 CLI 지시문을 복사합니다. 브리지 모드에서는 같은 action contract와 agent 값으로 자동 실행할 수 있습니다.</p>
           </div>
           <div class="section">
             <h3>Visual Evidence</h3>
@@ -1321,7 +1865,7 @@
             <h3>Open Questions</h3>
             ${tbds.length ? `<div class="related-list">${tbds.map((tbd) => `
               <div class="related-item">
-                <div class="feature-meta"><span>${escapeHtml(tbd.tbdId)}</span><span>${escapeHtml(tbd.owner)}</span></div>
+                <div class="feature-meta"><span>${escapeHtml(tbd.tbdId)}</span><span>Resolver: ${escapeHtml(tbd.resolver)}</span></div>
                 <div class="policy-title">${escapeHtml(tbd.title)}</div>
                 <div class="policy-desc">${escapeHtml(tbd.description)}</div>
               </div>
@@ -1330,8 +1874,8 @@
           <div class="section">
             <h3>Source & Links</h3>
             <div class="source-links">
-              <a href="./${escapeHtml(feature.source.file)}">Open Markdown</a>
-              <a href="./README.md">Spec Index</a>
+              <button type="button" data-markdown-doc="${escapeHtml(feature.source.file)}">Open Markdown</button>
+              <button type="button" data-markdown-doc="README.md">Spec Index</button>
             </div>
             <p class="subtitle">Source line: ${feature.source.line} · Figma section: ${escapeHtml(spec?.figma || '-')}</p>
           </div>
@@ -1349,9 +1893,17 @@
       byId('detailPanel').querySelectorAll('[data-image]').forEach((item) => {
         item.addEventListener('click', () => openImage(item.dataset.image, item.dataset.title));
       });
+      byId('detailPanel').querySelectorAll('[data-command]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          await copyText(button.dataset.command);
+          const preview = byId('commandPreview');
+          if (preview) preview.textContent = `복사됨: ${button.dataset.command}`;
+        });
+      });
       byId('detailPanel').querySelectorAll('[data-related]').forEach((item) => {
         item.addEventListener('click', () => selectFeature(item.dataset.related));
       });
+      bindMarkdownLinks(byId('detailPanel'));
     }
 
     function selectFeature(uid) {
@@ -1378,6 +1930,10 @@
     function closeImage() {
       byId('imageModal').classList.remove('active');
       byId('modalImage').src = '';
+    }
+
+    function closeMarkdown() {
+      byId('markdownModal').classList.remove('active');
     }
 
     function render() {
@@ -1416,8 +1972,8 @@
         ensureSelection();
         render();
       });
-      byId('ownerFilter').addEventListener('change', (event) => {
-        state.owner = event.target.value;
+      byId('developerFilter').addEventListener('change', (event) => {
+        state.developer = event.target.value;
         ensureSelection();
         render();
       });
@@ -1436,12 +1992,16 @@
           render();
         });
       });
+      byId('agentSelect').addEventListener('change', (event) => {
+        state.agent = event.target.value;
+        renderDetail();
+      });
       byId('resetFilters').addEventListener('click', () => {
         state.screen = 'all';
         state.type = 'all';
         state.specStatus = 'all';
         state.delivery = 'all';
-        state.owner = 'all';
+        state.developer = 'all';
         state.query = '';
         state.quick.clear();
         byId('searchInput').value = '';
@@ -1452,8 +2012,14 @@
       byId('imageModal').addEventListener('click', (event) => {
         if (event.target.id === 'imageModal') closeImage();
       });
+      byId('closeMarkdownModal').addEventListener('click', closeMarkdown);
+      byId('markdownModal').addEventListener('click', (event) => {
+        if (event.target.id === 'markdownModal') closeMarkdown();
+      });
+      bindMarkdownLinks(document);
       window.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') closeImage();
+        if (event.key === 'Escape') closeMarkdown();
       });
     }
 

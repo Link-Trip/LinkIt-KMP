@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "spec-command-center.feature-list.v1",
-  "generatedAt": "2026-06-14T05:26:06.727Z",
+  "schemaVersion": "spec-command-center.feature-list.v1.1",
+  "generatedAt": "2026-06-14T05:47:10.838Z",
   "project": {
     "name": "Pingo",
     "figmaFile": "Pingo v3.0.3",
@@ -44,12 +44,8 @@
       "variant_experiment",
       "display_state"
     ],
-    "owner": [
-      "Unassigned",
-      "PM",
-      "Design",
-      "KMP",
-      "QA"
+    "developer": [
+      "Unassigned"
     ]
   },
   "specDocuments": [
@@ -510,7 +506,7 @@
       "title": "인트로 건너뛰기",
       "description": "재설치 사용자 또는 실수로 건너뛰기 선택 시 정책이 필요하다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "onboarding:INTRO_SKIP_POLICY"
@@ -528,7 +524,7 @@
       "title": "인트로 길이",
       "description": "인트로 과정이 길 경우 이탈 가능성이 메모되어 있어 실제 사용성 검토가 필요하다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "onboarding:INTRO_SKIP_POLICY"
@@ -546,7 +542,7 @@
       "title": "위치 권한 fallback",
       "description": "권한 미허용 시 서울/한국 기준 위치의 좌표와 줌 레벨을 확정해야 한다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": []
       },
@@ -562,7 +558,7 @@
       "title": "분석 처리 순서",
       "description": "분석 중 화면과 완료 토스트 자체는 확인되지만 최종 노출 순서와 자동 전환 조건을 확정해야 한다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "onboarding:ANALYSIS_LOADING",
@@ -581,7 +577,7 @@
       "title": "온보딩 중 생성 방식 제한",
       "description": "`보관함에서 가져오기`, `직접 만들기`가 온보딩 중 비활성/선택 불가인지 최종 정책 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "onboarding:GUIDE_VIDEO_LINK"
@@ -599,7 +595,7 @@
       "title": "저장 폴더 설정",
       "description": "전체 일정 저장 시 저장 폴더 선택/생성 정책과 기본 폴더를 확정해야 한다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "onboarding:SAVE_ALL"
@@ -617,7 +613,7 @@
       "title": "삭제 팝업 상세 정책",
       "description": "삭제 팝업의 정확한 진입 조건, 취소/삭제 후 이동 위치, 삭제 대상 범위 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "onboarding:SAVE_DELETE_CONFIRM"
@@ -635,7 +631,7 @@
       "title": "바텀시트 최소 높이",
       "description": "Figma description에 “핸들 스크롤시 최소 보이는 영역 미정”으로 적혀 있다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:MAP_ZOOM_OUT",
@@ -657,7 +653,7 @@
       "title": "장소마커 선택 시 줌 배율",
       "description": "장소마커 선택 시 지도 이동은 확정이나, 이동 시 지도 배율은 미정이다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:MAP_INITIAL_FOCUS",
@@ -678,7 +674,7 @@
       "title": "마커 클러스터 기준",
       "description": "마커가 겹칠 때 어떤 기준으로 뭉칠지 정책이 필요하다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": []
       },
@@ -694,7 +690,7 @@
       "title": "일정생성 버튼 애니메이션 트리거",
       "description": "텍스트 버튼과 아이콘 버튼 전환 이미지는 있으나 정확한 트리거가 명시되어 있지 않다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:MAP_VIEW_CHANGE"
@@ -712,7 +708,7 @@
       "title": "보관함에서 가져오기 상세",
       "description": "Figma description 문구가 반복되어 있어 실제 진입 화면/동작을 별도 확인해야 한다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:CREATE_BUTTON_EXPAND"
@@ -730,7 +726,7 @@
       "title": "직접 만들기 상세",
       "description": "sitemap에는 직접 만들기가 있으나 메인화면 문맥의 상세 UI는 별도 스펙이 필요하다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:CREATE_BUTTON_EXPAND"
@@ -748,7 +744,7 @@
       "title": "뒤로가기/지도선택 정책",
       "description": "Figma 메모에 “뒤로가거나 지도선택시 마지막 선택한 마커가 표시되도록?”이라고 되어 있어 최종 정책 확인이 필요하다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:SCHEDULE_MARKER_BACK"
@@ -766,7 +762,7 @@
       "title": "위치권한 거부 기본 위치",
       "description": "메모상 한국/서울 기준이 제안되어 있으나 최종 기본 좌표와 줌 레벨은 정해야 한다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:MAP_INITIAL_FOCUS",
@@ -785,7 +781,7 @@
       "title": "마커 선택과 일정 상세페이지 이동 관계",
       "description": "sitemap에는 마커/영역 선택 시 일정 상세페이지 이동이 있으나, Figma 화면 상태는 지도 내 포커스/카드 노출을 보여준다. 동일 탭인지 별도 CTA인지 확인이 필요하다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:SHEET_SCHEDULE_SELECT",
@@ -805,7 +801,7 @@
       "title": "CTA 라벨 위치별 정책",
       "description": "장소 정보 카드에는 `일정에서 보기`, 다른 카드 계열에는 `지도에서 보기`가 보여 카드 종류별 라벨 기준을 확정해야 한다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "main:SCHEDULE_DETAIL_FROM_MARKER",
@@ -825,7 +821,7 @@
       "title": "영상 선택 동작",
       "description": "Figma 메모에 영상 선택 시 유튜브 이탈 또는 앱 내부 재생 여부가 질문으로 남아 있다.",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "explore:COUNTRY_FILTER_SELECT",
@@ -846,7 +842,7 @@
       "title": "국가/권역 목록",
       "description": "전체, 일본, 중국, 베트남, 아시아, 유럽, 북미 외 최종 필터 목록 확정 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "explore:COUNTRY_FILTER_SELECT"
@@ -864,7 +860,7 @@
       "title": "크리에이터 follow",
       "description": "일부 크리에이터 카드에 `Follow`가 있어 실제 팔로우 기능 여부 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "explore:CREATOR_VIDEO_SECTION",
@@ -883,7 +879,7 @@
       "title": "더보기 전환",
       "description": "Figma에는 `더보기` 버튼과 추천 여행 유튜버 목록 프레임이 있으나 명시적 전환 설명은 없어 연결 정책 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "explore:CREATOR_MORE_OPEN"
@@ -901,7 +897,7 @@
       "title": "공통 하단 탭 전환",
       "description": "탐색 section에는 하단 탭 라벨이 있으나 지도/보관함 전환 결과는 공통 내비게이션 정책과 함께 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "explore:EXPLORE_OPEN",
@@ -920,7 +916,7 @@
       "title": "지도 타입 저장 범위",
       "description": "기본/위성 선택이 즉시 지도에 반영되는지, 앱 설정으로 저장되는지 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "mypage:MYPAGE_OPEN",
@@ -940,7 +936,7 @@
       "title": "피드백/버그 신고 채널",
       "description": "인앱 화면인지 외부 메일/폼인지 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "mypage:FEEDBACK_OPEN",
@@ -959,7 +955,7 @@
       "title": "앱 초기화 범위",
       "description": "초기화 시 삭제되는 데이터와 유지되는 데이터 범위 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "mypage:RESET_CONFIRM_OPEN",
@@ -979,7 +975,7 @@
       "title": "보관함 A/B안",
       "description": "보관 항목만 보여주는 안과 지도 포함 안 중 최종안 결정 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:LIBRARY_OPEN",
@@ -998,7 +994,7 @@
       "title": "항목 타입",
       "description": "일정, 장소, 영상, 폴더가 같은 목록에 섞이는지 타입별 탭이 있는지 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:LIBRARY_ITEM_OPEN"
@@ -1016,7 +1012,7 @@
       "title": "정렬 옵션",
       "description": "`최신순` 외 정렬 옵션 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:LIBRARY_SORT_SELECT"
@@ -1034,7 +1030,7 @@
       "title": "상세 이동",
       "description": "목록 항목 선택 시 어떤 상세 화면으로 이동하는지 타입별 정책 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:LIBRARY_ITEM_OPEN"
@@ -1052,7 +1048,7 @@
       "title": "폴더 저장 조건",
       "description": "폴더명 최소/최대 길이와 저장 버튼 활성 조건 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:FOLDER_NAME_INPUT",
@@ -1071,7 +1067,7 @@
       "title": "placeholder 데이터",
       "description": "`토지주소`, `수원`, `숙소6개`, `내용 입력`, `n/n`의 실제 데이터 매핑과 카운트 정책 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:FOLDER_NAME_INPUT"
@@ -1089,7 +1085,7 @@
       "title": "필터 적용 결과",
       "description": "지역/여행 테마/비용 필터 UI는 있으나 결과 갱신 방식은 확인 필요",
       "status": "open",
-      "owner": "PM",
+      "resolver": "PM",
       "impact": {
         "featureRefs": [
           "library:LIBRARY_FILTER_OPEN"
@@ -1120,18 +1116,18 @@
           "intro",
           "map_interaction",
           "partial",
-          "ready",
+          "not_started",
           "memo_based"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "memo_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "메모 기반/정책 필요"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1174,18 +1170,18 @@
           "intro",
           "selection",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1229,18 +1225,18 @@
           "guide",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1285,18 +1281,18 @@
           "guide",
           "input",
           "partial",
-          "blocked",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "figma_confirmed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "확정/정책 필요"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1343,18 +1339,18 @@
           "video_link",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1399,18 +1395,18 @@
           "video_link",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1457,18 +1453,18 @@
           "guide",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1514,18 +1510,18 @@
           "video_link",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1570,18 +1566,18 @@
           "guide",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1629,18 +1625,18 @@
           "analysis",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1685,18 +1681,18 @@
           "analysis",
           "async_process",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1743,18 +1739,18 @@
           "save",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1801,18 +1797,18 @@
           "save",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1857,18 +1853,18 @@
           "save",
           "navigation",
           "partial",
-          "blocked",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "sitemap_based",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "sitemap 기반/정책 필요"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1912,18 +1908,18 @@
           "trip_detail",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -1967,18 +1963,18 @@
           "trip_detail",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2022,18 +2018,18 @@
           "trip_detail",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2077,18 +2073,18 @@
           "map",
           "map_interaction",
           "needs_policy",
-          "blocked",
+          "not_started",
           "memo_based"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "memo_based",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "메모 기반, 연출 상세 미정"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2139,18 +2135,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2200,18 +2196,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2263,18 +2259,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2327,18 +2323,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2388,18 +2384,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2449,18 +2445,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2512,18 +2508,18 @@
           "bottom_sheet",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "일부 미정"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2574,18 +2570,18 @@
           "bottom_sheet",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2637,18 +2633,18 @@
           "bottom_sheet",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2701,18 +2697,18 @@
           "bottom_sheet",
           "filter_sort",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2760,18 +2756,18 @@
           "bottom_sheet",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2819,18 +2815,18 @@
           "schedule_marker",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2881,18 +2877,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -2942,18 +2938,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3005,18 +3001,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3066,18 +3062,18 @@
           "schedule_marker",
           "map_interaction",
           "needs_policy",
-          "blocked",
+          "not_started",
           "agent_inferred"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "agent_inferred",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "추론/정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3123,18 +3119,18 @@
           "map",
           "map_interaction",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3186,18 +3182,18 @@
           "map",
           "map_interaction",
           "partial",
-          "blocked",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "sitemap_based",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "sitemap 기반/정책 필요"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3248,18 +3244,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3310,18 +3306,18 @@
           "place_marker",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3371,18 +3367,18 @@
           "schedule_marker",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3432,18 +3428,18 @@
           "place_marker",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3493,18 +3489,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3554,18 +3550,18 @@
           "place_marker",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3615,18 +3611,18 @@
           "schedule_marker",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3672,18 +3668,18 @@
           "map",
           "map_interaction",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3735,18 +3731,18 @@
           "place_marker",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3796,18 +3792,18 @@
           "place_marker",
           "map_interaction",
           "partial",
-          "blocked",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "sitemap_based",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "sitemap 기반/정책 필요"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3860,18 +3856,18 @@
           "create_schedule",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3922,18 +3918,18 @@
           "create_schedule",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "mixed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap/description 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -3981,18 +3977,18 @@
           "create_schedule",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4038,18 +4034,18 @@
           "create_schedule",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4095,18 +4091,18 @@
           "create_schedule",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4152,18 +4148,18 @@
           "create_schedule",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4209,18 +4205,18 @@
           "create_schedule",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4266,18 +4262,18 @@
           "general",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4323,18 +4319,18 @@
           "country",
           "filter_sort",
           "partial",
-          "blocked",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "figma_confirmed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "확정/정책 필요"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4382,18 +4378,18 @@
           "theme",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4437,18 +4433,18 @@
           "theme",
           "filter_sort",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4496,18 +4492,18 @@
           "creator",
           "display_state",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4557,18 +4553,18 @@
           "creator",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "agent_inferred"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "agent_inferred",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "추론/정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4615,18 +4611,18 @@
           "video_feed",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4687,8 +4683,8 @@
         "delivery": "not_started",
         "raw": "추론"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4734,18 +4730,18 @@
           "general",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "sitemap_based"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "sitemap_based",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "sitemap 기반"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4794,18 +4790,18 @@
           "map_setting",
           "map_interaction",
           "partial",
-          "blocked",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "figma_confirmed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "옵션 확정/반영 정책 필요"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4854,18 +4850,18 @@
           "map_setting",
           "map_interaction",
           "partial",
-          "blocked",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "partial",
         "evidence": "figma_confirmed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "옵션 확정/반영 정책 필요"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4914,18 +4910,18 @@
           "support",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -4974,18 +4970,18 @@
           "support",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5034,18 +5030,18 @@
           "terms",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5092,18 +5088,18 @@
           "reset",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5149,18 +5145,18 @@
           "reset",
           "modal_dialog",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Design",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5206,18 +5202,18 @@
           "reset",
           "modal_dialog",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5263,18 +5259,18 @@
           "folder_grid",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5321,18 +5317,18 @@
           "search",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5375,18 +5371,18 @@
           "search",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5431,18 +5427,18 @@
           "filter_sort",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5488,18 +5484,18 @@
           "filter_sort",
           "filter_sort",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5555,8 +5551,8 @@
         "delivery": "not_started",
         "raw": "추론"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5600,18 +5596,18 @@
           "add_menu",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5655,18 +5651,18 @@
           "add_menu",
           "navigation",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "Unassigned",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5711,18 +5707,18 @@
           "add_menu",
           "navigation",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5766,18 +5762,18 @@
           "folder_grid",
           "input",
           "confirmed",
-          "ready",
+          "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
         "evidence": "figma_confirmed",
-        "delivery": "ready",
+        "delivery": "not_started",
         "raw": "확정"
       },
-      "ownership": {
-        "owner": "KMP",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5825,18 +5821,18 @@
           "folder_grid",
           "input",
           "needs_policy",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "needs_policy",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
@@ -5882,18 +5878,18 @@
           "variant",
           "map_interaction",
           "variant",
-          "blocked",
+          "not_started",
           "mixed"
         ]
       },
       "status": {
         "spec": "variant",
         "evidence": "mixed",
-        "delivery": "blocked",
+        "delivery": "not_started",
         "raw": "대체안/정책 필요"
       },
-      "ownership": {
-        "owner": "PM",
+      "assignment": {
+        "developer": "Unassigned",
         "issue": null,
         "pr": null,
         "branch": null
