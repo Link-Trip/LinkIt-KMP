@@ -12,7 +12,8 @@ Desired flow:
 ```text
 SCC button
   -> action payload
-  -> local bridge or copied CLI command
+  -> local bridge or copied scc-agent command
+  -> selected AI agent
   -> scc-action.mjs
   -> feature-tracking.json + feature-events.jsonl
   -> SCC refresh
@@ -26,19 +27,19 @@ SCC button
 
 | 모드 | 동작 | 사용 시점 |
 |---|---|---|
-| 정적 모드 | 버튼이 CLI 명령을 클립보드에 복사 | 지금 바로 사용 가능, 안전함 |
+| 정적 모드 | 버튼이 짧은 SCC agent 실행 명령을 클립보드에 복사 | 지금 바로 사용 가능, 안전함 |
 | 브리지 모드 | 사용자가 띄운 localhost bridge에 action payload 전송 | 나중에 자동 실행, 에이전트 스킬 연동 |
 
 ## 정적 모드
 
-SCC는 버튼 클릭 시 선택된 AI 에이전트용 한국어 지시문을 만든다.
+SCC는 버튼 클릭 시 선택된 AI 에이전트용 wrapper 명령을 만든다.
 
 ```sh
-codex 'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 작업 시작 준비를 해줘...'
-claude 'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 작업 시작 준비를 해줘...'
+node docs/specs/scc-agent.mjs start --feature main:MAP_PAN --agent codex
+node docs/specs/scc-agent.mjs start --feature main:MAP_PAN --agent claude
 ```
 
-사용자는 복사된 명령을 터미널, Codex CLI, Claude CLI 세션에서 실행한다. 이 모드는 브라우저 권한이나 별도 서버가 필요 없다.
+사용자는 복사된 명령을 터미널에서 실행한다. `scc-agent.mjs`가 한국어 지시문을 생성하고 선택된 AI CLI(`codex` 또는 `claude`)를 실행한다. 이 모드는 브라우저 권한이나 별도 서버가 필요 없다.
 
 `시작 명령 복사`는 바로 개발을 시작하라는 명령이 아니다. 복사된 지시문은 에이전트에게 먼저 작업 목록, 영향 범위, 테스트 항목, 확인 질문을 정리하게 하고, 사용자가 진행을 승인한 뒤에만 아래와 같은 tracking 명령을 실행하도록 요구한다.
 
@@ -79,8 +80,8 @@ SCC는 action마다 실행 에이전트를 선택할 수 있어야 한다.
 
 | 에이전트 | 정적 모드 명령 형태 | 브리지 책임 |
 |---|---|---|
-| `codex` | `codex '<scc-action.mjs 명령이 포함된 한국어 지시문>'` | Codex에게 `linkit-spec` 스킬을 사용하게 한다. |
-| `claude` | `claude '<scc-action.mjs 명령이 포함된 한국어 지시문>'` | Claude에게 같은 SCC 정책 문서와 action command를 사용하게 한다. |
+| `codex` | `node docs/specs/scc-agent.mjs <action> --feature <uid> --agent codex` | Codex에게 `linkit-spec` 스킬을 사용하게 한다. |
+| `claude` | `node docs/specs/scc-agent.mjs <action> --feature <uid> --agent claude` | Claude에게 같은 SCC 정책 문서와 action command를 사용하게 한다. |
 
 에이전트가 달라도 Feature 상태 저장은 항상 `scc-action.mjs`가 담당한다. Codex/Claude는 상태 파일을 직접 편집하지 않는다.
 

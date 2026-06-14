@@ -35,6 +35,7 @@
 | [feature-tracking.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.js) | `file://` HTML에서 tracking을 읽기 위한 wrapper |
 | [feature-events.jsonl](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-events.jsonl) | SCC 상태 변경 append-only event log |
 | [generate-feature-list.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/generate-feature-list.mjs) | Feature List 재생성 스크립트 |
+| [scc-agent.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/scc-agent.mjs) | SCC 버튼이 복사하는 짧은 AI agent 실행 wrapper |
 | [scc-action.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/scc-action.mjs) | SCC/AI 스킬/CLI가 공통으로 사용하는 Feature tracking action runner |
 
 ## 공통 기준

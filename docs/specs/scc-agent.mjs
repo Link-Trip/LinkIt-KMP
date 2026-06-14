@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const repoRoot = process.cwd();
+const featureListPath = path.join(repoRoot, 'docs/specs/feature-list.json');
+const allowedAgents = ['codex', 'claude'];
+const allowedActions = ['assign', 'start', 'review', 'done', 'verify', 'block', 'unblock', 'audit', 'sync'];
+
+const actionLabels = {
+  assign: '개발자 배정',
+  start: '작업 시작 준비',
+  review: 'PR 리뷰 연결',
+  done: '구현 완료 처리',
+  verify: '검증 완료 처리',
+  block: '작업 차단',
+  unblock: '차단 해제',
+  audit: 'SCC audit',
+  sync: 'SCC tracking 동기화',
+};
+
+function parseArgs(argv) {
+  const args = { _: [] };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (!token.startsWith('--')) {
+      args._.push(token);
+      continue;
+    }
+
+    const key = token.slice(2);
+    const next = argv[index + 1];
+    if (!next || next.startsWith('--')) {
+      args[key] = true;
+      continue;
+    }
+
+    args[key] = next;
+    index += 1;
+  }
+  return args;
+}
+
+function shellArg(value) {
+  const text = String(value);
+  if (/^[A-Za-z0-9_./:@-]+$/.test(text)) return text;
+  return `'${text.replaceAll("'", "'\\''")}'`;
+}
+
+function readFeature(featureUid) {
+  if (!featureUid || !fs.existsSync(featureListPath)) return null;
+  const registry = JSON.parse(fs.readFileSync(featureListPath, 'utf8'));
+  return registry.features.find((feature) => feature.uid === featureUid) || null;
+}
+
+function trackingCommand(action, args) {
+  const parts = ['node', 'docs/specs/scc-action.mjs', action];
+  if (args.feature) parts.push('--feature', args.feature);
+  if (args.agent) parts.push('--agent', args.agent);
+  if (args.developer) parts.push('--developer', args.developer);
+  if (args.pr) parts.push('--pr', args.pr);
+  if (args.issue) parts.push('--issue', args.issue);
+  if (args.branch) parts.push('--branch', args.branch);
+  if (args.tests) parts.push('--tests', args.tests);
+  if (args.screenshots) parts.push('--screenshots', args.screenshots);
+  if (args.reason) parts.push('--reason', args.reason);
+  if (args.notes) parts.push('--notes', args.notes);
+  return parts.map(shellArg).join(' ');
+}
+
+function missingValueGuide(action, args) {
+  const missing = [];
+  if (action === 'assign' && !args.developer) missing.push('개발자명');
+  if (action === 'review' && !args.pr) missing.push('PR 번호 또는 PR URL');
+  if (action === 'block' && !args.reason) missing.push('차단 사유');
+  if (!missing.length) return [];
+  return [
+    `아래 값이 아직 없으면 명령을 실행하기 전에 사용자에게 먼저 확인해줘: ${missing.join(', ')}`,
+    '필수 값이 확인되기 전에는 SCC 명령을 실행하지 마.',
+    '값을 확인한 뒤에는 아래 명령에 필요한 옵션을 채워서 실행해줘.',
+  ];
+}
+
+function featureSummary(feature) {
+  if (!feature) return [];
+  return [
+    `Feature 제목: ${feature.title}`,
+    `화면군: ${feature.classification.area} / ${feature.classification.subarea}`,
+    `Trigger: ${feature.behavior.trigger}`,
+    `Response: ${feature.behavior.response}`,
+    `원천 스펙: docs/specs/${feature.links.specPath}:${feature.links.sourceLine}`,
+  ];
+}
+
+function buildPrompt(action, args) {
+  const feature = readFeature(args.feature);
+  const command = trackingCommand(action, args);
+  const auditCommand = 'node docs/specs/scc-action.mjs audit';
+  const agentGuide = args.agent === 'codex'
+    ? '`linkit-spec` 스킬을 사용해서'
+    : 'Claude용 LinkIt SCC 작업 절차에 따라';
+
+  if (action === 'start') {
+    return [
+      'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 작업 시작 준비를 해줘.',
+      `대상 Feature: ${args.feature}`,
+      ...featureSummary(feature),
+      '중요: 아직 개발을 바로 시작하지 마. 코드 수정, 커밋, SCC 상태 변경도 하지 마.',
+      '먼저 아래 내용을 한국어로 정리해줘.',
+      '1. Feature 스펙, 연결 이미지, TBD, 관련 문서에서 확인해야 할 내용',
+      '2. 구현 범위와 영향을 받을 가능성이 높은 파일/모듈',
+      '3. 필요한 작업 목록을 작은 체크리스트로 분해한 내용',
+      '4. 필요한 테스트와 스크린샷 검증 항목',
+      '5. 진행 전에 사용자 확인이 필요한 질문 또는 리스크',
+      '정리 마지막에는 "이 작업 목록으로 진행할까요?"라고 묻고 사용자 답변을 기다려.',
+      '사용자가 진행을 승인한 뒤에만 아래 SCC start 명령을 실행하고 audit을 돌린 다음 개발을 시작해.',
+      command,
+      `승인 후 실행할 audit 명령: ${auditCommand}`,
+    ].join('\n');
+  }
+
+  return [
+    'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 아래 작업을 진행해줘.',
+    `대상 Feature: ${args.feature || '-'}`,
+    ...featureSummary(feature),
+    `작업: ${actionLabels[action] || action}`,
+    ...missingValueGuide(action, args),
+    `${agentGuide} 다음 SCC 명령을 실행해줘.`,
+    command,
+    `명령 실행 후 \`${auditCommand}\`를 실행하고, 변경된 상태와 경고가 있으면 한국어로 요약해줘.`,
+  ].join('\n');
+}
+
+function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const action = args._[0];
+  const agent = args.agent || 'codex';
+
+  if (!allowedActions.includes(action)) {
+    throw new Error(`알 수 없는 action입니다: ${action || '(없음)'}`);
+  }
+  if (!allowedAgents.includes(agent)) {
+    throw new Error(`알 수 없는 agent입니다: ${agent}. 허용값: ${allowedAgents.join(', ')}`);
+  }
+  if (!['audit', 'sync'].includes(action) && !args.feature) {
+    throw new Error('Feature action에는 --feature <featureUid>가 필요합니다.');
+  }
+
+  args.agent = agent;
+  const prompt = buildPrompt(action, args);
+
+  if (args['print-prompt']) {
+    console.log(prompt);
+    return;
+  }
+
+  const result = spawnSync(agent, [prompt], {
+    cwd: repoRoot,
+    env: process.env,
+    stdio: 'inherit',
+  });
+
+  if (result.error) throw result.error;
+  process.exitCode = result.status ?? 0;
+}
+
+try {
+  main();
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+}

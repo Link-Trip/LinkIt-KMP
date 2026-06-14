@@ -1501,56 +1501,22 @@
       });
     }
 
-    function shellQuote(value) {
-      return `'${String(value).replaceAll("'", "'\\''")}'`;
+    function cliArg(value) {
+      const text = String(value);
+      if (/^[A-Za-z0-9_./:@-]+$/.test(text)) return text;
+      return `'${text.replaceAll("'", "'\\''")}'`;
     }
 
     function trackingCommandFor(action, feature) {
-      const base = `node docs/specs/scc-action.mjs ${action} --feature ${shellQuote(feature.uid)} --agent ${state.agent}`;
-      const commands = {
-        assign: `${base} --developer '<개발자명>'`,
-        start: `${base} --developer '<개발자명>'`,
-        review: `${base} --pr '#123'`,
-        done: `${base} --tests passed --screenshots passed`,
-        verify: base,
-        block: `${base} --reason '<차단 사유>'`
-      };
-      return commands[action] || base;
+      const parts = ['node', 'docs/specs/scc-agent.mjs', action, '--feature', feature.uid, '--agent', state.agent];
+      if (action === 'done') {
+        parts.push('--tests', 'passed', '--screenshots', 'passed');
+      }
+      return parts.map(cliArg).join(' ');
     }
 
     function commandFor(action, feature) {
-      const trackingCommand = trackingCommandFor(action, feature);
-      const agentGuide = state.agent === 'codex'
-        ? '`linkit-spec` 스킬을 사용해서'
-        : 'Claude용 LinkIt SCC 작업 절차에 따라';
-      if (action === 'start') {
-        const prompt = [
-          'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 작업 시작 준비를 해줘.',
-          `대상 Feature: ${feature.uid}`,
-          `작업: ${actionLabels[action] || action}`,
-          '중요: 아직 개발을 바로 시작하지 마. 코드 수정, 커밋, SCC 상태 변경도 하지 마.',
-          '먼저 아래 내용을 한국어로 정리해줘.',
-          '1. Feature 스펙, 연결 이미지, TBD, 관련 문서에서 확인해야 할 내용',
-          '2. 구현 범위와 영향을 받을 가능성이 높은 파일/모듈',
-          '3. 필요한 작업 목록을 작은 체크리스트로 분해한 내용',
-          '4. 필요한 테스트와 스크린샷 검증 항목',
-          '5. 진행 전에 사용자 확인이 필요한 질문 또는 리스크',
-          '정리 마지막에는 "이 작업 목록으로 진행할까요?"라고 묻고 사용자 답변을 기다려.',
-          '사용자가 진행을 승인한 뒤에만 아래 SCC start 명령을 실행하고 audit을 돌린 다음 개발을 시작해.',
-          trackingCommand,
-          '승인 후 실행할 audit 명령: node docs/specs/scc-action.mjs audit',
-        ].join('\n');
-        return `${state.agent} ${shellQuote(prompt)}`;
-      }
-      const prompt = [
-        'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 아래 작업을 진행해줘.',
-        `대상 Feature: ${feature.uid}`,
-        `작업: ${actionLabels[action] || action}`,
-        `${agentGuide} 다음 SCC 명령을 실행해줘.`,
-        trackingCommand,
-        '명령 실행 후 `node docs/specs/scc-action.mjs audit`를 실행하고, 변경된 상태와 경고가 있으면 한국어로 요약해줘.',
-      ].join('\n');
-      return `${state.agent} ${shellQuote(prompt)}`;
+      return trackingCommandFor(action, feature);
     }
 
     async function copyText(value) {
@@ -1850,7 +1816,7 @@
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('block', feature))}">차단 명령 복사</button>
             </div>
             <div class="command-preview" id="commandPreview">${escapeHtml(commandFor('start', feature))}</div>
-            <p class="subtitle">정적 모드: 버튼은 선택된 AI 에이전트용 한국어 CLI 지시문을 복사합니다. 브리지 모드에서는 같은 action contract와 agent 값으로 자동 실행할 수 있습니다.</p>
+            <p class="subtitle">정적 모드: 버튼은 짧은 SCC agent 실행 명령을 복사합니다. 이 명령이 선택된 AI 에이전트에 한국어 지시문을 전달합니다.</p>
           </div>
           <div class="section">
             <h3>Visual Evidence</h3>
