@@ -1,0 +1,1464 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pingo Spec Command Center</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f9fafb;
+      --text: #111827;
+      --muted: #6b7280;
+      --subtle: #9ca3af;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --teal: #0f766e;
+      --teal-soft: #ecfdf5;
+      --amber: #b45309;
+      --amber-soft: #fffbeb;
+      --red: #b91c1c;
+      --red-soft: #fef2f2;
+      --violet: #6d28d9;
+      --violet-soft: #f5f3ff;
+      --green: #15803d;
+      --green-soft: #f0fdf4;
+      --shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-width: 1120px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 360px;
+    }
+
+    .product-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0f766e, #2563eb);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .link-button,
+    .ghost-button,
+    .seg-button {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      min-height: 34px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .link-button:hover,
+    .ghost-button:hover,
+    .seg-button:hover {
+      border-color: var(--border-strong);
+      background: var(--panel-soft);
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--panel);
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 750;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .kpi small {
+      color: var(--subtle);
+      font-size: 12px;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    .app-layout {
+      display: grid;
+      grid-template-columns: 270px minmax(560px, 1fr) 390px;
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 144px);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-width: 0;
+    }
+
+    .sidebar {
+      padding: 14px;
+      align-self: start;
+      position: sticky;
+      top: 144px;
+      max-height: calc(100vh - 158px);
+      overflow: auto;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin: 0 0 10px;
+    }
+
+    .screen-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .screen-card {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .screen-card.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .screen-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .screen-name {
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .screen-version {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .screen-stats {
+      display: flex;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .filter-group {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+
+    .field-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .select,
+    .search-input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .select:focus,
+    .search-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .quick-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-weight: 700;
+    }
+
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .toolbar {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-count {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .seg-button {
+      border-color: transparent;
+      min-height: 30px;
+      padding: 5px 9px;
+      background: transparent;
+    }
+
+    .seg-button.active {
+      background: var(--panel);
+      border-color: var(--border);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      font-weight: 750;
+    }
+
+    .table-panel {
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: calc(100vh - 342px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--panel-soft);
+      color: var(--muted);
+      z-index: 3;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    tbody tr.active {
+      background: var(--blue-soft);
+    }
+
+    .feature-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    .feature-title {
+      font-weight: 750;
+      margin-bottom: 4px;
+    }
+
+    .feature-meta {
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.confirmed,
+    .badge.ready,
+    .badge.verified {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .badge.partial,
+    .badge.in_progress,
+    .badge.in_review {
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .badge.needs_policy,
+    .badge.blocked,
+    .badge.variant {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .badge.inferred,
+    .badge.not_started {
+      color: var(--muted);
+      background: #f3f4f6;
+    }
+
+    .badge.danger {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 24px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .board {
+      display: none;
+      grid-template-columns: repeat(4, minmax(210px, 1fr));
+      gap: 10px;
+      overflow: auto;
+      max-height: calc(100vh - 342px);
+      padding: 12px;
+    }
+
+    .board.active {
+      display: grid;
+    }
+
+    .lane {
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      border-radius: 8px;
+      min-width: 210px;
+      padding: 10px;
+    }
+
+    .lane-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .feature-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    .feature-card.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .card-title {
+      margin: 6px 0 8px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .policy-panel {
+      padding: 12px;
+    }
+
+    .policy-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .policy-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .policy-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+      cursor: pointer;
+    }
+
+    .policy-item:hover {
+      border-color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .policy-title {
+      font-weight: 750;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .policy-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .detail {
+      align-self: start;
+      position: sticky;
+      top: 144px;
+      max-height: calc(100vh - 158px);
+      overflow: auto;
+      padding: 0;
+    }
+
+    .detail-empty {
+      padding: 28px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .detail-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .detail-kicker {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .detail-title {
+      margin: 0 0 12px;
+      font-size: 19px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .detail-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .detail-body {
+      padding: 16px;
+    }
+
+    .section {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 94px minmax(0, 1fr);
+      gap: 8px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .kv dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .kv dd {
+      margin: 0;
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .evidence {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel-soft);
+      cursor: pointer;
+    }
+
+    .evidence img {
+      width: 100%;
+      height: 128px;
+      object-fit: cover;
+      display: block;
+      background: #eef2f7;
+    }
+
+    .evidence-caption {
+      padding: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--border-strong);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 14px;
+      font-size: 13px;
+      background: var(--panel-soft);
+    }
+
+    .related-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .related-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px;
+      cursor: pointer;
+    }
+
+    .related-item:hover {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .source-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .source-links a {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 32px;
+      padding: 7px 9px;
+      color: var(--blue);
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      z-index: 60;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--panel);
+      border-radius: 8px;
+      max-width: min(1100px, 92vw);
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .modal img {
+      display: block;
+      max-width: 100%;
+      max-height: calc(90vh - 54px);
+      object-fit: contain;
+      background: #f8fafc;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1280px) {
+      body {
+        min-width: 980px;
+      }
+
+      .app-layout {
+        grid-template-columns: 230px minmax(480px, 1fr) 340px;
+      }
+
+      .kpi-row {
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-main">
+      <div class="title-block">
+        <div class="product-mark">SC</div>
+        <div>
+          <h1>Spec Command Center</h1>
+          <p class="subtitle">Markdown 스펙을 Feature 단위로 추적하는 Pingo 작업 관제판</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="link-button" href="./README.md">스펙 인덱스</a>
+        <a class="link-button" href="./feature-list.schema.md">Feature 규격</a>
+        <a class="link-button" href="./feature-list.json">Feature List</a>
+        <button class="ghost-button" type="button" id="resetFilters">필터 초기화</button>
+      </div>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+  </header>
+
+  <main class="app-layout">
+    <aside class="panel sidebar">
+      <p class="panel-title">Screens</p>
+      <div class="screen-list" id="screenList"></div>
+
+      <div class="filter-group">
+        <p class="field-label">Type</p>
+        <select class="select" id="typeFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Spec Status</p>
+        <select class="select" id="specStatusFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Delivery Status</p>
+        <select class="select" id="deliveryFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Owner</p>
+        <select class="select" id="ownerFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Quick Filters</p>
+        <div class="quick-filters">
+          <button class="chip" type="button" data-quick="blocked">Blocked</button>
+          <button class="chip" type="button" data-quick="noOwner">No owner</button>
+          <button class="chip" type="button" data-quick="hasEvidence">Has evidence</button>
+          <button class="chip" type="button" data-quick="hasTbd">Has TBD</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="panel toolbar">
+        <div class="search-wrap">
+          <input class="search-input" id="searchInput" type="search" placeholder="Feature ID, 기능명, Trigger, 화면 반응, TBD 검색" />
+          <span class="result-count" id="resultCount"></span>
+        </div>
+        <div class="segmented" role="tablist" aria-label="View mode">
+          <button class="seg-button active" type="button" data-view="table">Table</button>
+          <button class="seg-button" type="button" data-view="board">Flow</button>
+        </div>
+      </div>
+
+      <div class="panel table-panel" id="tableView">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Area</th>
+                <th>Spec</th>
+                <th>Delivery</th>
+                <th>Owner</th>
+                <th>Evidence</th>
+                <th>TBD</th>
+              </tr>
+            </thead>
+            <tbody id="featureRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel board" id="boardView"></div>
+
+      <div class="panel policy-panel">
+        <div class="policy-header">
+          <div>
+            <p class="panel-title" style="margin-bottom: 3px;">TBD / Policy Queue</p>
+            <div class="subtitle">선택된 화면/필터에 연결된 정책 미정 항목</div>
+          </div>
+          <span class="count-pill" id="policyCount">0</span>
+        </div>
+        <div class="policy-list" id="policyList"></div>
+      </div>
+    </section>
+
+    <aside class="panel detail" id="detailPanel">
+      <div class="detail-empty">Feature를 선택하면 Trigger, 화면 반응, 이미지 근거, 연결 TBD, 원문 스펙 링크를 한 번에 볼 수 있습니다.</div>
+    </aside>
+  </main>
+
+  <div class="modal" id="imageModal" role="dialog" aria-modal="true" aria-label="Image preview">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="modalTitle">Image preview</div>
+        <button class="ghost-button" type="button" id="closeModal">닫기</button>
+      </div>
+      <img id="modalImage" alt="" />
+    </div>
+  </div>
+
+  <script src="./feature-list.js"></script>
+  <script>
+    function normalizeFeatureList(registry) {
+      return {
+        generatedAt: registry.generatedAt,
+        schemaVersion: registry.schemaVersion,
+        project: registry.project,
+        owners: registry.enums.owner,
+        specs: registry.specDocuments.map((spec) => ({
+          slug: spec.slug,
+          title: spec.title,
+          area: spec.area,
+          path: spec.path,
+          file: spec.path,
+          version: spec.specVersion,
+          figma: spec.figmaSection,
+          accent: spec.accent,
+          reviewStatus: spec.reviewStatus
+        })),
+        images: registry.imageAssets.map((image) => ({
+          uid: image.uid,
+          screenSlug: image.screenSlug,
+          imageId: image.imageId,
+          path: image.path,
+          description: image.description,
+          sourceLine: image.source.line
+        })),
+        tbds: registry.tbdItems.map((tbd) => ({
+          uid: tbd.uid,
+          screenSlug: tbd.screenSlug,
+          tbdId: tbd.tbdId,
+          title: tbd.title,
+          description: tbd.description,
+          decisionStatus: tbd.status,
+          owner: tbd.owner,
+          sourceLine: tbd.source.line,
+          featureRefs: tbd.impact.featureRefs
+        })),
+        features: registry.features.map((feature) => ({
+          uid: feature.uid,
+          featureId: feature.featureId,
+          screenSlug: feature.classification.screenSlug,
+          area: feature.classification.area,
+          subarea: feature.classification.subarea,
+          type: feature.classification.type,
+          tags: feature.classification.tags,
+          title: feature.title,
+          trigger: feature.behavior.trigger,
+          response: feature.behavior.response,
+          rawStatus: feature.status.raw,
+          specStatus: feature.status.spec,
+          evidenceLevel: feature.status.evidence,
+          deliveryStatus: feature.status.delivery,
+          owner: feature.ownership.owner,
+          issue: feature.ownership.issue,
+          pr: feature.ownership.pr,
+          imageRefs: feature.links.imageRefs,
+          tbdRefs: feature.links.tbdRefs,
+          relatedFeatureRefs: feature.links.relatedFeatureRefs,
+          source: {
+            file: feature.links.specPath,
+            line: feature.links.sourceLine
+          }
+        }))
+      };
+    }
+
+    const data = normalizeFeatureList(window.SPEC_COMMAND_CENTER_FEATURE_LIST);
+    const labels = {
+      confirmed: 'Confirmed',
+      partial: 'Partial',
+      needs_policy: 'Needs policy',
+      inferred: 'Inferred',
+      variant: 'Variant',
+      ready: 'Ready',
+      blocked: 'Blocked',
+      not_started: 'Not started',
+      in_progress: 'In progress',
+      in_review: 'Review',
+      verified: 'Verified',
+      map_interaction: 'Map',
+      navigation: 'Navigation',
+      input: 'Input',
+      validation: 'Validation',
+      modal_dialog: 'Modal',
+      filter_sort: 'Filter',
+      async_process: 'Async',
+      selection: 'Selection',
+      variant_experiment: 'Variant',
+      display_state: 'Display'
+    };
+
+    const state = {
+      screen: 'all',
+      type: 'all',
+      specStatus: 'all',
+      delivery: 'all',
+      owner: 'all',
+      query: '',
+      quick: new Set(),
+      view: 'table',
+      selectedUid: data.features[0]?.uid
+    };
+
+    const byId = (id) => document.getElementById(id);
+    const specBySlug = new Map(data.specs.map((spec) => [spec.slug, spec]));
+    const imageByUid = new Map(data.images.map((image) => [image.uid, image]));
+    const tbdByUid = new Map(data.tbds.map((tbd) => [tbd.uid, tbd]));
+    const featuresByUid = new Map(data.features.map((feature) => [feature.uid, feature]));
+
+    function uniq(values) {
+      return [...new Set(values.filter(Boolean))].sort();
+    }
+
+    function label(value) {
+      return labels[value] || value || '-';
+    }
+
+    function badge(value, extraClass = '') {
+      return `<span class="badge ${value} ${extraClass}">${label(value)}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function getImages(feature) {
+      return feature.imageRefs.map((uid) => imageByUid.get(uid)).filter(Boolean);
+    }
+
+    function getTbds(feature) {
+      return feature.tbdRefs.map((uid) => tbdByUid.get(uid)).filter(Boolean);
+    }
+
+    function screenStats(slug) {
+      const features = data.features.filter((feature) => feature.screenSlug === slug);
+      const tbds = data.tbds.filter((tbd) => tbd.screenSlug === slug);
+      const blocked = features.filter((feature) => feature.deliveryStatus === 'blocked').length;
+      return { features: features.length, tbds: tbds.length, blocked };
+    }
+
+    function filteredFeatures() {
+      const query = state.query.trim().toLowerCase();
+      return data.features.filter((feature) => {
+        const screenMatch = state.screen === 'all' || feature.screenSlug === state.screen;
+        const typeMatch = state.type === 'all' || feature.type === state.type;
+        const specMatch = state.specStatus === 'all' || feature.specStatus === state.specStatus;
+        const deliveryMatch = state.delivery === 'all' || feature.deliveryStatus === state.delivery;
+        const ownerMatch = state.owner === 'all' || feature.owner === state.owner;
+        const searchText = [
+          feature.featureId,
+          feature.title,
+          feature.trigger,
+          feature.response,
+          feature.rawStatus,
+          feature.subarea,
+          specBySlug.get(feature.screenSlug)?.title,
+          ...getTbds(feature).map((tbd) => `${tbd.tbdId} ${tbd.title} ${tbd.description}`)
+        ].join(' ').toLowerCase();
+        const queryMatch = !query || searchText.includes(query);
+        const quickMatch = [...state.quick].every((quick) => {
+          if (quick === 'blocked') return feature.deliveryStatus === 'blocked';
+          if (quick === 'noOwner') return feature.owner === 'Unassigned';
+          if (quick === 'hasEvidence') return getImages(feature).length > 0;
+          if (quick === 'hasTbd') return getTbds(feature).length > 0;
+          return true;
+        });
+        return screenMatch && typeMatch && specMatch && deliveryMatch && ownerMatch && queryMatch && quickMatch;
+      });
+    }
+
+    function renderKpis() {
+      const total = data.features.length;
+      const ready = data.features.filter((feature) => ['ready', 'in_progress', 'in_review', 'verified'].includes(feature.deliveryStatus)).length;
+      const blocked = data.features.filter((feature) => feature.deliveryStatus === 'blocked').length;
+      const inProgress = data.features.filter((feature) => feature.deliveryStatus === 'in_progress').length;
+      const prLinked = data.features.filter((feature) => feature.pr).length;
+      const evidenceMissing = data.features.filter((feature) => getImages(feature).length === 0).length;
+      const kpis = [
+        ['Total Features', total, `${data.specs.length} specs`],
+        ['Ready for Dev', ready, 'usable scope'],
+        ['Blocked by TBD', blocked, `${data.tbds.length} open TBDs`],
+        ['In Progress', inProgress, 'tracked'],
+        ['PR Linked', prLinked, 'connected'],
+        ['Evidence Missing', evidenceMissing, 'needs review']
+      ];
+      byId('kpiRow').innerHTML = kpis.map(([title, value, note]) => `
+        <div class="kpi">
+          <div class="kpi-label">${title}</div>
+          <div class="kpi-value">${value}<small>${note}</small></div>
+        </div>
+      `).join('');
+    }
+
+    function renderScreens() {
+      const allActive = state.screen === 'all' ? 'active' : '';
+      const allStats = { features: data.features.length, tbds: data.tbds.length, blocked: data.features.filter((feature) => feature.deliveryStatus === 'blocked').length };
+      const cards = [`
+        <button class="screen-card ${allActive}" type="button" data-screen="all">
+          <div class="screen-card-top">
+            <span class="screen-name">All Screens</span>
+            <span class="screen-version">registry</span>
+          </div>
+          <div class="screen-stats"><span>${allStats.features} features</span><span>${allStats.tbds} TBD</span><span>${allStats.blocked} blocked</span></div>
+        </button>
+      `];
+      cards.push(...data.specs.map((spec) => {
+        const stats = screenStats(spec.slug);
+        return `
+          <button class="screen-card ${state.screen === spec.slug ? 'active' : ''}" type="button" data-screen="${spec.slug}">
+            <div class="screen-card-top">
+              <span class="screen-name">${escapeHtml(spec.title)}</span>
+              <span class="screen-version">${escapeHtml(spec.version)}</span>
+            </div>
+            <div class="screen-stats"><span>${stats.features} features</span><span>${stats.tbds} TBD</span><span>${stats.blocked} blocked</span></div>
+          </button>
+        `;
+      }));
+      byId('screenList').innerHTML = cards.join('');
+      byId('screenList').querySelectorAll('[data-screen]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.screen = button.dataset.screen;
+          ensureSelection();
+          render();
+        });
+      });
+    }
+
+    function renderSelects() {
+      fillSelect('typeFilter', 'all', 'All types', uniq(data.features.map((feature) => feature.type)));
+      fillSelect('specStatusFilter', 'all', 'All spec status', uniq(data.features.map((feature) => feature.specStatus)));
+      fillSelect('deliveryFilter', 'all', 'All delivery status', uniq(data.features.map((feature) => feature.deliveryStatus)));
+      fillSelect('ownerFilter', 'all', 'All owners', uniq(data.features.map((feature) => feature.owner)));
+      byId('typeFilter').value = state.type;
+      byId('specStatusFilter').value = state.specStatus;
+      byId('deliveryFilter').value = state.delivery;
+      byId('ownerFilter').value = state.owner;
+    }
+
+    function fillSelect(id, allValue, allLabel, values) {
+      const current = byId(id).value || allValue;
+      byId(id).innerHTML = [`<option value="${allValue}">${allLabel}</option>`]
+        .concat(values.map((value) => `<option value="${value}">${label(value)}</option>`))
+        .join('');
+      byId(id).value = values.includes(current) ? current : allValue;
+    }
+
+    function renderRows() {
+      const features = filteredFeatures();
+      byId('resultCount').textContent = `${features.length} of ${data.features.length}`;
+      if (!features.length) {
+        byId('featureRows').innerHTML = `<tr><td colspan="7"><div class="empty-state">조건에 맞는 Feature가 없습니다.</div></td></tr>`;
+        return;
+      }
+      byId('featureRows').innerHTML = features.map((feature) => {
+        const spec = specBySlug.get(feature.screenSlug);
+        const images = getImages(feature);
+        const tbds = getTbds(feature);
+        return `
+          <tr class="${feature.uid === state.selectedUid ? 'active' : ''}" data-feature="${feature.uid}">
+            <td>
+              <div class="feature-id">${escapeHtml(feature.featureId)}</div>
+              <div class="feature-title">${escapeHtml(feature.title)}</div>
+              <div class="feature-meta"><span>${escapeHtml(feature.trigger)}</span></div>
+            </td>
+            <td>
+              <div>${escapeHtml(spec?.title || feature.area)}</div>
+              <div class="feature-meta"><span>${escapeHtml(feature.subarea)}</span><span>${label(feature.type)}</span></div>
+            </td>
+            <td>${badge(feature.specStatus)}</td>
+            <td>${badge(feature.deliveryStatus)}</td>
+            <td>${escapeHtml(feature.owner)}</td>
+            <td><span class="count-pill">${images.length}</span></td>
+            <td><span class="count-pill">${tbds.length}</span></td>
+          </tr>
+        `;
+      }).join('');
+      byId('featureRows').querySelectorAll('[data-feature]').forEach((row) => {
+        row.addEventListener('click', () => selectFeature(row.dataset.feature));
+      });
+    }
+
+    function renderBoard() {
+      const features = filteredFeatures();
+      const lanes = [
+        ['blocked', 'Blocked'],
+        ['ready', 'Ready'],
+        ['in_progress', 'In Progress'],
+        ['in_review', 'Review'],
+        ['verified', 'Verified'],
+        ['not_started', 'Not Started']
+      ];
+      byId('boardView').innerHTML = lanes.map(([status, title]) => {
+        const laneFeatures = features.filter((feature) => feature.deliveryStatus === status);
+        return `
+          <div class="lane">
+            <div class="lane-title"><span>${title}</span><span>${laneFeatures.length}</span></div>
+            ${laneFeatures.slice(0, 18).map((feature) => {
+              const spec = specBySlug.get(feature.screenSlug);
+              return `
+                <div class="feature-card ${feature.uid === state.selectedUid ? 'active' : ''}" data-feature="${feature.uid}">
+                  <div class="feature-id">${escapeHtml(feature.featureId)}</div>
+                  <div class="card-title">${escapeHtml(feature.title)}</div>
+                  <div class="card-footer">
+                    <span class="badge ${feature.specStatus}">${label(feature.specStatus)}</span>
+                    <span class="feature-meta">${escapeHtml(spec?.title || feature.area)}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }).join('');
+      byId('boardView').querySelectorAll('[data-feature]').forEach((card) => {
+        card.addEventListener('click', () => selectFeature(card.dataset.feature));
+      });
+    }
+
+    function renderPolicyQueue() {
+      const features = filteredFeatures();
+      const featureUids = new Set(features.map((feature) => feature.uid));
+      const tbdRefs = new Set(features.flatMap((feature) => feature.tbdRefs));
+      const visibleTbds = data.tbds.filter((tbd) => {
+        const screenMatch = state.screen === 'all' || tbd.screenSlug === state.screen;
+        return screenMatch && (tbdRefs.has(tbd.uid) || state.screen !== 'all');
+      }).slice(0, 8);
+      byId('policyCount').textContent = visibleTbds.length;
+      if (!visibleTbds.length) {
+        byId('policyList').innerHTML = '<div class="empty-state">현재 필터에서 연결된 TBD가 없습니다.</div>';
+        return;
+      }
+      byId('policyList').innerHTML = visibleTbds.map((tbd) => {
+        const affected = data.features.filter((feature) => feature.tbdRefs.includes(tbd.uid) && featureUids.has(feature.uid)).length;
+        const spec = specBySlug.get(tbd.screenSlug);
+        return `
+          <div class="policy-item" data-tbd="${tbd.uid}">
+            <div class="feature-meta"><span>${escapeHtml(spec?.title || tbd.screenSlug)}</span><span>${escapeHtml(tbd.tbdId)}</span><span>${affected} linked</span></div>
+            <div class="policy-title">${escapeHtml(tbd.title)}</div>
+            <div class="policy-desc">${escapeHtml(tbd.description)}</div>
+          </div>
+        `;
+      }).join('');
+      byId('policyList').querySelectorAll('[data-tbd]').forEach((item) => {
+        item.addEventListener('click', () => {
+          const feature = data.features.find((candidate) => candidate.tbdRefs.includes(item.dataset.tbd));
+          if (feature) selectFeature(feature.uid);
+        });
+      });
+    }
+
+    function renderDetail() {
+      const feature = featuresByUid.get(state.selectedUid);
+      if (!feature) {
+        byId('detailPanel').innerHTML = '<div class="detail-empty">선택된 Feature가 없습니다.</div>';
+        return;
+      }
+      const spec = specBySlug.get(feature.screenSlug);
+      const images = getImages(feature);
+      const tbds = getTbds(feature);
+      const related = feature.relatedFeatureRefs.map((uid) => featuresByUid.get(uid)).filter(Boolean).slice(0, 4);
+      byId('detailPanel').innerHTML = `
+        <div class="detail-header">
+          <div class="detail-kicker">
+            <span>${escapeHtml(spec?.title || feature.area)} / ${escapeHtml(feature.subarea)}</span>
+            <span>${escapeHtml(spec?.version || '')}</span>
+          </div>
+          <h2 class="detail-title">${escapeHtml(feature.title)}</h2>
+          <div class="detail-badges">
+            <span class="badge ${feature.specStatus}">${label(feature.specStatus)}</span>
+            <span class="badge ${feature.deliveryStatus}">${label(feature.deliveryStatus)}</span>
+            <span class="badge inferred">${label(feature.evidenceLevel)}</span>
+          </div>
+        </div>
+        <div class="detail-body">
+          <div class="section">
+            <h3>Behavior</h3>
+            <dl class="kv">
+              <dt>Feature ID</dt><dd><span class="feature-id">${escapeHtml(feature.featureId)}</span></dd>
+              <dt>Trigger</dt><dd>${escapeHtml(feature.trigger)}</dd>
+              <dt>Response</dt><dd>${escapeHtml(feature.response)}</dd>
+              <dt>Raw status</dt><dd>${escapeHtml(feature.rawStatus)}</dd>
+              <dt>Owner</dt><dd>${escapeHtml(feature.owner)}</dd>
+            </dl>
+          </div>
+          <div class="section">
+            <h3>Visual Evidence</h3>
+            ${images.length ? `<div class="evidence-grid">${images.map((image) => `
+              <div class="evidence" data-image="${escapeHtml(image.path)}" data-title="${escapeHtml(image.imageId + ' · ' + image.description)}">
+                <img src="${escapeHtml(image.path)}" alt="${escapeHtml(image.description)}" />
+                <div class="evidence-caption">${escapeHtml(image.imageId)} · ${escapeHtml(image.description)}</div>
+              </div>
+            `).join('')}</div>` : '<div class="empty-state">이 Feature에는 연결된 이미지 근거가 없습니다.</div>'}
+          </div>
+          <div class="section">
+            <h3>Open Questions</h3>
+            ${tbds.length ? `<div class="related-list">${tbds.map((tbd) => `
+              <div class="related-item">
+                <div class="feature-meta"><span>${escapeHtml(tbd.tbdId)}</span><span>${escapeHtml(tbd.owner)}</span></div>
+                <div class="policy-title">${escapeHtml(tbd.title)}</div>
+                <div class="policy-desc">${escapeHtml(tbd.description)}</div>
+              </div>
+            `).join('')}</div>` : '<div class="empty-state">연결된 TBD가 없습니다.</div>'}
+          </div>
+          <div class="section">
+            <h3>Source & Links</h3>
+            <div class="source-links">
+              <a href="./${escapeHtml(feature.source.file)}">Open Markdown</a>
+              <a href="./README.md">Spec Index</a>
+            </div>
+            <p class="subtitle">Source line: ${feature.source.line} · Figma section: ${escapeHtml(spec?.figma || '-')}</p>
+          </div>
+          <div class="section">
+            <h3>Related Features</h3>
+            ${related.length ? `<div class="related-list">${related.map((item) => `
+              <div class="related-item" data-related="${item.uid}">
+                <div class="feature-id">${escapeHtml(item.featureId)}</div>
+                <div class="policy-title">${escapeHtml(item.title)}</div>
+              </div>
+            `).join('')}</div>` : '<div class="empty-state">같은 영역의 관련 Feature가 없습니다.</div>'}
+          </div>
+        </div>
+      `;
+      byId('detailPanel').querySelectorAll('[data-image]').forEach((item) => {
+        item.addEventListener('click', () => openImage(item.dataset.image, item.dataset.title));
+      });
+      byId('detailPanel').querySelectorAll('[data-related]').forEach((item) => {
+        item.addEventListener('click', () => selectFeature(item.dataset.related));
+      });
+    }
+
+    function selectFeature(uid) {
+      state.selectedUid = uid;
+      renderRows();
+      renderBoard();
+      renderDetail();
+    }
+
+    function ensureSelection() {
+      const features = filteredFeatures();
+      if (!features.find((feature) => feature.uid === state.selectedUid)) {
+        state.selectedUid = features[0]?.uid || null;
+      }
+    }
+
+    function openImage(src, title) {
+      byId('modalTitle').textContent = title || 'Image preview';
+      byId('modalImage').src = src;
+      byId('modalImage').alt = title || '';
+      byId('imageModal').classList.add('active');
+    }
+
+    function closeImage() {
+      byId('imageModal').classList.remove('active');
+      byId('modalImage').src = '';
+    }
+
+    function render() {
+      renderKpis();
+      renderScreens();
+      renderSelects();
+      renderRows();
+      renderBoard();
+      renderPolicyQueue();
+      renderDetail();
+      document.querySelectorAll('[data-quick]').forEach((button) => {
+        button.classList.toggle('active', state.quick.has(button.dataset.quick));
+      });
+      byId('tableView').classList.toggle('hidden', state.view !== 'table');
+      byId('boardView').classList.toggle('active', state.view === 'board');
+    }
+
+    function bindControls() {
+      byId('searchInput').addEventListener('input', (event) => {
+        state.query = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('typeFilter').addEventListener('change', (event) => {
+        state.type = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('specStatusFilter').addEventListener('change', (event) => {
+        state.specStatus = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('deliveryFilter').addEventListener('change', (event) => {
+        state.delivery = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('ownerFilter').addEventListener('change', (event) => {
+        state.owner = event.target.value;
+        ensureSelection();
+        render();
+      });
+      document.querySelectorAll('[data-quick]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.quick;
+          state.quick.has(key) ? state.quick.delete(key) : state.quick.add(key);
+          ensureSelection();
+          render();
+        });
+      });
+      document.querySelectorAll('[data-view]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.view = button.dataset.view;
+          document.querySelectorAll('[data-view]').forEach((item) => item.classList.toggle('active', item === button));
+          render();
+        });
+      });
+      byId('resetFilters').addEventListener('click', () => {
+        state.screen = 'all';
+        state.type = 'all';
+        state.specStatus = 'all';
+        state.delivery = 'all';
+        state.owner = 'all';
+        state.query = '';
+        state.quick.clear();
+        byId('searchInput').value = '';
+        ensureSelection();
+        render();
+      });
+      byId('closeModal').addEventListener('click', closeImage);
+      byId('imageModal').addEventListener('click', (event) => {
+        if (event.target.id === 'imageModal') closeImage();
+      });
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeImage();
+      });
+    }
+
+    bindControls();
+    render();
+  </script>
+</body>
+</html>

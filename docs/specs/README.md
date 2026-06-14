@@ -21,6 +21,16 @@
 | [spec-document-pipeline.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/agents/spec-document-pipeline.md) | Figma 기반 스펙 작성, 서브에이전트 리뷰, 수정, 재검토 절차 |
 | [spec-document-reviewer.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/agents/spec-document-reviewer.md) | 스펙 문서 리뷰 서브에이전트 지침 |
 
+## Spec Command Center
+
+| 문서 | 용도 |
+|---|---|
+| [index.html](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/index.html) | Feature List를 화면군/상태/담당/정책 기준으로 탐색하는 HTML 대시보드 |
+| [feature-list.schema.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.schema.md) | Spec Command Center Feature List 규격 |
+| [feature-list.json](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.json) | 화면별 스펙에서 생성한 canonical Feature List |
+| [feature-list.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.js) | `file://` HTML에서 Feature List를 읽기 위한 wrapper |
+| [generate-feature-list.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/generate-feature-list.mjs) | Feature List 재생성 스크립트 |
+
 ## 공통 기준
 
 | 기준 | 내용 |
