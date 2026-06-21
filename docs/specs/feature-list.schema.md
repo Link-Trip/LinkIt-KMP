@@ -8,7 +8,7 @@
 
 이 규격은 화면별 Markdown 스펙을 Spec Command Center에서 조회 가능한 Feature List로 정규화하기 위한 데이터 계약이다.
 
-Markdown 문서는 제품 스펙의 원천이고, Feature List는 팀 협업/작업 분배를 위한 읽기 전용 registry다. 실제 구현 진행 상태, 개발자, Issue, PR은 `feature-tracking.json`에서 관리한다.
+Markdown 문서는 제품 스펙의 원천이고, Feature List는 팀 협업/작업 분배를 위한 읽기 전용 registry다. 실제 구현 진행 상태, 개발자, Issue, PR, Feature별 작업 계획과 프롬프트 기록은 `feature-tracking.json`에서 관리한다.
 
 생성 직후의 작업 추적 필드는 모두 초기 상태로 둔다. `status.delivery`는 `not_started`, `assignment.developer`는 `Unassigned`, Issue/PR/branch와 검증 결과는 비어 있는 상태가 기본이다. SCC에서 보여주는 실제 작업 상태는 `feature-tracking.json`이 있으면 그 값을 우선한다.
 
@@ -133,7 +133,7 @@ node docs/specs/generate-feature-list.mjs
 |---|---|
 | `feature-list.json` | canonical Feature List |
 | `feature-list.js` | `file://` HTML에서 읽기 위한 wrapper |
-| `feature-tracking.json` | 개발자/상태/Issue/PR/검증 추적 source |
+| `feature-tracking.json` | 개발자/상태/Issue/PR/검증/작업 계획/프롬프트 기록 추적 source |
 | `feature-tracking.js` | `file://` HTML에서 tracking을 읽기 위한 wrapper |
 | `feature-events.jsonl` | 작업 상태 변경 append-only log |
 
@@ -141,4 +141,4 @@ node docs/specs/generate-feature-list.mjs
 
 Spec Command Center는 `feature-list.js`와 `feature-tracking.js`를 로드한다.
 
-브라우저 화면에서 사용하는 테이블/필터/drawer 모델은 Feature registry에 tracking을 overlay한 view model이다. Feature 정의는 항상 `feature-list.json`을 기준으로 보고, 작업 진행 상태는 `feature-tracking.json`을 기준으로 본다.
+브라우저 화면에서 사용하는 테이블/필터/drawer 모델은 Feature registry에 tracking을 overlay한 view model이다. Feature 정의는 항상 `feature-list.json`을 기준으로 보고, 작업 진행 상태, 작업 계획, 프롬프트 기록은 `feature-tracking.json`을 기준으로 본다.

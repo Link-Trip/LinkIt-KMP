@@ -31,8 +31,8 @@
 | [feature-list.schema.md](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.schema.md) | Spec Command Center Feature List 규격 |
 | [feature-list.json](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.json) | 화면별 스펙에서 생성한 canonical Feature List |
 | [feature-list.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-list.js) | `file://` HTML에서 Feature List를 읽기 위한 wrapper |
-| [feature-tracking.json](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.json) | Feature 개발자/상태/Issue/PR/검증 추적 source |
-| [feature-tracking.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.js) | `file://` HTML에서 tracking을 읽기 위한 wrapper |
+| [feature-tracking.json](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.json) | Feature 개발자/상태/Issue/PR/검증/작업 계획/프롬프트 기록 추적 source |
+| [feature-tracking.js](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-tracking.js) | `file://` HTML에서 tracking, 작업 계획, 프롬프트 기록을 읽기 위한 wrapper |
 | [feature-events.jsonl](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/feature-events.jsonl) | SCC 상태 변경 append-only event log |
 | [generate-feature-list.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/generate-feature-list.mjs) | Feature List 재생성 스크립트 |
 | [scc-agent.mjs](/Users/yuhohyeon/Desktop/project/LinkIt-KMP/docs/specs/scc-agent.mjs) | SCC 버튼이 복사하는 짧은 AI agent 실행 wrapper |

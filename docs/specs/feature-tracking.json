@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-06-14T06:02:46.226Z",
+  "updatedAt": "2026-06-21T09:04:39.381Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -13,6 +13,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -27,6 +38,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -41,6 +63,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -55,6 +88,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -69,6 +113,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -83,6 +138,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -97,6 +163,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -111,6 +188,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -125,6 +213,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -139,6 +238,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -153,6 +263,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -167,6 +288,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -181,6 +313,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -195,6 +338,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -209,6 +363,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -223,6 +388,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -237,6 +413,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -251,6 +438,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -265,6 +463,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -279,6 +488,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -293,6 +513,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -307,6 +538,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -321,6 +563,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -335,6 +588,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -349,6 +613,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -363,6 +638,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -377,6 +663,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -391,6 +688,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -405,6 +713,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -419,6 +738,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -433,6 +763,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -447,6 +788,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -461,6 +813,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -475,6 +838,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -489,6 +863,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -503,6 +888,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -517,6 +913,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -531,6 +938,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -545,6 +963,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -559,6 +988,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -573,6 +1013,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -587,6 +1038,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -601,6 +1063,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -615,6 +1088,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -629,6 +1113,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -643,6 +1138,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -657,6 +1163,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -671,6 +1188,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -685,6 +1213,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -699,6 +1238,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -713,6 +1263,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -727,6 +1288,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -741,6 +1313,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -755,6 +1338,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -769,6 +1363,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -783,6 +1388,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -797,6 +1413,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -811,6 +1438,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -825,6 +1463,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -839,6 +1488,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -853,6 +1513,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -867,6 +1538,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -881,6 +1563,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -895,6 +1588,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -909,6 +1613,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -923,6 +1638,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -937,6 +1663,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -951,6 +1688,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -965,6 +1713,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -979,6 +1738,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -993,6 +1763,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1007,6 +1788,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1021,6 +1813,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1035,6 +1838,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1049,6 +1863,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1063,6 +1888,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1077,6 +1913,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1091,6 +1938,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1105,6 +1963,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1119,6 +1988,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1133,6 +2013,17 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     },
@@ -1147,8 +2038,23 @@
       "screenshotStatus": "not_started",
       "blockedReason": null,
       "notes": "",
+      "workPlan": {
+        "status": "empty",
+        "summary": "",
+        "tasks": [],
+        "affectedFiles": [],
+        "testPlan": [],
+        "risks": [],
+        "updatedAt": null,
+        "updatedBy": null
+      },
+      "promptHistory": [],
       "updatedAt": null,
       "updatedBy": null
     }
+  },
+  "activeWork": {
+    "codex": null,
+    "claude": null
   }
 }

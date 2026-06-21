@@ -15,7 +15,7 @@ Spec Command Center(SCC)는 Pingo 스펙 드리븐 개발의 단일 작업 콘�
 | 화면별 `*-screen.md` | 기획/화면 스펙 원천 | Yes | Figma description, 이미지, sitemap, 리뷰 결과를 반영한다. |
 | `feature-list.json` | generated registry | No | 화면별 Markdown에서 생성한다. 직접 수정하지 않는다. |
 | `feature-list.js` | generated browser wrapper | No | `feature-list.json`과 항상 같은 내용을 담는다. |
-| `feature-tracking.json` | work tracking source | Yes, via tool | 개발자, 상태, Issue, PR, 검증 결과만 저장한다. |
+| `feature-tracking.json` | work tracking source | Yes, via tool | 개발자, 상태, Issue, PR, 검증 결과, 작업 계획, 프롬프트 기록을 저장한다. |
 | `feature-tracking.js` | generated browser wrapper | No | `feature-tracking.json`과 항상 같은 내용을 담는다. |
 | `feature-events.jsonl` | append-only audit log | Append only | 상태 변경, 자동화 실행, 수동 보정 이벤트를 남긴다. |
 | `index.html` | SCC UI | Yes | registry + tracking + events를 사람이 보기 쉽게 보여준다. |
@@ -25,7 +25,7 @@ Spec Command Center(SCC)는 Pingo 스펙 드리븐 개발의 단일 작업 콘�
 스펙과 작업 추적은 분리한다.
 
 - 스펙 변경은 화면별 Markdown을 수정하고 `feature-list.json`을 재생성한다.
-- 작업 상태 변경은 `feature-tracking.json`만 수정한다.
+- 작업 상태, 작업 계획, 프롬프트 기록 변경은 `feature-tracking.json`만 수정한다.
 - 상태 변경은 반드시 `feature-events.jsonl`에 이벤트를 남긴다.
 - `feature-list.json`에 들어 있는 `status.delivery`, `assignment`, `verification` 값은 생성 직후 기본값으로만 취급한다.
 - AI 에이전트, CLI, SCC 버튼은 직접 JSON을 편집하지 않고 `scc-action.mjs` 같은 허용된 명령을 통해 변경한다.
@@ -42,12 +42,17 @@ Spec Command Center(SCC)는 Pingo 스펙 드리븐 개발의 단일 작업 콘�
 | `testStatus` | `not_started`, `passed`, `failed`, `not_applicable` | 테스트 검증 상태 |
 | `screenshotStatus` | `not_started`, `passed`, `failed`, `not_applicable` | 스크린샷/시각 검증 상태 |
 | `blockedReason` | `null` or text | blocked 이유 |
+| `workPlan` | object | Feature 작업 계획. 목표, 작업 목록, 영향 파일, 테스트 계획, 리스크를 담는다. |
+| `promptHistory` | array | Feature 작업을 위해 AI 에이전트에 전달한 프롬프트 기록. 최신 항목을 앞에 둔다. |
+| `activeWork` | object | 에이전트별 현재 작업 중인 Feature. `start`가 설정하고 `done`/`verify`/`block`이 해제한다. |
 
 ## State Transitions
 
 | Trigger | From | To | Required data |
 |---|---|---|---|
 | Assign developer | any | unchanged | `developer` |
+| Create/update plan | any | unchanged | `summary`, `tasks`, `files`, `tests`, `risks` |
+| Log prompt | any | unchanged | `agent`, `promptAction`, `prompt` |
 | Start work | `not_started`, `blocked` | `in_progress` | `featureUid`, `developer`, `branch` |
 | Open PR | `in_progress`, `implemented` | `in_review` | `pr` |
 | Finish implementation | `in_progress`, `in_review` | `implemented` | tests/screenshots if available |
@@ -80,6 +85,8 @@ Allowed agents:
 Allowed actions:
 
 - `assign`
+- `plan-set`
+- `prompt-log`
 - `start`
 - `review`
 - `done`
@@ -103,6 +110,9 @@ Examples:
 
 ```sh
 node docs/specs/scc-action.mjs start --feature main:MAP_PAN --agent codex --developer yuho --branch feature/#31-home_map
+node docs/specs/scc-action.mjs plan-set --feature main:MAP_PAN --agent codex --summary '지도 이동 작업 계획' --tasks 'Map 상태 확인, gesture 연결' --tests 'ViewModel 테스트, 스크린샷 테스트'
+node docs/specs/scc-action.mjs prompt-log --feature main:MAP_PAN --agent codex --prompt-action plan --prompt '작업 계획을 작성해줘...'
+node docs/specs/scc-action.mjs prompt-log --agent codex --prompt-action user-prompt --prompt '방금 입력한 실제 프롬프트'
 node docs/specs/scc-action.mjs review --feature main:MAP_PAN --agent claude --pr '#123'
 node docs/specs/scc-action.mjs done --feature main:MAP_PAN --agent codex --tests passed --screenshots passed
 node docs/specs/scc-action.mjs audit
@@ -121,6 +131,8 @@ Audit must fail or warn on:
 - tracking entry missing for a Feature UID
 - tracking entry exists for deleted Feature UID
 - invalid status enum
+- invalid work plan status enum
+- active work points to an unknown Feature UID
 - `in_progress` with `Unassigned`
 - `in_review` without PR
 - `verified` without passed or not-applicable checks

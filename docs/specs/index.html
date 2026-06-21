@@ -750,6 +750,54 @@
       background: var(--blue-soft);
     }
 
+    .plan-card,
+    .prompt-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+    }
+
+    .plan-summary {
+      margin: 0 0 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .compact-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .compact-list + .feature-meta {
+      margin-top: 8px;
+    }
+
+    .prompt-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .prompt-text {
+      max-height: 96px;
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
     .source-links {
       display: flex;
       flex-wrap: wrap;
@@ -1151,6 +1199,7 @@
         schemaVersion: registry.schemaVersion,
         project: registry.project,
         developers: registry.enums.developer || ['Unassigned'],
+        activeWork: tracking.activeWork || {},
         specs: registry.specDocuments.map((spec) => ({
           slug: spec.slug,
           title: spec.title,
@@ -1183,6 +1232,9 @@
         })),
         features: registry.features.map((feature) => {
           const tracked = trackingByUid[feature.uid] || {};
+          const activeAgents = Object.entries(tracking.activeWork || {})
+            .filter(([, active]) => active?.featureUid === feature.uid)
+            .map(([agent]) => agent);
           return {
             uid: feature.uid,
             featureId: feature.featureId,
@@ -1208,6 +1260,18 @@
             trackingNotes: tracked.notes || '',
             trackingUpdatedAt: tracked.updatedAt || null,
             trackingUpdatedBy: tracked.updatedBy || null,
+            activeAgents,
+            workPlan: tracked.workPlan || {
+              status: 'empty',
+              summary: '',
+              tasks: [],
+              affectedFiles: [],
+              testPlan: [],
+              risks: [],
+              updatedAt: null,
+              updatedBy: null,
+            },
+            promptHistory: Array.isArray(tracked.promptHistory) ? tracked.promptHistory : [],
             imageRefs: feature.links.imageRefs,
             tbdRefs: feature.links.tbdRefs,
             relatedFeatureRefs: feature.links.relatedFeatureRefs,
@@ -1233,6 +1297,9 @@
       in_progress: 'In progress',
       in_review: 'Review',
       verified: 'Verified',
+      empty: 'Empty',
+      draft: 'Draft',
+      done: 'Done',
       map_interaction: 'Map',
       navigation: 'Navigation',
       input: 'Input',
@@ -1249,6 +1316,7 @@
     };
 
     const actionLabels = {
+      plan: '작업 계획 작성',
       assign: '개발자 배정',
       start: '작업 시작',
       review: 'PR 리뷰 연결',
@@ -1548,6 +1616,51 @@
       return feature.tbdRefs.map((uid) => tbdByUid.get(uid)).filter(Boolean);
     }
 
+    function listItems(items) {
+      const values = (items || []).filter(Boolean);
+      if (!values.length) return '<div class="empty-state">아직 기록된 항목이 없습니다.</div>';
+      return `<ul class="compact-list">${values.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+    }
+
+    function renderWorkPlan(feature) {
+      const plan = feature.workPlan || {};
+      if (!plan.summary && !(plan.tasks || []).length) {
+        return '<div class="empty-state">아직 저장된 작업 계획이 없습니다. 계획 작성 명령을 복사해 AI에게 작업 계획을 먼저 만들게 할 수 있습니다.</div>';
+      }
+      return `
+        <div class="plan-card">
+          <div class="feature-meta"><span>${badge(plan.status || 'draft')}</span><span>Updated: ${escapeHtml(plan.updatedAt || '-')}</span><span>${escapeHtml(plan.updatedBy || '-')}</span></div>
+          <p class="plan-summary">${escapeHtml(plan.summary || '요약 없음')}</p>
+          <div class="policy-title">Tasks</div>
+          ${listItems(plan.tasks)}
+          <div class="policy-title" style="margin-top: 10px;">Affected Files</div>
+          ${listItems(plan.affectedFiles)}
+          <div class="policy-title" style="margin-top: 10px;">Tests</div>
+          ${listItems(plan.testPlan)}
+          <div class="policy-title" style="margin-top: 10px;">Risks</div>
+          ${listItems(plan.risks)}
+        </div>
+      `;
+    }
+
+    function renderPromptHistory(feature) {
+      const prompts = (feature.promptHistory || []).slice(0, 5);
+      if (!prompts.length) {
+        return '<div class="empty-state">아직 기록된 작업 프롬프트가 없습니다. SCC agent 명령을 실행하면 해당 Feature에 자동 기록됩니다.</div>';
+      }
+      return `<div class="prompt-list">${prompts.map((prompt) => `
+        <div class="prompt-item">
+          <div class="feature-meta">
+            <span>${escapeHtml(prompt.action || 'manual')}</span>
+            <span>${escapeHtml(prompt.agent || '-')}</span>
+            <span>${escapeHtml(prompt.createdAt || '-')}</span>
+          </div>
+          <div class="prompt-text">${escapeHtml(prompt.prompt || '')}</div>
+          ${prompt.resultSummary ? `<div class="policy-desc" style="margin-top: 8px;">${escapeHtml(prompt.resultSummary)}</div>` : ''}
+        </div>
+      `).join('')}</div>`;
+    }
+
     function screenStats(slug) {
       const features = data.features.filter((feature) => feature.screenSlug === slug);
       const tbds = data.tbds.filter((tbd) => tbd.screenSlug === slug);
@@ -1595,11 +1708,12 @@
       const unassigned = data.features.filter((feature) => feature.developer === 'Unassigned').length;
       const prLinked = data.features.filter((feature) => feature.pr).length;
       const evidenceMissing = data.features.filter((feature) => getImages(feature).length === 0).length;
+      const activeCount = Object.values(data.activeWork || {}).filter(Boolean).length;
       const kpis = [
         ['Total Features', total, `${data.specs.length} specs`],
         ['Not Started', notStarted, 'initial scope'],
         ['Unassigned Dev', unassigned, 'needs assignment'],
-        ['Open TBD', data.tbds.length, 'policy queue'],
+        ['Active Work', activeCount, 'current feature'],
         ['PR Linked', prLinked, 'connected'],
         ['Evidence Missing', evidenceMissing, 'needs review']
       ];
@@ -1679,7 +1793,7 @@
           <tr class="${feature.uid === state.selectedUid ? 'active' : ''}" data-feature="${feature.uid}">
             <td>
               <div class="feature-id">${escapeHtml(feature.featureId)}</div>
-              <div class="feature-title">${escapeHtml(feature.title)}</div>
+              <div class="feature-title">${escapeHtml(feature.title)}${feature.activeAgents.length ? ` ${badge('in_progress')}` : ''}</div>
               <div class="feature-meta"><span>${escapeHtml(feature.trigger)}</span></div>
             </td>
             <td>
@@ -1777,6 +1891,7 @@
       const images = getImages(feature);
       const tbds = getTbds(feature);
       const related = feature.relatedFeatureRefs.map((uid) => featuresByUid.get(uid)).filter(Boolean).slice(0, 4);
+      const activeLabel = feature.activeAgents.length ? `현재 작업 중: ${feature.activeAgents.join(', ')}` : null;
       byId('detailPanel').innerHTML = `
         <div class="detail-header">
           <div class="detail-kicker">
@@ -1788,6 +1903,7 @@
             <span class="badge ${feature.specStatus}">${label(feature.specStatus)}</span>
             <span class="badge ${feature.deliveryStatus}">${label(feature.deliveryStatus)}</span>
             <span class="badge inferred">${label(feature.evidenceLevel)}</span>
+            ${activeLabel ? `<span class="badge in_progress">${escapeHtml(activeLabel)}</span>` : ''}
           </div>
         </div>
         <div class="detail-body">
@@ -1806,8 +1922,17 @@
             </dl>
           </div>
           <div class="section">
+            <h3>Work Plan</h3>
+            ${renderWorkPlan(feature)}
+          </div>
+          <div class="section">
+            <h3>Prompt History</h3>
+            ${renderPromptHistory(feature)}
+          </div>
+          <div class="section">
             <h3>SCC 작업</h3>
             <div class="action-grid">
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('plan', feature))}">계획 명령 복사</button>
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('assign', feature))}">배정 명령 복사</button>
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('start', feature))}">시작 명령 복사</button>
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('review', feature))}">PR 명령 복사</button>

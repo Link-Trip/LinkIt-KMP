@@ -14,6 +14,7 @@ const eventSchemaVersion = 'spec-command-center.feature-events.v1';
 
 const workStatuses = ['not_started', 'in_progress', 'in_review', 'implemented', 'verified', 'blocked', 'deferred'];
 const checkStatuses = ['not_started', 'passed', 'failed', 'not_applicable'];
+const planStatuses = ['empty', 'draft', 'ready', 'in_progress', 'done'];
 const agents = ['codex', 'claude'];
 
 function readJson(filePath, fallback) {
@@ -71,9 +72,24 @@ function defaultEntry(featureUid) {
     screenshotStatus: 'not_started',
     blockedReason: null,
     notes: '',
+    workPlan: {
+      status: 'empty',
+      summary: '',
+      tasks: [],
+      affectedFiles: [],
+      testPlan: [],
+      risks: [],
+      updatedAt: null,
+      updatedBy: null,
+    },
+    promptHistory: [],
     updatedAt: null,
     updatedBy: null,
   };
+}
+
+function defaultActiveWork() {
+  return Object.fromEntries(agents.map((agent) => [agent, null]));
 }
 
 function loadFeatureList() {
@@ -87,10 +103,15 @@ function loadTracking(featureList) {
   const tracking = readJson(trackingPath, {
     schemaVersion: trackingSchemaVersion,
     updatedAt: null,
+    activeWork: defaultActiveWork(),
     features: {},
   });
 
   tracking.schemaVersion = tracking.schemaVersion || trackingSchemaVersion;
+  tracking.activeWork = {
+    ...defaultActiveWork(),
+    ...(tracking.activeWork || {}),
+  };
   tracking.features = tracking.features || {};
 
   const validUids = new Set(featureList.features.map((feature) => feature.uid));
@@ -148,13 +169,33 @@ function requireFeature(tracking, featureUid) {
   return entry;
 }
 
+function activeAgent(args) {
+  return agents.includes(args.agent) ? args.agent : 'codex';
+}
+
+function resolveFeatureArg(tracking, args) {
+  if (args.feature) return args.feature;
+  const active = tracking.activeWork?.[activeAgent(args)];
+  if (active?.featureUid) return active.featureUid;
+  throw new Error(`Missing --feature <featureUid>; no active Feature for ${activeAgent(args)}`);
+}
+
 function assertEnum(field, value, allowed) {
   if (!allowed.includes(value)) {
     throw new Error(`Invalid ${field}: ${value}. Allowed: ${allowed.join(', ')}`);
   }
 }
 
+function splitList(value) {
+  if (!value) return [];
+  return String(value)
+    .split(/\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function updateFeature(tracking, args, mutator) {
+  args.feature = resolveFeatureArg(tracking, args);
   const entry = requireFeature(tracking, args.feature);
   const before = structuredClone(entry);
   mutator(entry);
@@ -199,6 +240,14 @@ function handleAction(action, args, featureList, tracking) {
       target.developer = args.developer || target.developer || defaultActor();
       if (target.developer === 'Unassigned') target.developer = defaultActor();
       target.branch = args.branch || target.branch || currentBranch();
+      tracking.activeWork[activeAgent(args)] = {
+        featureUid: target.featureUid,
+        title: featureList.features.find((feature) => feature.uid === target.featureUid)?.title || target.featureUid,
+        agent: activeAgent(args),
+        actor: args.actor || defaultActor(),
+        branch: target.branch,
+        startedAt: new Date().toISOString(),
+      };
       return;
     }
 
@@ -217,6 +266,9 @@ function handleAction(action, args, featureList, tracking) {
       target.testStatus = args.tests || target.testStatus;
       target.screenshotStatus = args.screenshots || target.screenshotStatus;
       target.notes = args.notes || target.notes;
+      if (tracking.activeWork[activeAgent(args)]?.featureUid === target.featureUid) {
+        tracking.activeWork[activeAgent(args)] = null;
+      }
       return;
     }
 
@@ -225,6 +277,9 @@ function handleAction(action, args, featureList, tracking) {
       target.testStatus = args.tests || 'passed';
       target.screenshotStatus = args.screenshots || 'passed';
       target.notes = args.notes || target.notes;
+      if (tracking.activeWork[activeAgent(args)]?.featureUid === target.featureUid) {
+        tracking.activeWork[activeAgent(args)] = null;
+      }
       return;
     }
 
@@ -233,6 +288,9 @@ function handleAction(action, args, featureList, tracking) {
       target.workStatus = 'blocked';
       target.blockedReason = args.reason;
       target.notes = args.notes || target.notes;
+      if (tracking.activeWork[activeAgent(args)]?.featureUid === target.featureUid) {
+        tracking.activeWork[activeAgent(args)] = null;
+      }
       return;
     }
 
@@ -255,12 +313,45 @@ function handleAction(action, args, featureList, tracking) {
       return;
     }
 
+    if (action === 'plan-set') {
+      const now = new Date().toISOString();
+      target.workPlan = {
+        ...(target.workPlan || defaultEntry(target.featureUid).workPlan),
+        status: args.status || target.workPlan?.status || 'draft',
+        summary: args.summary || target.workPlan?.summary || '',
+        tasks: args.tasks ? splitList(args.tasks) : target.workPlan?.tasks || [],
+        affectedFiles: args.files ? splitList(args.files) : target.workPlan?.affectedFiles || [],
+        testPlan: args.tests ? splitList(args.tests) : target.workPlan?.testPlan || [],
+        risks: args.risks ? splitList(args.risks) : target.workPlan?.risks || [],
+        updatedAt: now,
+        updatedBy: args.actor || defaultActor(),
+      };
+      return;
+    }
+
+    if (action === 'prompt-log') {
+      if (!args.prompt) throw new Error('Missing --prompt <text>');
+      const promptHistory = Array.isArray(target.promptHistory) ? target.promptHistory : [];
+      promptHistory.unshift({
+        promptId: `prompt_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+        agent: args.agent || null,
+        action: args.promptAction || args['prompt-action'] || 'manual',
+        prompt: args.prompt,
+        resultSummary: args.result || null,
+        createdAt: new Date().toISOString(),
+        createdBy: args.actor || defaultActor(),
+      });
+      target.promptHistory = promptHistory.slice(0, 20);
+      return;
+    }
+
     throw new Error(`Unknown action: ${action}`);
   });
 
   assertEnum('workStatus', entry.workStatus, workStatuses);
   assertEnum('testStatus', entry.testStatus, checkStatuses);
   assertEnum('screenshotStatus', entry.screenshotStatus, checkStatuses);
+  assertEnum('workPlan.status', entry.workPlan?.status || 'empty', planStatuses);
 
   writeTracking(tracking);
   appendEvent({
@@ -301,6 +392,12 @@ function audit(featureList, tracking) {
     if (!featureUids.has(uid)) warnings.push(`Orphan tracking entry: ${uid}`);
   }
 
+  for (const [agent, active] of Object.entries(tracking.activeWork || {})) {
+    if (active?.featureUid && !featureUids.has(active.featureUid)) {
+      errors.push(`Active work for ${agent} points to unknown Feature UID: ${active.featureUid}`);
+    }
+  }
+
   if (fs.existsSync(eventsPath)) {
     fs.readFileSync(eventsPath, 'utf8')
       .split(/\r?\n/)
@@ -327,7 +424,7 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const action = args._[0];
   if (!action) {
-    throw new Error('Usage: node docs/specs/scc-action.mjs <sync|audit|assign|start|review|done|verify|block|unblock|set> [--feature uid]');
+    throw new Error('Usage: node docs/specs/scc-action.mjs <sync|audit|assign|start|review|done|verify|block|unblock|set|plan-set|prompt-log> [--feature uid]');
   }
 
   const featureList = loadFeatureList();

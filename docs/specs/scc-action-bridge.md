@@ -101,6 +101,8 @@ SCC는 action마다 실행 에이전트를 선택할 수 있어야 한다.
 
 | SCC 액션 | CLI 액션 | AI 스킬 연결 |
 |---|---|---|
+| 작업 계획 작성 | `plan-set` | `linkit-spec` |
+| 프롬프트 기록 | `prompt-log` | `scc-agent.mjs` 자동 기록 |
 | 개발자 배정 | `assign` | `linkit-spec` |
 | 작업 시작 | `start` | `linkit-spec` |
 | 구현 완료 처리 | `done` | `linkit-done` |
@@ -116,6 +118,7 @@ SCC는 action마다 실행 에이전트를 선택할 수 있어야 한다.
 Feature 상세 패널에는 아래 작업 버튼을 노출한다.
 
 - `시작 명령 복사`
+- `계획 명령 복사`
 - `완료 명령 복사`
 - `PR 명령 복사`
 - `검증 명령 복사`
@@ -123,6 +126,10 @@ Feature 상세 패널에는 아래 작업 버튼을 노출한다.
 - `Audit 실행`
 
 브리지 모드가 구현되면 같은 버튼이 액션 계약을 바꾸지 않고 복사 동작에서 POST 실행 동작으로 전환될 수 있다.
+
+`계획 명령 복사`는 에이전트에게 Feature 스펙, 이미지 근거, TBD, 영향 범위, 테스트 항목을 검토하게 하고 사용자가 승인하면 `plan-set` 명령으로 Feature 하위 작업 계획을 저장하게 한다. `scc-agent.mjs`를 통해 실행된 Feature 작업 프롬프트는 `prompt-log` 액션으로 자동 기록된다.
+
+`start` 명령이 승인되어 실행되면 SCC는 해당 Feature를 선택된 에이전트의 현재 작업 Feature로 저장한다. 이후 Claude/Codex `UserPromptSubmit` 훅은 Feature UID를 직접 추론하지 않아도 `prompt-log --agent <agent> --prompt ...` 형태로 호출할 수 있고, SCC는 현재 작업 Feature의 `Prompt History`에 기록한다. `done`, `verify`, `block`은 해당 에이전트의 현재 작업 Feature를 해제한다.
 
 ## Future Skill Shape
 

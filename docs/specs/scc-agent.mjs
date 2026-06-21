@@ -6,9 +6,10 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 const featureListPath = path.join(repoRoot, 'docs/specs/feature-list.json');
 const allowedAgents = ['codex', 'claude'];
-const allowedActions = ['assign', 'start', 'review', 'done', 'verify', 'block', 'unblock', 'audit', 'sync'];
+const allowedActions = ['plan', 'assign', 'start', 'review', 'done', 'verify', 'block', 'unblock', 'audit', 'sync'];
 
 const actionLabels = {
+  plan: '작업 계획 작성',
   assign: '개발자 배정',
   start: '작업 시작 준비',
   review: 'PR 리뷰 연결',
@@ -55,7 +56,8 @@ function readFeature(featureUid) {
 }
 
 function trackingCommand(action, args) {
-  const parts = ['node', 'docs/specs/scc-action.mjs', action];
+  const cliAction = action === 'plan' ? 'plan-set' : action;
+  const parts = ['node', 'docs/specs/scc-action.mjs', cliAction];
   if (args.feature) parts.push('--feature', args.feature);
   if (args.agent) parts.push('--agent', args.agent);
   if (args.developer) parts.push('--developer', args.developer);
@@ -66,6 +68,14 @@ function trackingCommand(action, args) {
   if (args.screenshots) parts.push('--screenshots', args.screenshots);
   if (args.reason) parts.push('--reason', args.reason);
   if (args.notes) parts.push('--notes', args.notes);
+  if (action === 'plan') {
+    parts.push('--status', args.status || 'draft');
+    parts.push('--summary', args.summary || '<작업 계획 요약>');
+    parts.push('--tasks', args.tasks || '<작업 목록을 쉼표로 구분>');
+    parts.push('--files', args.files || '<예상 수정 파일을 쉼표로 구분>');
+    parts.push('--tests', args.tests || '<테스트 계획을 쉼표로 구분>');
+    parts.push('--risks', args.risks || '<리스크를 쉼표로 구분>');
+  }
   return parts.map(shellArg).join(' ');
 }
 
@@ -120,6 +130,25 @@ function buildPrompt(action, args) {
     ].join('\n');
   }
 
+  if (action === 'plan') {
+    return [
+      'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 Feature 작업 계획을 작성해줘.',
+      `대상 Feature: ${args.feature}`,
+      ...featureSummary(feature),
+      '아직 코드를 수정하거나 SCC 상태를 start로 바꾸지 마.',
+      '먼저 Feature 스펙, 연결 이미지, TBD, 관련 Feature를 확인한 뒤 아래 형식으로 한국어 작업 계획을 제안해줘.',
+      '1. 작업 목표 요약',
+      '2. 세부 작업 체크리스트',
+      '3. 영향을 받을 가능성이 높은 파일/모듈',
+      '4. 테스트 및 스크린샷 검증 계획',
+      '5. 리스크와 사용자 확인 질문',
+      '마지막에는 "이 계획을 SCC에 저장할까요?"라고 묻고 사용자 답변을 기다려.',
+      '사용자가 저장을 승인하면 아래 plan-set 명령의 placeholder를 실제 계획 내용으로 채워 실행하고 audit을 돌려줘.',
+      command,
+      `저장 후 실행할 audit 명령: ${auditCommand}`,
+    ].join('\n');
+  }
+
   return [
     'LinkIt KMP의 SCC 정책 문서를 확인한 뒤 아래 작업을 진행해줘.',
     `대상 Feature: ${args.feature || '-'}`,
@@ -130,6 +159,34 @@ function buildPrompt(action, args) {
     command,
     `명령 실행 후 \`${auditCommand}\`를 실행하고, 변경된 상태와 경고가 있으면 한국어로 요약해줘.`,
   ].join('\n');
+}
+
+function logPrompt(action, args, prompt) {
+  if (!args.feature || ['audit', 'sync'].includes(action)) return;
+  const result = spawnSync(
+    process.execPath,
+    [
+      'docs/specs/scc-action.mjs',
+      'prompt-log',
+      '--feature',
+      args.feature,
+      '--agent',
+      args.agent,
+      '--prompt-action',
+      action,
+      '--prompt',
+      prompt,
+      '--source',
+      'scc-agent',
+    ],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(`프롬프트 기록 실패: ${result.stderr || result.stdout}`);
+  }
 }
 
 function main() {
@@ -154,6 +211,8 @@ function main() {
     console.log(prompt);
     return;
   }
+
+  logPrompt(action, args, prompt);
 
   const result = spawnSync(agent, [prompt], {
     cwd: repoRoot,
