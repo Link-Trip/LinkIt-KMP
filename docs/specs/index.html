@@ -777,10 +777,103 @@
       margin-top: 8px;
     }
 
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 0;
+    }
+
+    .todo-item {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .todo-check {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--panel);
+      display: inline-grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      margin-top: 1px;
+    }
+
+    .todo-item.done {
+      color: var(--muted);
+    }
+
+    .todo-item.done .todo-check {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .todo-item.done .todo-text {
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+      text-decoration-color: var(--subtle);
+    }
+
     .prompt-list {
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+
+    .prompt-summary {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .prompt-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .prompt-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .prompt-chevron {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 12px;
+      line-height: 1;
+      flex: 0 0 auto;
+      transition: transform 0.16s ease;
+    }
+
+    .prompt-item[open] .prompt-chevron {
+      transform: rotate(90deg);
+    }
+
+    .prompt-preview {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .prompt-text {
@@ -1284,7 +1377,117 @@
       };
     }
 
-    const data = normalizeFeatureList(window.SPEC_COMMAND_CENTER_FEATURE_LIST);
+    function addDemoFeature(data) {
+      const demoSpec = {
+        slug: 'scc-demo',
+        title: 'SCC Demo',
+        area: 'Spec Command Center',
+        path: 'README.md',
+        file: 'README.md',
+        version: 'demo',
+        figma: '-',
+        accent: '#0f766e',
+        reviewStatus: 'demo',
+      };
+      const demoFeature = {
+        uid: 'scc-demo:WORK_PLAN_PROMPT_HISTORY',
+        featureId: 'WORK_PLAN_PROMPT_HISTORY',
+        screenSlug: demoSpec.slug,
+        area: demoSpec.area,
+        subarea: 'workflow',
+        type: 'display_state',
+        tags: ['demo', 'work_plan', 'prompt_history'],
+        title: '작업 계획과 프롬프트 히스토리 표시 데모',
+        trigger: 'SCC에서 Feature를 선택한다',
+        response: 'Feature 하위에 작업 계획, 현재 작업 상태, 프롬프트 기록이 함께 표시된다',
+        rawStatus: 'Demo data',
+        specStatus: 'confirmed',
+        evidenceLevel: 'inferred',
+        deliveryStatus: 'in_progress',
+        developer: 'Codex',
+        issue: '#demo',
+        pr: null,
+        branch: 'improve/#31-task_breakdown_for_ai_collaboration',
+        testStatus: 'not_applicable',
+        screenshotStatus: 'not_applicable',
+        blockedReason: null,
+        trackingNotes: 'UI 확인용 데모 Feature입니다.',
+        trackingUpdatedAt: '2026-06-21T09:20:00.000Z',
+        trackingUpdatedBy: 'Codex',
+        activeAgents: ['codex'],
+        workPlan: {
+          status: 'ready',
+          summary: 'SCC Feature 상세에서 작업자가 세운 계획과 실제 입력 프롬프트 기록이 한눈에 보이는지 확인한다.',
+          tasks: [
+            { text: 'Feature 상세 패널에 Work Plan 섹션 노출', done: true },
+            { text: '계획 상태, 작업 목록, 영향 파일, 테스트 계획, 리스크를 구조화해서 표시', done: true },
+            { text: 'Tasks를 투두 리스트 형식으로 표시', done: true },
+            { text: 'Prompt History에 최신 사용자 프롬프트를 시간순으로 표시', done: false },
+            { text: '현재 작업 중인 Feature 배지를 함께 표시', done: false },
+          ],
+          affectedFiles: [
+            'docs/specs/index.html',
+            'docs/specs/scc-action.mjs',
+            'docs/specs/scc-agent.mjs',
+            'docs/specs/feature-tracking.json',
+          ],
+          testPlan: [
+            'index.html 스크립트 문법 검사',
+            'SCC audit 실행',
+            '브라우저에서 Work Plan/Prompt History 렌더링 확인',
+          ],
+          risks: [
+            '프롬프트가 너무 길면 상세 패널이 복잡해질 수 있음',
+            '현재 작업 Feature가 없을 때 hook 로그를 어디에 둘지 정책 필요',
+          ],
+          updatedAt: '2026-06-21T09:20:00.000Z',
+          updatedBy: 'Codex',
+        },
+        promptHistory: [
+          {
+            promptId: 'prompt_demo_002',
+            agent: 'codex',
+            action: 'user-prompt',
+            prompt: '현재 작업중인 Feature를 구분할 수 있도록 만들고, 현재 작업중인 Feature에 기록되는게 나을듯.',
+            resultSummary: 'start 액션이 activeWork를 설정하고 prompt-log가 active Feature에 자동 기록되도록 구현.',
+            createdAt: '2026-06-21T09:05:00.000Z',
+            createdBy: 'yuhohyeon',
+          },
+          {
+            promptId: 'prompt_demo_001',
+            agent: 'codex',
+            action: 'plan',
+            prompt: '테스트 Feature 만들어서 플랜이랑, 프롬프트 히스토리 더미 데이터 넣어서 보여줘',
+            resultSummary: 'UI-only 데모 Feature를 추가해 Work Plan과 Prompt History 표시 상태를 확인.',
+            createdAt: '2026-06-21T09:00:00.000Z',
+            createdBy: 'yuhohyeon',
+          },
+        ],
+        imageRefs: [],
+        tbdRefs: [],
+        relatedFeatureRefs: [],
+        source: {
+          file: 'README.md',
+          line: 24,
+        },
+      };
+
+      data.specs = [demoSpec, ...data.specs];
+      data.features = [demoFeature, ...data.features];
+      if (!data.activeWork.codex) {
+        data.activeWork.codex = {
+          featureUid: demoFeature.uid,
+          title: demoFeature.title,
+          agent: 'codex',
+          actor: 'Codex',
+          branch: demoFeature.branch,
+          startedAt: '2026-06-21T09:20:00.000Z',
+        };
+      }
+      return data;
+    }
+
+    const data = addDemoFeature(normalizeFeatureList(window.SPEC_COMMAND_CENTER_FEATURE_LIST));
     const labels = {
       confirmed: 'Confirmed',
       partial: 'Partial',
@@ -1317,12 +1520,9 @@
 
     const actionLabels = {
       plan: '작업 계획 작성',
-      assign: '개발자 배정',
       start: '작업 시작',
       review: 'PR 리뷰 연결',
-      done: '구현 완료 처리',
-      verify: '검증 완료 처리',
-      block: '작업 차단'
+      done: '구현 완료 처리'
     };
 
     const state = {
@@ -1622,6 +1822,24 @@
       return `<ul class="compact-list">${values.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
     }
 
+    function todoText(item) {
+      return typeof item === 'string' ? item : item?.text || '';
+    }
+
+    function renderTodoList(items) {
+      const values = (items || []).filter((item) => todoText(item));
+      if (!values.length) return '<div class="empty-state">아직 기록된 작업이 없습니다.</div>';
+      return `<div class="todo-list">${values.map((item) => {
+        const done = typeof item === 'object' && Boolean(item.done);
+        return `
+          <div class="todo-item ${done ? 'done' : ''}">
+            <span class="todo-check" aria-hidden="true">${done ? '✓' : ''}</span>
+            <span class="todo-text">${escapeHtml(todoText(item))}</span>
+          </div>
+        `;
+      }).join('')}</div>`;
+    }
+
     function renderWorkPlan(feature) {
       const plan = feature.workPlan || {};
       if (!plan.summary && !(plan.tasks || []).length) {
@@ -1632,7 +1850,7 @@
           <div class="feature-meta"><span>${badge(plan.status || 'draft')}</span><span>Updated: ${escapeHtml(plan.updatedAt || '-')}</span><span>${escapeHtml(plan.updatedBy || '-')}</span></div>
           <p class="plan-summary">${escapeHtml(plan.summary || '요약 없음')}</p>
           <div class="policy-title">Tasks</div>
-          ${listItems(plan.tasks)}
+          ${renderTodoList(plan.tasks)}
           <div class="policy-title" style="margin-top: 10px;">Affected Files</div>
           ${listItems(plan.affectedFiles)}
           <div class="policy-title" style="margin-top: 10px;">Tests</div>
@@ -1649,15 +1867,21 @@
         return '<div class="empty-state">아직 기록된 작업 프롬프트가 없습니다. SCC agent 명령을 실행하면 해당 Feature에 자동 기록됩니다.</div>';
       }
       return `<div class="prompt-list">${prompts.map((prompt) => `
-        <div class="prompt-item">
-          <div class="feature-meta">
-            <span>${escapeHtml(prompt.action || 'manual')}</span>
-            <span>${escapeHtml(prompt.agent || '-')}</span>
-            <span>${escapeHtml(prompt.createdAt || '-')}</span>
-          </div>
+        <details class="prompt-item">
+          <summary class="prompt-summary">
+            <div class="prompt-summary-row">
+              <div class="feature-meta">
+                <span>${escapeHtml(prompt.action || 'manual')}</span>
+                <span>${escapeHtml(prompt.agent || '-')}</span>
+                <span>${escapeHtml(prompt.createdAt || '-')}</span>
+              </div>
+              <span class="prompt-chevron" aria-hidden="true">›</span>
+            </div>
+            <div class="prompt-preview">${escapeHtml(prompt.prompt || '')}</div>
+          </summary>
           <div class="prompt-text">${escapeHtml(prompt.prompt || '')}</div>
           ${prompt.resultSummary ? `<div class="policy-desc" style="margin-top: 8px;">${escapeHtml(prompt.resultSummary)}</div>` : ''}
-        </div>
+        </details>
       `).join('')}</div>`;
     }
 
@@ -1933,12 +2157,9 @@
             <h3>SCC 작업</h3>
             <div class="action-grid">
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('plan', feature))}">계획 명령 복사</button>
-              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('assign', feature))}">배정 명령 복사</button>
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('start', feature))}">시작 명령 복사</button>
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('review', feature))}">PR 명령 복사</button>
               <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('done', feature))}">완료 명령 복사</button>
-              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('verify', feature))}">검증 명령 복사</button>
-              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('block', feature))}">차단 명령 복사</button>
             </div>
             <div class="command-preview" id="commandPreview">${escapeHtml(commandFor('start', feature))}</div>
             <p class="subtitle">정적 모드: 버튼은 짧은 SCC agent 실행 명령을 복사합니다. 이 명령이 선택된 AI 에이전트에 한국어 지시문을 전달합니다.</p>

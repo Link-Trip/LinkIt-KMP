@@ -6,17 +6,13 @@ import path from 'node:path';
 const repoRoot = process.cwd();
 const featureListPath = path.join(repoRoot, 'docs/specs/feature-list.json');
 const allowedAgents = ['codex', 'claude'];
-const allowedActions = ['plan', 'assign', 'start', 'review', 'done', 'verify', 'block', 'unblock', 'audit', 'sync'];
+const allowedActions = ['plan', 'start', 'review', 'done', 'audit', 'sync'];
 
 const actionLabels = {
   plan: '작업 계획 작성',
-  assign: '개발자 배정',
   start: '작업 시작 준비',
   review: 'PR 리뷰 연결',
   done: '구현 완료 처리',
-  verify: '검증 완료 처리',
-  block: '작업 차단',
-  unblock: '차단 해제',
   audit: 'SCC audit',
   sync: 'SCC tracking 동기화',
 };
@@ -60,7 +56,6 @@ function trackingCommand(action, args) {
   const parts = ['node', 'docs/specs/scc-action.mjs', cliAction];
   if (args.feature) parts.push('--feature', args.feature);
   if (args.agent) parts.push('--agent', args.agent);
-  if (args.developer) parts.push('--developer', args.developer);
   if (args.pr) parts.push('--pr', args.pr);
   if (args.issue) parts.push('--issue', args.issue);
   if (args.branch) parts.push('--branch', args.branch);
@@ -81,9 +76,7 @@ function trackingCommand(action, args) {
 
 function missingValueGuide(action, args) {
   const missing = [];
-  if (action === 'assign' && !args.developer) missing.push('개발자명');
   if (action === 'review' && !args.pr) missing.push('PR 번호 또는 PR URL');
-  if (action === 'block' && !args.reason) missing.push('차단 사유');
   if (!missing.length) return [];
   return [
     `아래 값이 아직 없으면 명령을 실행하기 전에 사용자에게 먼저 확인해줘: ${missing.join(', ')}`,
@@ -125,6 +118,7 @@ function buildPrompt(action, args) {
       '5. 진행 전에 사용자 확인이 필요한 질문 또는 리스크',
       '정리 마지막에는 "이 작업 목록으로 진행할까요?"라고 묻고 사용자 답변을 기다려.',
       '사용자가 진행을 승인한 뒤에만 아래 SCC start 명령을 실행하고 audit을 돌린 다음 개발을 시작해.',
+      'start 명령은 현재 등록된 GitHub ID를 developer로 자동 저장한다.',
       command,
       `승인 후 실행할 audit 명령: ${auditCommand}`,
     ].join('\n');

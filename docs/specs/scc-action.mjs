@@ -60,6 +60,32 @@ function defaultActor() {
   return process.env.USER || process.env.LOGNAME || 'unknown';
 }
 
+function currentGitHubLogin() {
+  try {
+    const login = execSync('gh api user --jq .login', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (login) return login;
+  } catch {
+    // Fall back to local git config below when gh is not authenticated.
+  }
+
+  try {
+    const email = execSync('git config user.email', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const match = email.match(/\+([^@]+)@users\.noreply\.github\.com$/);
+    if (match?.[1]) return match[1];
+  } catch {
+    // Fall through to user.name.
+  }
+
+  try {
+    const name = execSync('git config user.name', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    if (name) return name;
+  } catch {
+    // Fall through to shell user.
+  }
+
+  return defaultActor();
+}
+
 function defaultEntry(featureUid) {
   return {
     featureUid,
@@ -229,22 +255,15 @@ function handleAction(action, args, featureList, tracking) {
   }
 
   const { entry, changes } = updateFeature(tracking, args, (target) => {
-    if (action === 'assign') {
-      if (!args.developer) throw new Error('Missing --developer <name>');
-      target.developer = args.developer;
-      return;
-    }
-
     if (action === 'start') {
       target.workStatus = 'in_progress';
-      target.developer = args.developer || target.developer || defaultActor();
-      if (target.developer === 'Unassigned') target.developer = defaultActor();
+      target.developer = args.developer || currentGitHubLogin();
       target.branch = args.branch || target.branch || currentBranch();
       tracking.activeWork[activeAgent(args)] = {
         featureUid: target.featureUid,
         title: featureList.features.find((feature) => feature.uid === target.featureUid)?.title || target.featureUid,
         agent: activeAgent(args),
-        actor: args.actor || defaultActor(),
+        actor: target.developer,
         branch: target.branch,
         startedAt: new Date().toISOString(),
       };
@@ -424,7 +443,7 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const action = args._[0];
   if (!action) {
-    throw new Error('Usage: node docs/specs/scc-action.mjs <sync|audit|assign|start|review|done|verify|block|unblock|set|plan-set|prompt-log> [--feature uid]');
+    throw new Error('Usage: node docs/specs/scc-action.mjs <sync|audit|start|review|done|verify|block|unblock|set|plan-set|prompt-log> [--feature uid]');
   }
 
   const featureList = loadFeatureList();

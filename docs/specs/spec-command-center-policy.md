@@ -35,7 +35,7 @@ Spec Command Center(SCC)는 Pingo 스펙 드리븐 개발의 단일 작업 콘�
 | Field | Values | Meaning |
 |---|---|---|
 | `workStatus` | `not_started`, `in_progress`, `in_review`, `implemented`, `verified`, `blocked`, `deferred` | 개발 작업 진행 상태 |
-| `developer` | `Unassigned` or developer name | 개발 담당자 |
+| `developer` | `Unassigned` or GitHub login | 개발 담당자 |
 | `issue` | `null`, issue number, or issue URL | 연결 Issue |
 | `pr` | `null`, PR number, or PR URL | 연결 PR |
 | `branch` | `null` or branch name | 작업 브랜치 |
@@ -44,21 +44,17 @@ Spec Command Center(SCC)는 Pingo 스펙 드리븐 개발의 단일 작업 콘�
 | `blockedReason` | `null` or text | blocked 이유 |
 | `workPlan` | object | Feature 작업 계획. 목표, 작업 목록, 영향 파일, 테스트 계획, 리스크를 담는다. |
 | `promptHistory` | array | Feature 작업을 위해 AI 에이전트에 전달한 프롬프트 기록. 최신 항목을 앞에 둔다. |
-| `activeWork` | object | 에이전트별 현재 작업 중인 Feature. `start`가 설정하고 `done`/`verify`/`block`이 해제한다. |
+| `activeWork` | object | 에이전트별 현재 작업 중인 Feature. `start`가 설정하고 `done`이 해제한다. |
 
 ## State Transitions
 
 | Trigger | From | To | Required data |
 |---|---|---|---|
-| Assign developer | any | unchanged | `developer` |
 | Create/update plan | any | unchanged | `summary`, `tasks`, `files`, `tests`, `risks` |
 | Log prompt | any | unchanged | `agent`, `promptAction`, `prompt` |
-| Start work | `not_started`, `blocked` | `in_progress` | `featureUid`, `developer`, `branch` |
+| Start work | `not_started`, `blocked` | `in_progress` | `featureUid`, current GitHub login, `branch` |
 | Open PR | `in_progress`, `implemented` | `in_review` | `pr` |
 | Finish implementation | `in_progress`, `in_review` | `implemented` | tests/screenshots if available |
-| Verify implementation | `implemented`, `in_review` | `verified` | passed or not-applicable verification |
-| Block work | any | `blocked` | `blockedReason` |
-| Unblock work | `blocked` | `not_started` or `in_progress` | developer presence decides target |
 | Defer work | any | `deferred` | note or reason |
 
 ## Automation Policy
@@ -84,15 +80,11 @@ Allowed agents:
 
 Allowed actions:
 
-- `assign`
 - `plan-set`
 - `prompt-log`
 - `start`
 - `review`
 - `done`
-- `verify`
-- `block`
-- `unblock`
 - `audit`
 - `sync`
 
@@ -109,7 +101,7 @@ node docs/specs/scc-action.mjs <action> --feature <screenSlug:FEATURE_ID> --agen
 Examples:
 
 ```sh
-node docs/specs/scc-action.mjs start --feature main:MAP_PAN --agent codex --developer yuho --branch feature/#31-home_map
+node docs/specs/scc-action.mjs start --feature main:MAP_PAN --agent codex --branch feature/#31-home_map
 node docs/specs/scc-action.mjs plan-set --feature main:MAP_PAN --agent codex --summary '지도 이동 작업 계획' --tasks 'Map 상태 확인, gesture 연결' --tests 'ViewModel 테스트, 스크린샷 테스트'
 node docs/specs/scc-action.mjs prompt-log --feature main:MAP_PAN --agent codex --prompt-action plan --prompt '작업 계획을 작성해줘...'
 node docs/specs/scc-action.mjs prompt-log --agent codex --prompt-action user-prompt --prompt '방금 입력한 실제 프롬프트'
