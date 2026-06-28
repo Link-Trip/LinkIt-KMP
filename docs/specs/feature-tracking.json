@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-06-21T09:04:39.381Z",
+  "updatedAt": "2026-06-28T01:58:09.799Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -14,18 +14,54 @@
       "blockedReason": null,
       "notes": "",
       "workPlan": {
-        "status": "empty",
-        "summary": "",
-        "tasks": [],
-        "affectedFiles": [],
-        "testPlan": [],
-        "risks": [],
-        "updatedAt": null,
-        "updatedBy": null
+        "status": "draft",
+        "summary": "현재 intro 모듈은 Android 런처/전환 골격만 있고 화면과 지도 연출은 플레이스홀더이므로, 실제 지도 SDK 도입 전 Compose 기반 인트로 줌인 MVP를 먼저 구현한다.",
+        "tasks": [
+          "IntroScreen 플레이스홀더를 IMG-01 기준 인트로 화면 구조로 교체",
+          "Compose 애니메이션으로 지구에서 위치로 줌인되는 MVP 연출 구현",
+          "애니메이션 완료 후 Home 진입 CTA 또는 자동 전환 정책 정리",
+          "Android IntroActivity의 기존 HomeActivity 전환 흐름 유지 확인",
+          "iOS ContentView가 IntroViewController를 거칠지 결정 및 필요 시 연결",
+          "위치 권한은 이번 범위에서 제외하고 서울/한국 기준 더미 위치 fallback 사용",
+          "INTRO_SKIP_POLICY는 별도 Feature로 분리하고 이번 Feature에서는 저장 정책을 구현하지 않음",
+          "IntroScreen 프리뷰 또는 최소 스크린샷 검증 후보 확인"
+        ],
+        "affectedFiles": [
+          "feature/intro/src/commonMain/kotlin/com/linkit/company/feature/intro/IntroScreen.kt",
+          "feature/intro/src/androidMain/kotlin/com/linkit/company/feature/intro/IntroActivity.kt",
+          "feature/intro/src/iosMain/kotlin/com/linkit/company/feature/intro/IntroViewController.kt",
+          "app-ios/app-ios/ContentView.swift",
+          "docs/specs/onboarding-screen.md"
+        ],
+        "testPlan": [
+          "IntroScreen 렌더링 확인",
+          "애니메이션 완료 후 Home 이동 콜백 동작 확인",
+          "Android 최초 진입이 IntroActivity로 시작되는지 확인",
+          "iOS 인트로 연결 시 ContentView 진입 흐름 확인",
+          "스크린샷 테스트 추가 가능 여부 확인"
+        ],
+        "risks": [
+          "현재 MapScreen과 지도 SDK가 없어 실제 지도 줌이 아닌 Compose 연출 MVP로 제한됨",
+          "인트로 길이와 자동 전환 여부는 TBD-02 정책 결정 필요",
+          "위치 권한 fallback은 TBD-03 정책 결정 전까지 더미 위치 기준으로 제한됨",
+          "INTRO_SKIP_POLICY와 재진입/건너뛰기 저장 정책은 별도 Feature 의존성이 있음"
+        ],
+        "updatedAt": "2026-06-28T01:58:09.794Z",
+        "updatedBy": "yuhohyeon"
       },
-      "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "promptHistory": [
+        {
+          "promptId": "prompt_1782447999520_175136",
+          "agent": "codex",
+          "action": "plan",
+          "prompt": "LinkIt KMP의 SCC 정책 문서를 확인한 뒤 Feature 작업 계획을 작성해줘.\n대상 Feature: onboarding:INTRO_MAP_ZOOM\nFeature 제목: 최초 진입 지도 줌인\n화면군: Onboarding / intro\nTrigger: 앱 최초 실행\nResponse: 지구가 줌인되며 내 위치로 확장되는 연출 제안\n원천 스펙: docs/specs/onboarding-screen.md:115\n아직 코드를 수정하거나 SCC 상태를 start로 바꾸지 마.\n먼저 Feature 스펙, 연결 이미지, TBD, 관련 Feature를 확인한 뒤 아래 형식으로 한국어 작업 계획을 제안해줘.\n1. 작업 목표 요약\n2. 세부 작업 체크리스트\n3. 영향을 받을 가능성이 높은 파일/모듈\n4. 테스트 및 스크린샷 검증 계획\n5. 리스크와 사용자 확인 질문\n마지막에는 \"이 계획을 SCC에 저장할까요?\"라고 묻고 사용자 답변을 기다려.\n사용자가 저장을 승인하면 아래 plan-set 명령의 placeholder를 실제 계획 내용으로 채워 실행하고 audit을 돌려줘.\nnode docs/specs/scc-action.mjs plan-set --feature onboarding:INTRO_MAP_ZOOM --agent codex --status draft --summary '<작업 계획 요약>' --tasks '<작업 목록을 쉼표로 구분>' --files '<예상 수정 파일을 쉼표로 구분>' --tests '<테스트 계획을 쉼표로 구분>' --risks '<리스크를 쉼표로 구분>'\n저장 후 실행할 audit 명령: node docs/specs/scc-action.mjs audit",
+          "resultSummary": null,
+          "createdAt": "2026-06-26T04:26:39.520Z",
+          "createdBy": "yuhohyeon"
+        }
+      ],
+      "updatedAt": "2026-06-28T01:58:09.799Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:INTRO_SKIP_POLICY": {
       "featureUid": "onboarding:INTRO_SKIP_POLICY",

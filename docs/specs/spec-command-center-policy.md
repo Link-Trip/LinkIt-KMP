@@ -71,7 +71,7 @@ Spec Command Center(SCC)는 Pingo 스펙 드리븐 개발의 단일 작업 콘�
 
 SCC 버튼은 임의 쉘 명령을 실행하지 않는다. 버튼은 정해진 action contract만 발생시킨다.
 
-`Start` 버튼은 예외적으로 즉시 개발을 시작시키지 않는다. 에이전트는 먼저 Feature 스펙, 이미지 근거, TBD, 영향 범위, 테스트 항목을 확인해 작업 목록을 작성하고 사용자에게 진행 여부를 확인해야 한다. 사용자가 승인하기 전에는 코드 수정, commit, `scc-action.mjs start` 실행, tracking 변경을 하지 않는다.
+`Start` 버튼은 예외적으로 즉시 개발을 시작시키지 않는다. 에이전트는 먼저 Feature 스펙, 이미지 근거, TBD, 현재 코드 구현 수준, 영향 범위, 테스트 항목을 확인해 작업 목록을 작성하고 사용자에게 진행 여부를 확인해야 한다. Work Plan은 이미 구현된 골격과 남은 작업을 구분해야 한다. 사용자가 승인하기 전에는 코드 수정, commit, `scc-action.mjs start` 실행, tracking 변경을 하지 않는다.
 
 Allowed agents:
 
@@ -88,7 +88,7 @@ Allowed actions:
 - `audit`
 - `sync`
 
-Static `file://` 모드에서는 보안상 브라우저가 직접 CLI를 실행할 수 없으므로 버튼은 선택된 AI 에이전트용 CLI 명령을 복사하거나 action payload를 만든다. 자동 실행은 사용자가 명시적으로 켠 localhost bridge를 통해서만 허용한다.
+Static `file://` 모드에서는 보안상 브라우저가 직접 CLI를 실행할 수 없으므로 버튼은 선택된 AI 에이전트용 스킬 호출 프롬프트를 복사하거나 action payload를 만든다. 자동 실행은 사용자가 명시적으로 켠 localhost bridge를 통해서만 허용한다.
 
 ## CLI Contract
 
