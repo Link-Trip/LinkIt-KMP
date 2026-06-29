@@ -1,0 +1,2412 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pingo Spec Command Center</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f9fafb;
+      --text: #111827;
+      --muted: #6b7280;
+      --subtle: #9ca3af;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+      --blue: #2563eb;
+      --blue-soft: #eff6ff;
+      --teal: #0f766e;
+      --teal-soft: #ecfdf5;
+      --amber: #b45309;
+      --amber-soft: #fffbeb;
+      --red: #b91c1c;
+      --red-soft: #fef2f2;
+      --violet: #6d28d9;
+      --violet-soft: #f5f3ff;
+      --green: #15803d;
+      --green-soft: #f0fdf4;
+      --shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-width: 1120px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app-header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 360px;
+    }
+
+    .product-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0f766e, #2563eb);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .agent-picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 34px;
+      padding: 4px 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .agent-picker select {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      min-height: 24px;
+      padding: 0;
+      outline: none;
+      font-weight: 800;
+    }
+
+    .link-button,
+    .ghost-button,
+    .seg-button {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      min-height: 34px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .link-button {
+      text-decoration: none;
+    }
+
+    .link-button:hover,
+    .ghost-button:hover,
+    .seg-button:hover {
+      border-color: var(--border-strong);
+      background: var(--panel-soft);
+    }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--panel);
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 750;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .kpi small {
+      color: var(--subtle);
+      font-size: 12px;
+      margin-left: 6px;
+      font-weight: 500;
+    }
+
+    .app-layout {
+      display: grid;
+      grid-template-columns: 270px minmax(560px, 1fr) 390px;
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 144px);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-width: 0;
+    }
+
+    .sidebar {
+      padding: 14px;
+      align-self: start;
+      position: sticky;
+      top: 144px;
+      max-height: calc(100vh - 158px);
+      overflow: auto;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin: 0 0 10px;
+    }
+
+    .screen-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .screen-card {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .screen-card.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .screen-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .screen-name {
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .screen-version {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .screen-stats {
+      display: flex;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .filter-group {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      margin-top: 14px;
+    }
+
+    .field-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .select,
+    .search-input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .select:focus,
+    .search-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .quick-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-weight: 700;
+    }
+
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .toolbar {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-count {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .seg-button {
+      border-color: transparent;
+      min-height: 30px;
+      padding: 5px 9px;
+      background: transparent;
+    }
+
+    .seg-button.active {
+      background: var(--panel);
+      border-color: var(--border);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      font-weight: 750;
+    }
+
+    .table-panel {
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      overflow: auto;
+      max-height: calc(100vh - 342px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--panel-soft);
+      color: var(--muted);
+      z-index: 3;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    tbody tr.active {
+      background: var(--blue-soft);
+    }
+
+    .feature-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    .feature-title {
+      font-weight: 750;
+      margin-bottom: 4px;
+    }
+
+    .feature-meta {
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 22px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge.confirmed,
+    .badge.ready,
+    .badge.verified {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .badge.partial,
+    .badge.in_progress,
+    .badge.in_review {
+      color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .badge.needs_policy,
+    .badge.blocked,
+    .badge.variant {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .badge.inferred,
+    .badge.not_started {
+      color: var(--muted);
+      background: #f3f4f6;
+    }
+
+    .badge.danger {
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      height: 24px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .board {
+      display: none;
+      grid-template-columns: repeat(4, minmax(210px, 1fr));
+      gap: 10px;
+      overflow: auto;
+      max-height: calc(100vh - 342px);
+      padding: 12px;
+    }
+
+    .board.active {
+      display: grid;
+    }
+
+    .lane {
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      border-radius: 8px;
+      min-width: 210px;
+      padding: 10px;
+    }
+
+    .lane-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .feature-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    .feature-card.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .card-title {
+      margin: 6px 0 8px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .policy-panel {
+      padding: 12px;
+    }
+
+    .policy-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .policy-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .policy-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+      cursor: pointer;
+    }
+
+    .policy-item:hover {
+      border-color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .policy-title {
+      font-weight: 750;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .policy-desc {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .detail {
+      align-self: start;
+      position: sticky;
+      top: 144px;
+      max-height: calc(100vh - 158px);
+      overflow: auto;
+      padding: 0;
+    }
+
+    .detail-empty {
+      padding: 28px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .detail-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .detail-kicker {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .detail-title {
+      margin: 0 0 12px;
+      font-size: 19px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .detail-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .detail-body {
+      padding: 16px;
+    }
+
+    .section {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+      margin-bottom: 0;
+    }
+
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 94px minmax(0, 1fr);
+      gap: 8px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .kv dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .kv dd {
+      margin: 0;
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .evidence {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel-soft);
+      cursor: pointer;
+    }
+
+    .evidence img {
+      width: 100%;
+      height: 128px;
+      object-fit: cover;
+      display: block;
+      background: #eef2f7;
+    }
+
+    .evidence-caption {
+      padding: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--border-strong);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 14px;
+      font-size: 13px;
+      background: var(--panel-soft);
+    }
+
+    .related-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .related-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px;
+      cursor: pointer;
+    }
+
+    .related-item:hover {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .plan-card,
+    .prompt-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+    }
+
+    .plan-summary {
+      margin: 0 0 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .compact-list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .compact-list + .feature-meta {
+      margin-top: 8px;
+    }
+
+    .todo-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin: 0;
+    }
+
+    .todo-item {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      color: var(--text);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .todo-check {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      background: var(--panel);
+      color: var(--panel);
+      display: inline-grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      margin-top: 1px;
+    }
+
+    .todo-item.done {
+      color: var(--muted);
+    }
+
+    .todo-item.done .todo-check {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .todo-item.done .todo-text {
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+      text-decoration-color: var(--subtle);
+    }
+
+    .prompt-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .prompt-summary {
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .prompt-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .prompt-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .prompt-chevron {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 12px;
+      line-height: 1;
+      flex: 0 0 auto;
+      transition: transform 0.16s ease;
+    }
+
+    .prompt-item[open] .prompt-chevron {
+      transform: rotate(90deg);
+    }
+
+    .prompt-preview {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .prompt-text {
+      max-height: 96px;
+      overflow: auto;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .source-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .source-links a,
+    .source-links button {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      min-height: 32px;
+      padding: 7px 9px;
+      color: var(--blue);
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .action-button {
+      justify-content: center;
+      min-height: 36px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .command-preview {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      overflow: auto;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      z-index: 60;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--panel);
+      border-radius: 8px;
+      max-width: min(1100px, 92vw);
+      max-height: 90vh;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 750;
+    }
+
+    .markdown-modal-card {
+      width: min(1120px, 94vw);
+      height: min(880px, 90vh);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .markdown-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .markdown-body {
+      overflow: auto;
+      padding: 24px 30px 34px;
+      color: #1f2937;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4 {
+      color: var(--text);
+      letter-spacing: 0;
+      line-height: 1.3;
+    }
+
+    .markdown-body h1 {
+      font-size: 26px;
+      margin: 0 0 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .markdown-body h2 {
+      font-size: 20px;
+      margin: 30px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .markdown-body h3 {
+      font-size: 16px;
+      margin: 22px 0 8px;
+    }
+
+    .markdown-body h4 {
+      font-size: 14px;
+      margin: 18px 0 8px;
+    }
+
+    .markdown-body p,
+    .markdown-body ul,
+    .markdown-body ol,
+    .markdown-body blockquote,
+    .markdown-body pre,
+    .markdown-body table {
+      margin: 0 0 14px;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      padding-left: 22px;
+    }
+
+    .markdown-body blockquote {
+      border-left: 3px solid var(--border-strong);
+      padding: 8px 12px;
+      color: var(--muted);
+      background: var(--panel-soft);
+    }
+
+    .markdown-body code {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 5px;
+      background: var(--panel-soft);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+
+    .markdown-body pre {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    .markdown-body pre code {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 12px;
+    }
+
+    .markdown-body a {
+      color: var(--blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .markdown-body img {
+      display: block;
+      max-width: 100%;
+      max-height: 560px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 12px 0 18px;
+      background: #f8fafc;
+    }
+
+    .markdown-table-wrap {
+      overflow: auto;
+      margin: 0 0 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .markdown-body table {
+      margin: 0;
+      min-width: 620px;
+      font-size: 13px;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      vertical-align: top;
+    }
+
+    .markdown-error {
+      border: 1px solid var(--amber);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--amber-soft);
+      color: #78350f;
+    }
+
+    .modal img {
+      display: block;
+      max-width: 100%;
+      max-height: calc(90vh - 54px);
+      object-fit: contain;
+      background: #f8fafc;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1280px) {
+      body {
+        min-width: 980px;
+      }
+
+      .app-layout {
+        grid-template-columns: 230px minmax(480px, 1fr) 340px;
+      }
+
+      .kpi-row {
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-main">
+      <div class="title-block">
+        <div class="product-mark">SC</div>
+        <div>
+          <h1>Spec Command Center</h1>
+          <p class="subtitle">Markdown 스펙을 Feature 단위로 추적하는 Pingo 작업 관제판</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="link-button" type="button" data-markdown-doc="README.md">스펙 인덱스</button>
+        <button class="link-button" type="button" data-markdown-doc="spec-command-center-policy.md">SCC 정책</button>
+        <button class="link-button" type="button" data-markdown-doc="feature-list.schema.md">Feature 규격</button>
+        <a class="link-button" href="./feature-list.json">Feature List</a>
+        <label class="agent-picker">AI
+          <select id="agentSelect" aria-label="AI 에이전트">
+            <option value="codex">Codex</option>
+            <option value="claude">Claude</option>
+          </select>
+        </label>
+        <button class="ghost-button" type="button" id="resetFilters">필터 초기화</button>
+      </div>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+  </header>
+
+  <main class="app-layout">
+    <aside class="panel sidebar">
+      <p class="panel-title">Screens</p>
+      <div class="screen-list" id="screenList"></div>
+
+      <div class="filter-group">
+        <p class="field-label">Type</p>
+        <select class="select" id="typeFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Spec Status</p>
+        <select class="select" id="specStatusFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Delivery Status</p>
+        <select class="select" id="deliveryFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Developer</p>
+        <select class="select" id="developerFilter"></select>
+      </div>
+
+      <div class="filter-group">
+        <p class="field-label">Quick Filters</p>
+        <div class="quick-filters">
+          <button class="chip" type="button" data-quick="blocked">Blocked</button>
+          <button class="chip" type="button" data-quick="noDeveloper">No developer</button>
+          <button class="chip" type="button" data-quick="hasEvidence">Has evidence</button>
+          <button class="chip" type="button" data-quick="hasTbd">Has TBD</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="panel toolbar">
+        <div class="search-wrap">
+          <input class="search-input" id="searchInput" type="search" placeholder="Feature ID, 기능명, Trigger, 화면 반응, TBD 검색" />
+          <span class="result-count" id="resultCount"></span>
+        </div>
+        <div class="segmented" role="tablist" aria-label="View mode">
+          <button class="seg-button active" type="button" data-view="table">Table</button>
+          <button class="seg-button" type="button" data-view="board">Flow</button>
+        </div>
+      </div>
+
+      <div class="panel table-panel" id="tableView">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Area</th>
+                <th>Spec</th>
+                <th>Delivery</th>
+                <th>Developer</th>
+                <th>Evidence</th>
+                <th>TBD</th>
+              </tr>
+            </thead>
+            <tbody id="featureRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel board" id="boardView"></div>
+
+      <div class="panel policy-panel">
+        <div class="policy-header">
+          <div>
+            <p class="panel-title" style="margin-bottom: 3px;">TBD / Policy Queue</p>
+            <div class="subtitle">선택된 화면/필터에 연결된 정책 미정 항목</div>
+          </div>
+          <span class="count-pill" id="policyCount">0</span>
+        </div>
+        <div class="policy-list" id="policyList"></div>
+      </div>
+    </section>
+
+    <aside class="panel detail" id="detailPanel">
+      <div class="detail-empty">Feature를 선택하면 Trigger, 화면 반응, 이미지 근거, 연결 TBD, 원문 스펙 링크를 한 번에 볼 수 있습니다.</div>
+    </aside>
+  </main>
+
+  <div class="modal" id="imageModal" role="dialog" aria-modal="true" aria-label="Image preview">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="modalTitle">Image preview</div>
+        <button class="ghost-button" type="button" id="closeModal">닫기</button>
+      </div>
+      <img id="modalImage" alt="" />
+    </div>
+  </div>
+
+  <div class="modal" id="markdownModal" role="dialog" aria-modal="true" aria-label="Markdown viewer">
+    <div class="modal-card markdown-modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="markdownTitle">Markdown viewer</div>
+        <div class="markdown-actions">
+          <a class="link-button" id="markdownRawLink" href="#" target="_blank" rel="noopener">원본 열기</a>
+          <button class="ghost-button" type="button" id="closeMarkdownModal">닫기</button>
+        </div>
+      </div>
+      <div class="markdown-body" id="markdownBody"></div>
+    </div>
+  </div>
+
+  <script src="./feature-list.js"></script>
+  <script src="./feature-tracking.js"></script>
+  <script>
+    function normalizeFeatureList(registry) {
+      const tracking = window.SPEC_COMMAND_CENTER_FEATURE_TRACKING || { features: {} };
+      const trackingByUid = tracking.features || {};
+      return {
+        generatedAt: registry.generatedAt,
+        schemaVersion: registry.schemaVersion,
+        project: registry.project,
+        developers: registry.enums.developer || ['Unassigned'],
+        activeWork: tracking.activeWork || {},
+        specs: registry.specDocuments.map((spec) => ({
+          slug: spec.slug,
+          title: spec.title,
+          area: spec.area,
+          path: spec.path,
+          file: spec.path,
+          version: spec.specVersion,
+          figma: spec.figmaSection,
+          accent: spec.accent,
+          reviewStatus: spec.reviewStatus
+        })),
+        images: registry.imageAssets.map((image) => ({
+          uid: image.uid,
+          screenSlug: image.screenSlug,
+          imageId: image.imageId,
+          path: image.path,
+          description: image.description,
+          sourceLine: image.source.line
+        })),
+        tbds: registry.tbdItems.map((tbd) => ({
+          uid: tbd.uid,
+          screenSlug: tbd.screenSlug,
+          tbdId: tbd.tbdId,
+          title: tbd.title,
+          description: tbd.description,
+          decisionStatus: tbd.status,
+          resolver: tbd.resolver || 'PM',
+          sourceLine: tbd.source.line,
+          featureRefs: tbd.impact.featureRefs
+        })),
+        features: registry.features.map((feature) => {
+          const tracked = trackingByUid[feature.uid] || {};
+          const activeAgents = Object.entries(tracking.activeWork || {})
+            .filter(([, active]) => active?.featureUid === feature.uid)
+            .map(([agent]) => agent);
+          return {
+            uid: feature.uid,
+            featureId: feature.featureId,
+            screenSlug: feature.classification.screenSlug,
+            area: feature.classification.area,
+            subarea: feature.classification.subarea,
+            type: feature.classification.type,
+            tags: feature.classification.tags,
+            title: feature.title,
+            trigger: feature.behavior.trigger,
+            response: feature.behavior.response,
+            rawStatus: feature.status.raw,
+            specStatus: feature.status.spec,
+            evidenceLevel: feature.status.evidence,
+            deliveryStatus: tracked.workStatus || feature.status.delivery,
+            developer: tracked.developer || feature.assignment.developer || 'Unassigned',
+            issue: tracked.issue || feature.assignment.issue,
+            pr: tracked.pr || feature.assignment.pr,
+            branch: tracked.branch || feature.assignment.branch,
+            testStatus: tracked.testStatus || feature.verification.testStatus,
+            screenshotStatus: tracked.screenshotStatus || feature.verification.screenshotStatus,
+            blockedReason: tracked.blockedReason || null,
+            trackingNotes: tracked.notes || '',
+            trackingUpdatedAt: tracked.updatedAt || null,
+            trackingUpdatedBy: tracked.updatedBy || null,
+            activeAgents,
+            workPlan: tracked.workPlan || {
+              status: 'empty',
+              summary: '',
+              tasks: [],
+              affectedFiles: [],
+              testPlan: [],
+              risks: [],
+              updatedAt: null,
+              updatedBy: null,
+            },
+            promptHistory: Array.isArray(tracked.promptHistory) ? tracked.promptHistory : [],
+            imageRefs: feature.links.imageRefs,
+            tbdRefs: feature.links.tbdRefs,
+            relatedFeatureRefs: feature.links.relatedFeatureRefs,
+            source: {
+              file: feature.links.specPath,
+              line: feature.links.sourceLine
+            }
+          };
+        })
+      };
+    }
+
+    function addDemoFeature(data) {
+      const demoSpec = {
+        slug: 'scc-demo',
+        title: 'SCC Demo',
+        area: 'Spec Command Center',
+        path: 'README.md',
+        file: 'README.md',
+        version: 'demo',
+        figma: '-',
+        accent: '#0f766e',
+        reviewStatus: 'demo',
+      };
+      const demoFeature = {
+        uid: 'scc-demo:WORK_PLAN_PROMPT_HISTORY',
+        featureId: 'WORK_PLAN_PROMPT_HISTORY',
+        screenSlug: demoSpec.slug,
+        area: demoSpec.area,
+        subarea: 'workflow',
+        type: 'display_state',
+        tags: ['demo', 'work_plan', 'prompt_history'],
+        title: '작업 계획과 프롬프트 히스토리 표시 데모',
+        trigger: 'SCC에서 Feature를 선택한다',
+        response: 'Feature 하위에 작업 계획, 현재 작업 상태, 프롬프트 기록이 함께 표시된다',
+        rawStatus: 'Demo data',
+        specStatus: 'confirmed',
+        evidenceLevel: 'inferred',
+        deliveryStatus: 'in_progress',
+        developer: 'Codex',
+        issue: '#demo',
+        pr: null,
+        branch: 'improve/#31-task_breakdown_for_ai_collaboration',
+        testStatus: 'not_applicable',
+        screenshotStatus: 'not_applicable',
+        blockedReason: null,
+        trackingNotes: 'UI 확인용 데모 Feature입니다.',
+        trackingUpdatedAt: '2026-06-21T09:20:00.000Z',
+        trackingUpdatedBy: 'Codex',
+        activeAgents: ['codex'],
+        workPlan: {
+          status: 'ready',
+          summary: 'SCC Feature 상세에서 작업자가 세운 계획과 실제 입력 프롬프트 기록이 한눈에 보이는지 확인한다.',
+          tasks: [
+            { text: 'Feature 상세 패널에 Work Plan 섹션 노출', done: true },
+            { text: '계획 상태, 작업 목록, 영향 파일, 테스트 계획, 리스크를 구조화해서 표시', done: true },
+            { text: 'Tasks를 투두 리스트 형식으로 표시', done: true },
+            { text: 'Prompt History에 최신 사용자 프롬프트를 시간순으로 표시', done: false },
+            { text: '현재 작업 중인 Feature 배지를 함께 표시', done: false },
+          ],
+          affectedFiles: [
+            'docs/specs/index.html',
+            'docs/specs/scc-action.mjs',
+            'docs/specs/scc-agent.mjs',
+            'docs/specs/feature-tracking.json',
+          ],
+          testPlan: [
+            'index.html 스크립트 문법 검사',
+            'SCC audit 실행',
+            '브라우저에서 Work Plan/Prompt History 렌더링 확인',
+          ],
+          risks: [
+            '프롬프트가 너무 길면 상세 패널이 복잡해질 수 있음',
+            '현재 작업 Feature가 없을 때 hook 로그를 어디에 둘지 정책 필요',
+          ],
+          updatedAt: '2026-06-21T09:20:00.000Z',
+          updatedBy: 'Codex',
+        },
+        promptHistory: [
+          {
+            promptId: 'prompt_demo_002',
+            agent: 'codex',
+            action: 'user-prompt',
+            prompt: '현재 작업중인 Feature를 구분할 수 있도록 만들고, 현재 작업중인 Feature에 기록되는게 나을듯.',
+            resultSummary: 'start 액션이 activeWork를 설정하고 prompt-log가 active Feature에 자동 기록되도록 구현.',
+            createdAt: '2026-06-21T09:05:00.000Z',
+            createdBy: 'yuhohyeon',
+          },
+          {
+            promptId: 'prompt_demo_001',
+            agent: 'codex',
+            action: 'plan',
+            prompt: '테스트 Feature 만들어서 플랜이랑, 프롬프트 히스토리 더미 데이터 넣어서 보여줘',
+            resultSummary: 'UI-only 데모 Feature를 추가해 Work Plan과 Prompt History 표시 상태를 확인.',
+            createdAt: '2026-06-21T09:00:00.000Z',
+            createdBy: 'yuhohyeon',
+          },
+        ],
+        imageRefs: [],
+        tbdRefs: [],
+        relatedFeatureRefs: [],
+        source: {
+          file: 'README.md',
+          line: 24,
+        },
+      };
+
+      data.specs = [demoSpec, ...data.specs];
+      data.features = [demoFeature, ...data.features];
+      if (!data.activeWork.codex) {
+        data.activeWork.codex = {
+          featureUid: demoFeature.uid,
+          title: demoFeature.title,
+          agent: 'codex',
+          actor: 'Codex',
+          branch: demoFeature.branch,
+          startedAt: '2026-06-21T09:20:00.000Z',
+        };
+      }
+      return data;
+    }
+
+    const data = addDemoFeature(normalizeFeatureList(window.SPEC_COMMAND_CENTER_FEATURE_LIST));
+    const labels = {
+      confirmed: 'Confirmed',
+      partial: 'Partial',
+      needs_policy: 'Needs policy',
+      inferred: 'Inferred',
+      variant: 'Variant',
+      ready: 'Ready',
+      blocked: 'Blocked',
+      not_started: 'Not started',
+      in_progress: 'In progress',
+      in_review: 'Review',
+      verified: 'Verified',
+      empty: 'Empty',
+      draft: 'Draft',
+      done: 'Done',
+      map_interaction: 'Map',
+      navigation: 'Navigation',
+      input: 'Input',
+      validation: 'Validation',
+      modal_dialog: 'Modal',
+      filter_sort: 'Filter',
+      async_process: 'Async',
+      selection: 'Selection',
+      variant_experiment: 'Variant',
+      display_state: 'Display',
+      passed: 'Passed',
+      failed: 'Failed',
+      not_applicable: 'N/A'
+    };
+
+    const actionLabels = {
+      plan: '작업 계획 작성',
+      start: '작업 시작',
+      review: 'PR 리뷰 연결',
+      done: '구현 완료 처리'
+    };
+
+    const state = {
+      screen: 'all',
+      type: 'all',
+      specStatus: 'all',
+      delivery: 'all',
+      developer: 'all',
+      query: '',
+      quick: new Set(),
+      view: 'table',
+      agent: 'codex',
+      selectedUid: data.features[0]?.uid
+    };
+
+    const byId = (id) => document.getElementById(id);
+    const specBySlug = new Map(data.specs.map((spec) => [spec.slug, spec]));
+    const imageByUid = new Map(data.images.map((image) => [image.uid, image]));
+    const tbdByUid = new Map(data.tbds.map((tbd) => [tbd.uid, tbd]));
+    const featuresByUid = new Map(data.features.map((feature) => [feature.uid, feature]));
+
+    function uniq(values) {
+      return [...new Set(values.filter(Boolean))].sort();
+    }
+
+    function label(value) {
+      return labels[value] || value || '-';
+    }
+
+    function badge(value, extraClass = '') {
+      return `<span class="badge ${value} ${extraClass}">${label(value)}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function docTitle(path) {
+      const titles = new Map([
+        ['README.md', '스펙 인덱스'],
+        ['spec-command-center-policy.md', 'SCC 정책'],
+        ['feature-list.schema.md', 'Feature 규격'],
+        ['scc-action-bridge.md', 'SCC Action Bridge'],
+        ...data.specs.map((spec) => [spec.path, spec.title])
+      ]);
+      return titles.get(path) || path;
+    }
+
+    function normalizeMarkdownPath(path) {
+      return String(path || '')
+        .replace(/^\.?\//, '')
+        .replace(/^docs\/specs\//, '')
+        .replace(/^docs\//, '../')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\/specs\//, '')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\//, '../');
+    }
+
+    function isMarkdownPath(path) {
+      return /\.md(?:#.*)?$/i.test(normalizeMarkdownPath(path));
+    }
+
+    function resolveMarkdownUrl(path) {
+      const normalized = normalizeMarkdownPath(path);
+      return normalized.startsWith('../') ? normalized : `./${normalized}`;
+    }
+
+    function resolveMarkdownAssetUrl(path) {
+      return String(path || '')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\/specs\//, './')
+        .replace(/^\/Users\/yuhohyeon\/Desktop\/project\/LinkIt-KMP\/docs\//, '../');
+    }
+
+    function inlineMarkdown(value) {
+      let html = escapeHtml(value);
+      html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+        const cleanSrc = escapeHtml(resolveMarkdownAssetUrl(src));
+        return `<img src="${cleanSrc}" alt="${escapeHtml(alt)}" />`;
+      });
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, href) => {
+        const normalized = normalizeMarkdownPath(href);
+        const attrs = isMarkdownPath(href)
+          ? `href="${escapeHtml(resolveMarkdownUrl(normalized))}" data-markdown-doc="${escapeHtml(normalized)}"`
+          : `href="${escapeHtml(href)}" target="_blank" rel="noopener"`;
+        return `<a ${attrs}>${escapeHtml(text)}</a>`;
+      });
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      return html;
+    }
+
+    function splitTableRow(line) {
+      return line
+        .trim()
+        .replace(/^\|/, '')
+        .replace(/\|$/, '')
+        .split('|')
+        .map((cell) => cell.trim());
+    }
+
+    function isTableDivider(line) {
+      return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(line);
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = String(markdown || '').replace(/\r\n/g, '\n').split('\n');
+      const blocks = [];
+      let index = 0;
+
+      while (index < lines.length) {
+        const line = lines[index];
+
+        if (!line.trim()) {
+          index += 1;
+          continue;
+        }
+
+        if (line.startsWith('```')) {
+          const code = [];
+          index += 1;
+          while (index < lines.length && !lines[index].startsWith('```')) {
+            code.push(lines[index]);
+            index += 1;
+          }
+          index += 1;
+          blocks.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`);
+          continue;
+        }
+
+        const heading = line.match(/^(#{1,4})\s+(.+)$/);
+        if (heading) {
+          const level = heading[1].length;
+          blocks.push(`<h${level}>${inlineMarkdown(heading[2])}</h${level}>`);
+          index += 1;
+          continue;
+        }
+
+        if (/^\s*[-*]\s+/.test(line)) {
+          const items = [];
+          while (index < lines.length && /^\s*[-*]\s+/.test(lines[index])) {
+            items.push(lines[index].replace(/^\s*[-*]\s+/, ''));
+            index += 1;
+          }
+          blocks.push(`<ul>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}</ul>`);
+          continue;
+        }
+
+        if (/^\s*\d+\.\s+/.test(line)) {
+          const items = [];
+          while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
+            items.push(lines[index].replace(/^\s*\d+\.\s+/, ''));
+            index += 1;
+          }
+          blocks.push(`<ol>${items.map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}</ol>`);
+          continue;
+        }
+
+        if (/^\s*>/.test(line)) {
+          const quote = [];
+          while (index < lines.length && /^\s*>/.test(lines[index])) {
+            quote.push(lines[index].replace(/^\s*>\s?/, ''));
+            index += 1;
+          }
+          blocks.push(`<blockquote>${quote.map(inlineMarkdown).join('<br>')}</blockquote>`);
+          continue;
+        }
+
+        if (line.includes('|') && lines[index + 1] && isTableDivider(lines[index + 1])) {
+          const headers = splitTableRow(line);
+          const rows = [];
+          index += 2;
+          while (index < lines.length && lines[index].includes('|') && lines[index].trim()) {
+            rows.push(splitTableRow(lines[index]));
+            index += 1;
+          }
+          blocks.push([
+            '<div class="markdown-table-wrap"><table>',
+            `<thead><tr>${headers.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join('')}</tr></thead>`,
+            `<tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`).join('')}</tbody>`,
+            '</table></div>'
+          ].join(''));
+          continue;
+        }
+
+        const paragraph = [line.trim()];
+        index += 1;
+        while (
+          index < lines.length &&
+          lines[index].trim() &&
+          !lines[index].startsWith('```') &&
+          !/^(#{1,4})\s+/.test(lines[index]) &&
+          !/^\s*[-*]\s+/.test(lines[index]) &&
+          !/^\s*\d+\.\s+/.test(lines[index]) &&
+          !/^\s*>/.test(lines[index]) &&
+          !(lines[index].includes('|') && lines[index + 1] && isTableDivider(lines[index + 1]))
+        ) {
+          paragraph.push(lines[index].trim());
+          index += 1;
+        }
+        blocks.push(`<p>${inlineMarkdown(paragraph.join(' '))}</p>`);
+      }
+
+      return blocks.join('\n');
+    }
+
+    async function openMarkdown(path) {
+      const normalized = normalizeMarkdownPath(path);
+      const url = resolveMarkdownUrl(normalized);
+      byId('markdownTitle').textContent = docTitle(normalized);
+      byId('markdownRawLink').href = url;
+      byId('markdownBody').innerHTML = '<div class="empty-state">Markdown 문서를 불러오는 중입니다.</div>';
+      byId('markdownModal').classList.add('active');
+
+      try {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const markdown = await response.text();
+        byId('markdownBody').innerHTML = renderMarkdown(markdown);
+        bindMarkdownLinks(byId('markdownBody'));
+      } catch (error) {
+        byId('markdownBody').innerHTML = `
+          <div class="markdown-error">
+            <strong>Markdown 문서를 뷰어로 불러오지 못했습니다.</strong><br>
+            현재 브라우저가 로컬 파일 읽기를 제한했을 수 있습니다. 저장소 루트에서
+            <code>python3 -m http.server 8000</code>을 실행한 뒤
+            <code>http://127.0.0.1:8000/docs/specs/index.html</code>로 열면 SCC 안에서 렌더링됩니다.
+            <p style="margin: 10px 0 0;">대상: ${escapeHtml(normalized)} · 오류: ${escapeHtml(error.message)}</p>
+          </div>
+        `;
+      }
+    }
+
+    function bindMarkdownLinks(root = document) {
+      root.querySelectorAll('[data-markdown-doc]').forEach((item) => {
+        item.addEventListener('click', (event) => {
+          event.preventDefault();
+          openMarkdown(item.dataset.markdownDoc || item.getAttribute('href'));
+        });
+      });
+    }
+
+    function cliArg(value) {
+      const text = String(value);
+      if (/^[A-Za-z0-9_./:@-]+$/.test(text)) return text;
+      return `'${text.replaceAll("'", "'\\''")}'`;
+    }
+
+    function trackingCommandFor(action, feature) {
+      const cliAction = action === 'plan' ? 'plan-set' : action;
+      const parts = ['node', 'docs/specs/scc-action.mjs', cliAction, '--feature', feature.uid, '--agent', state.agent];
+      if (action === 'plan') {
+        parts.push(
+          '--status', 'draft',
+          '--summary', '<작업 계획 요약>',
+          '--tasks', '<작업 목록을 쉼표로 구분>',
+          '--files', '<예상 수정 파일을 쉼표로 구분>',
+          '--tests', '<테스트 계획을 쉼표로 구분>',
+          '--risks', '<리스크를 쉼표로 구분>',
+        );
+      }
+      if (action === 'done') {
+        parts.push('--tests', 'passed', '--screenshots', 'passed');
+      }
+      return parts.map(cliArg).join(' ');
+    }
+
+    function skillFor(action) {
+      return {
+        plan: 'linkit-spec',
+        start: 'linkit-spec',
+        review: 'linkit-pr',
+        done: 'linkit-done',
+      }[action] || 'linkit-spec';
+    }
+
+    function promptFor(action, feature) {
+      const command = trackingCommandFor(action, feature);
+      const auditCommand = 'node docs/specs/scc-action.mjs audit';
+      const featureLines = [
+        `대상 Feature: ${feature.uid}`,
+        `Feature 제목: ${feature.title}`,
+        `Trigger: ${feature.trigger}`,
+        `Response: ${feature.response}`,
+        `원천 스펙: docs/specs/${feature.source.file}:${feature.source.line}`,
+      ];
+
+      if (action === 'plan') {
+        return [
+          `\`${skillFor(action)}\` 스킬을 사용해줘.`,
+          ...featureLines,
+          '이 Feature의 Work Plan을 작성하려고 해.',
+          '먼저 스펙/이미지/TBD/관련 Feature와 현재 코드 구현 수준을 확인해서 계획 초안을 한국어로 보여줘.',
+          '이미 구현된 골격, 플레이스홀더, 미연결 진입점, 없는 SDK/의존성을 구분하고 Todo는 남은 작업 기준으로 조정해줘.',
+          '초안에는 목표 요약, 투두 리스트, 영향 파일, 테스트 계획, 리스크를 포함해줘.',
+          '바로 저장하지 말고, "이 계획으로 저장할까요? 수정할 점이 있나요?"라고 물어봐.',
+          '내가 승인하거나 수정 요청을 반영해 최종 승인하면 아래 명령의 placeholder를 실제 내용으로 채워 실행해줘.',
+          command,
+          `저장 후 \`${auditCommand}\`를 실행하고 결과를 요약해줘.`,
+        ].join('\n');
+      }
+
+      if (action === 'start') {
+        return [
+          `\`${skillFor(action)}\` 스킬을 사용해줘.`,
+          ...featureLines,
+          '아직 코드를 수정하지 말고 작업 시작 준비를 해줘.',
+          '스펙 확인 사항, 구현 범위, 작업 체크리스트, 테스트 항목, 확인 질문을 먼저 정리해줘.',
+          '마지막에 "이 작업 목록으로 진행할까요?"라고 묻고 기다려.',
+          '내가 승인하면 아래 명령을 실행해서 SCC 현재 작업 Feature로 등록하고 audit 후 개발을 시작해줘.',
+          command,
+          `승인 후 \`${auditCommand}\`를 실행해줘.`,
+        ].join('\n');
+      }
+
+      return [
+        `\`${skillFor(action)}\` 스킬을 사용해줘.`,
+        ...featureLines,
+        `작업: ${actionLabels[action] || action}`,
+        '필요한 값이 부족하면 먼저 나에게 물어봐.',
+        '승인되면 아래 SCC 명령을 실행하고 audit 결과를 요약해줘.',
+        command,
+        auditCommand,
+      ].join('\n');
+    }
+
+    function commandFor(action, feature) {
+      return promptFor(action, feature);
+    }
+
+    async function copyText(value) {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value);
+          return;
+        }
+      } catch {
+        // Fall back to the legacy copy path below in file:// contexts.
+      }
+
+      const textarea = document.createElement('textarea');
+      textarea.value = value;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+
+    function getImages(feature) {
+      return feature.imageRefs.map((uid) => imageByUid.get(uid)).filter(Boolean);
+    }
+
+    function getTbds(feature) {
+      return feature.tbdRefs.map((uid) => tbdByUid.get(uid)).filter(Boolean);
+    }
+
+    function listItems(items) {
+      const values = (items || []).filter(Boolean);
+      if (!values.length) return '<div class="empty-state">아직 기록된 항목이 없습니다.</div>';
+      return `<ul class="compact-list">${values.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+    }
+
+    function todoText(item) {
+      return typeof item === 'string' ? item : item?.text || '';
+    }
+
+    function renderTodoList(items) {
+      const values = (items || []).filter((item) => todoText(item));
+      if (!values.length) return '<div class="empty-state">아직 기록된 작업이 없습니다.</div>';
+      return `<div class="todo-list">${values.map((item) => {
+        const done = typeof item === 'object' && Boolean(item.done);
+        return `
+          <div class="todo-item ${done ? 'done' : ''}">
+            <span class="todo-check" aria-hidden="true">${done ? '✓' : ''}</span>
+            <span class="todo-text">${escapeHtml(todoText(item))}</span>
+          </div>
+        `;
+      }).join('')}</div>`;
+    }
+
+    function renderWorkPlan(feature) {
+      const plan = feature.workPlan || {};
+      if (!plan.summary && !(plan.tasks || []).length) {
+        return '<div class="empty-state">아직 저장된 작업 계획이 없습니다. 계획 작성 명령을 복사해 AI에게 작업 계획을 먼저 만들게 할 수 있습니다.</div>';
+      }
+      return `
+        <div class="plan-card">
+          <div class="feature-meta"><span>${badge(plan.status || 'draft')}</span><span>Updated: ${escapeHtml(plan.updatedAt || '-')}</span><span>${escapeHtml(plan.updatedBy || '-')}</span></div>
+          <p class="plan-summary">${escapeHtml(plan.summary || '요약 없음')}</p>
+          <div class="policy-title">Tasks</div>
+          ${renderTodoList(plan.tasks)}
+          <div class="policy-title" style="margin-top: 10px;">Affected Files</div>
+          ${listItems(plan.affectedFiles)}
+          <div class="policy-title" style="margin-top: 10px;">Tests</div>
+          ${listItems(plan.testPlan)}
+          <div class="policy-title" style="margin-top: 10px;">Risks</div>
+          ${listItems(plan.risks)}
+        </div>
+      `;
+    }
+
+    function renderPromptHistory(feature) {
+      const prompts = (feature.promptHistory || []).slice(0, 5);
+      if (!prompts.length) {
+        return '<div class="empty-state">아직 기록된 작업 프롬프트가 없습니다. SCC agent 명령을 실행하면 해당 Feature에 자동 기록됩니다.</div>';
+      }
+      return `<div class="prompt-list">${prompts.map((prompt) => `
+        <details class="prompt-item">
+          <summary class="prompt-summary">
+            <div class="prompt-summary-row">
+              <div class="feature-meta">
+                <span>${escapeHtml(prompt.action || 'manual')}</span>
+                <span>${escapeHtml(prompt.agent || '-')}</span>
+                <span>${escapeHtml(prompt.createdAt || '-')}</span>
+              </div>
+              <span class="prompt-chevron" aria-hidden="true">›</span>
+            </div>
+            <div class="prompt-preview">${escapeHtml(prompt.prompt || '')}</div>
+          </summary>
+          <div class="prompt-text">${escapeHtml(prompt.prompt || '')}</div>
+          ${prompt.resultSummary ? `<div class="policy-desc" style="margin-top: 8px;">${escapeHtml(prompt.resultSummary)}</div>` : ''}
+        </details>
+      `).join('')}</div>`;
+    }
+
+    function screenStats(slug) {
+      const features = data.features.filter((feature) => feature.screenSlug === slug);
+      const tbds = data.tbds.filter((tbd) => tbd.screenSlug === slug);
+      const notStarted = features.filter((feature) => feature.deliveryStatus === 'not_started').length;
+      return { features: features.length, tbds: tbds.length, notStarted };
+    }
+
+    function filteredFeatures() {
+      const query = state.query.trim().toLowerCase();
+      return data.features.filter((feature) => {
+        const screenMatch = state.screen === 'all' || feature.screenSlug === state.screen;
+        const typeMatch = state.type === 'all' || feature.type === state.type;
+        const specMatch = state.specStatus === 'all' || feature.specStatus === state.specStatus;
+        const deliveryMatch = state.delivery === 'all' || feature.deliveryStatus === state.delivery;
+        const developerMatch = state.developer === 'all' || feature.developer === state.developer;
+        const searchText = [
+          feature.featureId,
+          feature.title,
+          feature.trigger,
+          feature.response,
+          feature.developer,
+          feature.branch,
+          feature.issue,
+          feature.pr,
+          feature.rawStatus,
+          feature.subarea,
+          specBySlug.get(feature.screenSlug)?.title,
+          ...getTbds(feature).map((tbd) => `${tbd.tbdId} ${tbd.title} ${tbd.description}`)
+        ].join(' ').toLowerCase();
+        const queryMatch = !query || searchText.includes(query);
+        const quickMatch = [...state.quick].every((quick) => {
+          if (quick === 'blocked') return feature.deliveryStatus === 'blocked';
+          if (quick === 'noDeveloper') return feature.developer === 'Unassigned';
+          if (quick === 'hasEvidence') return getImages(feature).length > 0;
+          if (quick === 'hasTbd') return getTbds(feature).length > 0;
+          return true;
+        });
+        return screenMatch && typeMatch && specMatch && deliveryMatch && developerMatch && queryMatch && quickMatch;
+      });
+    }
+
+    function renderKpis() {
+      const total = data.features.length;
+      const notStarted = data.features.filter((feature) => feature.deliveryStatus === 'not_started').length;
+      const unassigned = data.features.filter((feature) => feature.developer === 'Unassigned').length;
+      const prLinked = data.features.filter((feature) => feature.pr).length;
+      const evidenceMissing = data.features.filter((feature) => getImages(feature).length === 0).length;
+      const activeCount = Object.values(data.activeWork || {}).filter(Boolean).length;
+      const kpis = [
+        ['Total Features', total, `${data.specs.length} specs`],
+        ['Not Started', notStarted, 'initial scope'],
+        ['Unassigned Dev', unassigned, 'needs assignment'],
+        ['Active Work', activeCount, 'current feature'],
+        ['PR Linked', prLinked, 'connected'],
+        ['Evidence Missing', evidenceMissing, 'needs review']
+      ];
+      byId('kpiRow').innerHTML = kpis.map(([title, value, note]) => `
+        <div class="kpi">
+          <div class="kpi-label">${title}</div>
+          <div class="kpi-value">${value}<small>${note}</small></div>
+        </div>
+      `).join('');
+    }
+
+    function renderScreens() {
+      const allActive = state.screen === 'all' ? 'active' : '';
+      const allStats = { features: data.features.length, tbds: data.tbds.length, notStarted: data.features.filter((feature) => feature.deliveryStatus === 'not_started').length };
+      const cards = [`
+        <button class="screen-card ${allActive}" type="button" data-screen="all">
+          <div class="screen-card-top">
+            <span class="screen-name">All Screens</span>
+            <span class="screen-version">registry</span>
+          </div>
+          <div class="screen-stats"><span>${allStats.features} features</span><span>${allStats.tbds} TBD</span><span>${allStats.notStarted} not started</span></div>
+        </button>
+      `];
+      cards.push(...data.specs.map((spec) => {
+        const stats = screenStats(spec.slug);
+        return `
+          <button class="screen-card ${state.screen === spec.slug ? 'active' : ''}" type="button" data-screen="${spec.slug}">
+            <div class="screen-card-top">
+              <span class="screen-name">${escapeHtml(spec.title)}</span>
+              <span class="screen-version">${escapeHtml(spec.version)}</span>
+            </div>
+            <div class="screen-stats"><span>${stats.features} features</span><span>${stats.tbds} TBD</span><span>${stats.notStarted} not started</span></div>
+          </button>
+        `;
+      }));
+      byId('screenList').innerHTML = cards.join('');
+      byId('screenList').querySelectorAll('[data-screen]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.screen = button.dataset.screen;
+          ensureSelection();
+          render();
+        });
+      });
+    }
+
+    function renderSelects() {
+      fillSelect('typeFilter', 'all', 'All types', uniq(data.features.map((feature) => feature.type)));
+      fillSelect('specStatusFilter', 'all', 'All spec status', uniq(data.features.map((feature) => feature.specStatus)));
+      fillSelect('deliveryFilter', 'all', 'All delivery status', uniq(data.features.map((feature) => feature.deliveryStatus)));
+      fillSelect('developerFilter', 'all', 'All developers', uniq(data.features.map((feature) => feature.developer)));
+      byId('typeFilter').value = state.type;
+      byId('specStatusFilter').value = state.specStatus;
+      byId('deliveryFilter').value = state.delivery;
+      byId('developerFilter').value = state.developer;
+    }
+
+    function fillSelect(id, allValue, allLabel, values) {
+      const current = byId(id).value || allValue;
+      byId(id).innerHTML = [`<option value="${allValue}">${allLabel}</option>`]
+        .concat(values.map((value) => `<option value="${value}">${label(value)}</option>`))
+        .join('');
+      byId(id).value = values.includes(current) ? current : allValue;
+    }
+
+    function renderRows() {
+      const features = filteredFeatures();
+      byId('resultCount').textContent = `${features.length} of ${data.features.length}`;
+      if (!features.length) {
+        byId('featureRows').innerHTML = `<tr><td colspan="7"><div class="empty-state">조건에 맞는 Feature가 없습니다.</div></td></tr>`;
+        return;
+      }
+      byId('featureRows').innerHTML = features.map((feature) => {
+        const spec = specBySlug.get(feature.screenSlug);
+        const images = getImages(feature);
+        const tbds = getTbds(feature);
+        return `
+          <tr class="${feature.uid === state.selectedUid ? 'active' : ''}" data-feature="${feature.uid}">
+            <td>
+              <div class="feature-id">${escapeHtml(feature.featureId)}</div>
+              <div class="feature-title">${escapeHtml(feature.title)}${feature.activeAgents.length ? ` ${badge('in_progress')}` : ''}</div>
+              <div class="feature-meta"><span>${escapeHtml(feature.trigger)}</span></div>
+            </td>
+            <td>
+              <div>${escapeHtml(spec?.title || feature.area)}</div>
+              <div class="feature-meta"><span>${escapeHtml(feature.subarea)}</span><span>${label(feature.type)}</span></div>
+            </td>
+            <td>${badge(feature.specStatus)}</td>
+            <td>${badge(feature.deliveryStatus)}</td>
+            <td>${escapeHtml(feature.developer)}</td>
+            <td><span class="count-pill">${images.length}</span></td>
+            <td><span class="count-pill">${tbds.length}</span></td>
+          </tr>
+        `;
+      }).join('');
+      byId('featureRows').querySelectorAll('[data-feature]').forEach((row) => {
+        row.addEventListener('click', () => selectFeature(row.dataset.feature));
+      });
+    }
+
+    function renderBoard() {
+      const features = filteredFeatures();
+      const lanes = [
+        ['not_started', 'Not Started'],
+        ['ready', 'Ready'],
+        ['blocked', 'Blocked'],
+        ['in_progress', 'In Progress'],
+        ['in_review', 'Review'],
+        ['verified', 'Verified']
+      ];
+      byId('boardView').innerHTML = lanes.map(([status, title]) => {
+        const laneFeatures = features.filter((feature) => feature.deliveryStatus === status);
+        return `
+          <div class="lane">
+            <div class="lane-title"><span>${title}</span><span>${laneFeatures.length}</span></div>
+            ${laneFeatures.slice(0, 18).map((feature) => {
+              const spec = specBySlug.get(feature.screenSlug);
+              return `
+                <div class="feature-card ${feature.uid === state.selectedUid ? 'active' : ''}" data-feature="${feature.uid}">
+                  <div class="feature-id">${escapeHtml(feature.featureId)}</div>
+                  <div class="card-title">${escapeHtml(feature.title)}</div>
+                  <div class="card-footer">
+                    <span class="badge ${feature.specStatus}">${label(feature.specStatus)}</span>
+                    <span class="feature-meta">${escapeHtml(spec?.title || feature.area)}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }).join('');
+      byId('boardView').querySelectorAll('[data-feature]').forEach((card) => {
+        card.addEventListener('click', () => selectFeature(card.dataset.feature));
+      });
+    }
+
+    function renderPolicyQueue() {
+      const features = filteredFeatures();
+      const featureUids = new Set(features.map((feature) => feature.uid));
+      const tbdRefs = new Set(features.flatMap((feature) => feature.tbdRefs));
+      const visibleTbds = data.tbds.filter((tbd) => {
+        const screenMatch = state.screen === 'all' || tbd.screenSlug === state.screen;
+        return screenMatch && (tbdRefs.has(tbd.uid) || state.screen !== 'all');
+      }).slice(0, 8);
+      byId('policyCount').textContent = visibleTbds.length;
+      if (!visibleTbds.length) {
+        byId('policyList').innerHTML = '<div class="empty-state">현재 필터에서 연결된 TBD가 없습니다.</div>';
+        return;
+      }
+      byId('policyList').innerHTML = visibleTbds.map((tbd) => {
+        const affected = data.features.filter((feature) => feature.tbdRefs.includes(tbd.uid) && featureUids.has(feature.uid)).length;
+        const spec = specBySlug.get(tbd.screenSlug);
+        return `
+          <div class="policy-item" data-tbd="${tbd.uid}">
+            <div class="feature-meta"><span>${escapeHtml(spec?.title || tbd.screenSlug)}</span><span>${escapeHtml(tbd.tbdId)}</span><span>${affected} linked</span></div>
+            <div class="policy-title">${escapeHtml(tbd.title)}</div>
+            <div class="policy-desc">${escapeHtml(tbd.description)}</div>
+          </div>
+        `;
+      }).join('');
+      byId('policyList').querySelectorAll('[data-tbd]').forEach((item) => {
+        item.addEventListener('click', () => {
+          const feature = data.features.find((candidate) => candidate.tbdRefs.includes(item.dataset.tbd));
+          if (feature) selectFeature(feature.uid);
+        });
+      });
+    }
+
+    function renderDetail() {
+      const feature = featuresByUid.get(state.selectedUid);
+      if (!feature) {
+        byId('detailPanel').innerHTML = '<div class="detail-empty">선택된 Feature가 없습니다.</div>';
+        return;
+      }
+      const spec = specBySlug.get(feature.screenSlug);
+      const images = getImages(feature);
+      const tbds = getTbds(feature);
+      const related = feature.relatedFeatureRefs.map((uid) => featuresByUid.get(uid)).filter(Boolean).slice(0, 4);
+      const activeLabel = feature.activeAgents.length ? `현재 작업 중: ${feature.activeAgents.join(', ')}` : null;
+      byId('detailPanel').innerHTML = `
+        <div class="detail-header">
+          <div class="detail-kicker">
+            <span>${escapeHtml(spec?.title || feature.area)} / ${escapeHtml(feature.subarea)}</span>
+            <span>${escapeHtml(spec?.version || '')}</span>
+          </div>
+          <h2 class="detail-title">${escapeHtml(feature.title)}</h2>
+          <div class="detail-badges">
+            <span class="badge ${feature.specStatus}">${label(feature.specStatus)}</span>
+            <span class="badge ${feature.deliveryStatus}">${label(feature.deliveryStatus)}</span>
+            <span class="badge inferred">${label(feature.evidenceLevel)}</span>
+            ${activeLabel ? `<span class="badge in_progress">${escapeHtml(activeLabel)}</span>` : ''}
+          </div>
+        </div>
+        <div class="detail-body">
+          <div class="section">
+            <h3>Behavior</h3>
+            <dl class="kv">
+              <dt>Feature ID</dt><dd><span class="feature-id">${escapeHtml(feature.featureId)}</span></dd>
+              <dt>Trigger</dt><dd>${escapeHtml(feature.trigger)}</dd>
+              <dt>Response</dt><dd>${escapeHtml(feature.response)}</dd>
+              <dt>Raw status</dt><dd>${escapeHtml(feature.rawStatus)}</dd>
+              <dt>Developer</dt><dd>${escapeHtml(feature.developer)}</dd>
+              <dt>Branch</dt><dd>${escapeHtml(feature.branch || '-')}</dd>
+              <dt>Issue / PR</dt><dd>${escapeHtml(feature.issue || '-')} / ${escapeHtml(feature.pr || '-')}</dd>
+              <dt>Checks</dt><dd>${label(feature.testStatus)} · ${label(feature.screenshotStatus)}</dd>
+              ${feature.blockedReason ? `<dt>Blocked</dt><dd>${escapeHtml(feature.blockedReason)}</dd>` : ''}
+            </dl>
+          </div>
+          <div class="section">
+            <h3>Work Plan</h3>
+            ${renderWorkPlan(feature)}
+          </div>
+          <div class="section">
+            <h3>Prompt History</h3>
+            ${renderPromptHistory(feature)}
+          </div>
+          <div class="section">
+            <h3>SCC 작업</h3>
+            <div class="action-grid">
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('plan', feature))}">계획 프롬프트 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('start', feature))}">시작 프롬프트 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('review', feature))}">PR 프롬프트 복사</button>
+              <button class="ghost-button action-button" type="button" data-command="${escapeHtml(commandFor('done', feature))}">완료 프롬프트 복사</button>
+            </div>
+            <div class="command-preview" id="commandPreview">${escapeHtml(commandFor('start', feature))}</div>
+            <p class="subtitle">정적 모드: 버튼은 선택한 AI에 붙여넣을 프롬프트를 복사합니다.</p>
+          </div>
+          <div class="section">
+            <h3>Visual Evidence</h3>
+            ${images.length ? `<div class="evidence-grid">${images.map((image) => `
+              <div class="evidence" data-image="${escapeHtml(image.path)}" data-title="${escapeHtml(image.imageId + ' · ' + image.description)}">
+                <img src="${escapeHtml(image.path)}" alt="${escapeHtml(image.description)}" />
+                <div class="evidence-caption">${escapeHtml(image.imageId)} · ${escapeHtml(image.description)}</div>
+              </div>
+            `).join('')}</div>` : '<div class="empty-state">이 Feature에는 연결된 이미지 근거가 없습니다.</div>'}
+          </div>
+          <div class="section">
+            <h3>Open Questions</h3>
+            ${tbds.length ? `<div class="related-list">${tbds.map((tbd) => `
+              <div class="related-item">
+                <div class="feature-meta"><span>${escapeHtml(tbd.tbdId)}</span><span>Resolver: ${escapeHtml(tbd.resolver)}</span></div>
+                <div class="policy-title">${escapeHtml(tbd.title)}</div>
+                <div class="policy-desc">${escapeHtml(tbd.description)}</div>
+              </div>
+            `).join('')}</div>` : '<div class="empty-state">연결된 TBD가 없습니다.</div>'}
+          </div>
+          <div class="section">
+            <h3>Source & Links</h3>
+            <div class="source-links">
+              <button type="button" data-markdown-doc="${escapeHtml(feature.source.file)}">Open Markdown</button>
+              <button type="button" data-markdown-doc="README.md">Spec Index</button>
+            </div>
+            <p class="subtitle">Source line: ${feature.source.line} · Figma section: ${escapeHtml(spec?.figma || '-')}</p>
+          </div>
+          <div class="section">
+            <h3>Related Features</h3>
+            ${related.length ? `<div class="related-list">${related.map((item) => `
+              <div class="related-item" data-related="${item.uid}">
+                <div class="feature-id">${escapeHtml(item.featureId)}</div>
+                <div class="policy-title">${escapeHtml(item.title)}</div>
+              </div>
+            `).join('')}</div>` : '<div class="empty-state">같은 영역의 관련 Feature가 없습니다.</div>'}
+          </div>
+        </div>
+      `;
+      byId('detailPanel').querySelectorAll('[data-image]').forEach((item) => {
+        item.addEventListener('click', () => openImage(item.dataset.image, item.dataset.title));
+      });
+      byId('detailPanel').querySelectorAll('[data-command]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          await copyText(button.dataset.command);
+          const preview = byId('commandPreview');
+          if (preview) preview.textContent = `복사됨: ${button.dataset.command}`;
+        });
+      });
+      byId('detailPanel').querySelectorAll('[data-related]').forEach((item) => {
+        item.addEventListener('click', () => selectFeature(item.dataset.related));
+      });
+      bindMarkdownLinks(byId('detailPanel'));
+    }
+
+    function selectFeature(uid) {
+      state.selectedUid = uid;
+      renderRows();
+      renderBoard();
+      renderDetail();
+    }
+
+    function ensureSelection() {
+      const features = filteredFeatures();
+      if (!features.find((feature) => feature.uid === state.selectedUid)) {
+        state.selectedUid = features[0]?.uid || null;
+      }
+    }
+
+    function openImage(src, title) {
+      byId('modalTitle').textContent = title || 'Image preview';
+      byId('modalImage').src = src;
+      byId('modalImage').alt = title || '';
+      byId('imageModal').classList.add('active');
+    }
+
+    function closeImage() {
+      byId('imageModal').classList.remove('active');
+      byId('modalImage').src = '';
+    }
+
+    function closeMarkdown() {
+      byId('markdownModal').classList.remove('active');
+    }
+
+    function render() {
+      renderKpis();
+      renderScreens();
+      renderSelects();
+      renderRows();
+      renderBoard();
+      renderPolicyQueue();
+      renderDetail();
+      document.querySelectorAll('[data-quick]').forEach((button) => {
+        button.classList.toggle('active', state.quick.has(button.dataset.quick));
+      });
+      byId('tableView').classList.toggle('hidden', state.view !== 'table');
+      byId('boardView').classList.toggle('active', state.view === 'board');
+    }
+
+    function bindControls() {
+      byId('searchInput').addEventListener('input', (event) => {
+        state.query = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('typeFilter').addEventListener('change', (event) => {
+        state.type = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('specStatusFilter').addEventListener('change', (event) => {
+        state.specStatus = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('deliveryFilter').addEventListener('change', (event) => {
+        state.delivery = event.target.value;
+        ensureSelection();
+        render();
+      });
+      byId('developerFilter').addEventListener('change', (event) => {
+        state.developer = event.target.value;
+        ensureSelection();
+        render();
+      });
+      document.querySelectorAll('[data-quick]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.quick;
+          state.quick.has(key) ? state.quick.delete(key) : state.quick.add(key);
+          ensureSelection();
+          render();
+        });
+      });
+      document.querySelectorAll('[data-view]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.view = button.dataset.view;
+          document.querySelectorAll('[data-view]').forEach((item) => item.classList.toggle('active', item === button));
+          render();
+        });
+      });
+      byId('agentSelect').addEventListener('change', (event) => {
+        state.agent = event.target.value;
+        renderDetail();
+      });
+      byId('resetFilters').addEventListener('click', () => {
+        state.screen = 'all';
+        state.type = 'all';
+        state.specStatus = 'all';
+        state.delivery = 'all';
+        state.developer = 'all';
+        state.query = '';
+        state.quick.clear();
+        byId('searchInput').value = '';
+        ensureSelection();
+        render();
+      });
+      byId('closeModal').addEventListener('click', closeImage);
+      byId('imageModal').addEventListener('click', (event) => {
+        if (event.target.id === 'imageModal') closeImage();
+      });
+      byId('closeMarkdownModal').addEventListener('click', closeMarkdown);
+      byId('markdownModal').addEventListener('click', (event) => {
+        if (event.target.id === 'markdownModal') closeMarkdown();
+      });
+      bindMarkdownLinks(document);
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeImage();
+        if (event.key === 'Escape') closeMarkdown();
+      });
+    }
+
+    bindControls();
+    render();
+  </script>
+</body>
+</html>
