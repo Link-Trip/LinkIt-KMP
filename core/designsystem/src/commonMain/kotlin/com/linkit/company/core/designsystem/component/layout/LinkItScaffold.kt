@@ -11,7 +11,7 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 @Composable
 fun LinkItScaffold(
     modifier: Modifier = Modifier,
-    containerColor: Color = LinkItTheme.color.gray100,
+    containerColor: Color = LinkItTheme.color.semantic.background.normal.alternative,
     topBar: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,

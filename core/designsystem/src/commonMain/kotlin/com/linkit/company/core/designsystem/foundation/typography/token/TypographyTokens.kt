@@ -1,239 +1,509 @@
 package com.linkit.company.core.designsystem.foundation.typography.token
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.unit.TextUnit
 
 internal object TypographyTokens {
-    val Headline3Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline3BoldWeight,
-        fontSize = TypeScaleTokens.Headline3FontSize,
-        lineHeight = TypeScaleTokens.Headline3LineHeight,
+    // Display 1
+    val Display1Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Display1FontSize,
+        TypeScaleTokens.Display1LineHeight,
+        TypeScaleTokens.Display1LetterSpacing
     )
-    val Headline3Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline3MediumWeight,
-        fontSize = TypeScaleTokens.Headline3FontSize,
-        lineHeight = TypeScaleTokens.Headline3LineHeight,
+    val Display1Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Display1FontSize,
+        TypeScaleTokens.Display1LineHeight,
+        TypeScaleTokens.Display1LetterSpacing
     )
-    val Headline3Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline3NormalWeight,
-        fontSize = TypeScaleTokens.Headline3FontSize,
-        lineHeight = TypeScaleTokens.Headline3LineHeight,
+    val Display1Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Display1FontSize,
+        TypeScaleTokens.Display1LineHeight,
+        TypeScaleTokens.Display1LetterSpacing
     )
-    val Headline4Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline4BoldWeight,
-        fontSize = TypeScaleTokens.Headline4FontSize,
-        lineHeight = TypeScaleTokens.Headline4LineHeight,
+    val Display1Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Display1FontSize,
+        TypeScaleTokens.Display1LineHeight,
+        TypeScaleTokens.Display1LetterSpacing
     )
-    val Headline4Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline4MediumWeight,
-        fontSize = TypeScaleTokens.Headline4FontSize,
-        lineHeight = TypeScaleTokens.Headline4LineHeight,
+
+    // Display 2
+    val Display2Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Display2FontSize,
+        TypeScaleTokens.Display2LineHeight,
+        TypeScaleTokens.Display2LetterSpacing
     )
-    val Headline4Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline4NormalWeight,
-        fontSize = TypeScaleTokens.Headline4FontSize,
-        lineHeight = TypeScaleTokens.Headline4LineHeight,
+    val Display2Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Display2FontSize,
+        TypeScaleTokens.Display2LineHeight,
+        TypeScaleTokens.Display2LetterSpacing
     )
-    val Headline5Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline5BoldWeight,
-        fontSize = TypeScaleTokens.Headline5FontSize,
-        lineHeight = TypeScaleTokens.Headline5LineHeight,
+    val Display2Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Display2FontSize,
+        TypeScaleTokens.Display2LineHeight,
+        TypeScaleTokens.Display2LetterSpacing
     )
-    val Headline5Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline5MediumWeight,
-        fontSize = TypeScaleTokens.Headline5FontSize,
-        lineHeight = TypeScaleTokens.Headline5LineHeight,
+    val Display2Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Display2FontSize,
+        TypeScaleTokens.Display2LineHeight,
+        TypeScaleTokens.Display2LetterSpacing
     )
-    val Headline5Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline5NormalWeight,
-        fontSize = TypeScaleTokens.Headline5FontSize,
-        lineHeight = TypeScaleTokens.Headline5LineHeight,
+
+    // Title 1
+    val Title1Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Title1FontSize,
+        TypeScaleTokens.Title1LineHeight,
+        TypeScaleTokens.Title1LetterSpacing
     )
-    val Headline6Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline6BoldWeight,
-        fontSize = TypeScaleTokens.Headline6FontSize,
-        lineHeight = TypeScaleTokens.Headline6LineHeight,
+    val Title1Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Title1FontSize,
+        TypeScaleTokens.Title1LineHeight,
+        TypeScaleTokens.Title1LetterSpacing
     )
-    val Headline6Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline6MediumWeight,
-        fontSize = TypeScaleTokens.Headline6FontSize,
-        lineHeight = TypeScaleTokens.Headline6LineHeight,
+    val Title1Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Title1FontSize,
+        TypeScaleTokens.Title1LineHeight,
+        TypeScaleTokens.Title1LetterSpacing
     )
-    val Headline6Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Headline6NormalWeight,
-        fontSize = TypeScaleTokens.Headline6FontSize,
-        lineHeight = TypeScaleTokens.Headline6LineHeight,
+    val Title1Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Title1FontSize,
+        TypeScaleTokens.Title1LineHeight,
+        TypeScaleTokens.Title1LetterSpacing
     )
-    val TitleBold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.TitleBoldWeight,
-        fontSize = TypeScaleTokens.TitleFontSize,
-        lineHeight = TypeScaleTokens.TitleLineHeight,
-        letterSpacing = TypeScaleTokens.TitleBoldLetterSpacing,
+
+    // Title 2
+    val Title2Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Title2FontSize,
+        TypeScaleTokens.Title2LineHeight,
+        TypeScaleTokens.Title2LetterSpacing
     )
-    val TitleMedium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.TitleMediumWeight,
-        fontSize = TypeScaleTokens.TitleFontSize,
-        lineHeight = TypeScaleTokens.TitleLineHeight,
+    val Title2Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Title2FontSize,
+        TypeScaleTokens.Title2LineHeight,
+        TypeScaleTokens.Title2LetterSpacing
     )
-    val TitleNormal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.TitleNormalWeight,
-        fontSize = TypeScaleTokens.TitleFontSize,
-        lineHeight = TypeScaleTokens.TitleLineHeight,
+    val Title2Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Title2FontSize,
+        TypeScaleTokens.Title2LineHeight,
+        TypeScaleTokens.Title2LetterSpacing
     )
-    val Subtitle1Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Subtitle1BoldWeight,
-        fontSize = TypeScaleTokens.Subtitle1FontSize,
-        lineHeight = TypeScaleTokens.Subtitle1LineHeight,
+    val Title2Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Title2FontSize,
+        TypeScaleTokens.Title2LineHeight,
+        TypeScaleTokens.Title2LetterSpacing
     )
-    val Subtitle1Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Subtitle1MediumWeight,
-        fontSize = TypeScaleTokens.Subtitle1FontSize,
-        lineHeight = TypeScaleTokens.Subtitle1LineHeight,
+
+    // Title 3
+    val Title3Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Title3FontSize,
+        TypeScaleTokens.Title3LineHeight,
+        TypeScaleTokens.Title3LetterSpacing
     )
-    val Subtitle1Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Subtitle1NormalWeight,
-        fontSize = TypeScaleTokens.Subtitle1FontSize,
-        lineHeight = TypeScaleTokens.Subtitle1LineHeight,
+    val Title3Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Title3FontSize,
+        TypeScaleTokens.Title3LineHeight,
+        TypeScaleTokens.Title3LetterSpacing
     )
-    val Subtitle2Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Subtitle2BoldWeight,
-        fontSize = TypeScaleTokens.Subtitle2FontSize,
-        lineHeight = TypeScaleTokens.Subtitle2LineHeight,
+    val Title3Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Title3FontSize,
+        TypeScaleTokens.Title3LineHeight,
+        TypeScaleTokens.Title3LetterSpacing
     )
-    val Subtitle2Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Subtitle2MediumWeight,
-        fontSize = TypeScaleTokens.Subtitle2FontSize,
-        lineHeight = TypeScaleTokens.Subtitle2LineHeight,
+    val Title3Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Title3FontSize,
+        TypeScaleTokens.Title3LineHeight,
+        TypeScaleTokens.Title3LetterSpacing
     )
-    val Subtitle2Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Subtitle2NormalWeight,
-        fontSize = TypeScaleTokens.Subtitle2FontSize,
-        lineHeight = TypeScaleTokens.Subtitle2LineHeight,
+
+    // Heading 1
+    val Heading1Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Heading1FontSize,
+        TypeScaleTokens.Heading1LineHeight,
+        TypeScaleTokens.Heading1LetterSpacing
     )
-    val Base1Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Base1BoldWeight,
-        fontSize = TypeScaleTokens.Base1FontSize,
-        lineHeight = TypeScaleTokens.Base1LineHeight,
+    val Heading1Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Heading1FontSize,
+        TypeScaleTokens.Heading1LineHeight,
+        TypeScaleTokens.Heading1LetterSpacing
     )
-    val Base1Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Base1MediumWeight,
-        fontSize = TypeScaleTokens.Base1FontSize,
-        lineHeight = TypeScaleTokens.Base1LineHeight,
+    val Heading1Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Heading1FontSize,
+        TypeScaleTokens.Heading1LineHeight,
+        TypeScaleTokens.Heading1LetterSpacing
     )
-    val Base1Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Base1NormalWeight,
-        fontSize = TypeScaleTokens.Base1FontSize,
-        lineHeight = TypeScaleTokens.Base1LineHeight,
+    val Heading1Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Heading1FontSize,
+        TypeScaleTokens.Heading1LineHeight,
+        TypeScaleTokens.Heading1LetterSpacing
     )
-    val Base2Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Base2BoldWeight,
-        fontSize = TypeScaleTokens.Base2FontSize,
-        lineHeight = TypeScaleTokens.Base2LineHeight,
-        letterSpacing = TypeScaleTokens.Base2LetterSpacing,
+
+    // Heading 2
+    val Heading2Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Heading2FontSize,
+        TypeScaleTokens.Heading2LineHeight,
+        TypeScaleTokens.Heading2LetterSpacing
     )
-    val Base2Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Base2MediumWeight,
-        fontSize = TypeScaleTokens.Base2FontSize,
-        lineHeight = TypeScaleTokens.Base2LineHeight,
-        letterSpacing = TypeScaleTokens.Base2LetterSpacing,
+    val Heading2Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Heading2FontSize,
+        TypeScaleTokens.Heading2LineHeight,
+        TypeScaleTokens.Heading2LetterSpacing
     )
-    val Base2Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Base2NormalWeight,
-        fontSize = TypeScaleTokens.Base2FontSize,
-        lineHeight = TypeScaleTokens.Base2LineHeight,
-        letterSpacing = TypeScaleTokens.Base2LetterSpacing,
+    val Heading2Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Heading2FontSize,
+        TypeScaleTokens.Heading2LineHeight,
+        TypeScaleTokens.Heading2LetterSpacing
     )
-    val Caption3Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption3BoldWeight,
-        fontSize = TypeScaleTokens.Caption3FontSize,
-        lineHeight = TypeScaleTokens.Caption3LineHeight,
-        letterSpacing = TypeScaleTokens.Caption3LetterSpacing,
+    val Heading2Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Heading2FontSize,
+        TypeScaleTokens.Heading2LineHeight,
+        TypeScaleTokens.Heading2LetterSpacing
     )
-    val Caption3Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption3MediumWeight,
-        fontSize = TypeScaleTokens.Caption3FontSize,
-        lineHeight = TypeScaleTokens.Caption3LineHeight,
-        letterSpacing = TypeScaleTokens.Caption3LetterSpacing,
+
+    // Headline 1 (letterSpacing 0)
+    val Headline1Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Headline1FontSize,
+        TypeScaleTokens.Headline1LineHeight
     )
-    val Caption3Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption3NormalWeight,
-        fontSize = TypeScaleTokens.Caption3FontSize,
-        lineHeight = TypeScaleTokens.Caption3LineHeight,
-        letterSpacing = TypeScaleTokens.Caption3LetterSpacing,
+    val Headline1Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Headline1FontSize,
+        TypeScaleTokens.Headline1LineHeight
     )
-    val Caption2Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption2BoldWeight,
-        fontSize = TypeScaleTokens.Caption2FontSize,
-        lineHeight = TypeScaleTokens.Caption2LineHeight,
-        letterSpacing = TypeScaleTokens.Caption2LetterSpacing,
+    val Headline1Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Headline1FontSize,
+        TypeScaleTokens.Headline1LineHeight
     )
-    val Caption2Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption2MediumWeight,
-        fontSize = TypeScaleTokens.Caption2FontSize,
-        lineHeight = TypeScaleTokens.Caption2LineHeight,
-        letterSpacing = TypeScaleTokens.Caption2LetterSpacing,
+    val Headline1Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Headline1FontSize,
+        TypeScaleTokens.Headline1LineHeight
     )
-    val Caption2Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption2NormalWeight,
-        fontSize = TypeScaleTokens.Caption2FontSize,
-        lineHeight = TypeScaleTokens.Caption2LineHeight,
-        letterSpacing = TypeScaleTokens.Caption2LetterSpacing,
+
+    // Headline 2 (letterSpacing 0)
+    val Headline2Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Headline2FontSize,
+        TypeScaleTokens.Headline2LineHeight
     )
-    val Caption1Bold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption1BoldWeight,
-        fontSize = TypeScaleTokens.Caption1FontSize,
-        lineHeight = TypeScaleTokens.Caption1LineHeight,
-        letterSpacing = TypeScaleTokens.Caption1LetterSpacing,
+    val Headline2Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Headline2FontSize,
+        TypeScaleTokens.Headline2LineHeight
     )
-    val Caption1Medium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption1MediumWeight,
-        fontSize = TypeScaleTokens.Caption1FontSize,
-        lineHeight = TypeScaleTokens.Caption1LineHeight,
-        letterSpacing = TypeScaleTokens.Caption1LetterSpacing,
+    val Headline2Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Headline2FontSize,
+        TypeScaleTokens.Headline2LineHeight
     )
-    val Caption1Normal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.Caption1NormalWeight,
-        fontSize = TypeScaleTokens.Caption1FontSize,
-        lineHeight = TypeScaleTokens.Caption1LineHeight,
-        letterSpacing = TypeScaleTokens.Caption1LetterSpacing,
+    val Headline2Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Headline2FontSize,
+        TypeScaleTokens.Headline2LineHeight
     )
-    val SBold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.SBoldWeight,
-        fontSize = TypeScaleTokens.SFontSize,
-        lineHeight = TypeScaleTokens.SLineHeight,
-        letterSpacing = TypeScaleTokens.SLetterSpacing,
+
+    // Body 1 - Normal
+    val Body1NormalRegular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Body1NormalFontSize,
+        TypeScaleTokens.Body1NormalLineHeight,
+        TypeScaleTokens.Body1NormalLetterSpacing
     )
-    val SMedium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.SMediumWeight,
-        fontSize = TypeScaleTokens.SFontSize,
-        lineHeight = TypeScaleTokens.SLineHeight,
-        letterSpacing = TypeScaleTokens.SLetterSpacing,
+    val Body1NormalMedium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Body1NormalFontSize,
+        TypeScaleTokens.Body1NormalLineHeight,
+        TypeScaleTokens.Body1NormalLetterSpacing
     )
-    val SNormal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.SNormalWeight,
-        fontSize = TypeScaleTokens.SFontSize,
-        lineHeight = TypeScaleTokens.SLineHeight,
-        letterSpacing = TypeScaleTokens.SLetterSpacing,
+    val Body1NormalSemibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Body1NormalFontSize,
+        TypeScaleTokens.Body1NormalLineHeight,
+        TypeScaleTokens.Body1NormalLetterSpacing
     )
-    val XSBold: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.XSBoldWeight,
-        fontSize = TypeScaleTokens.XSFontSize,
-        lineHeight = TypeScaleTokens.XSLineHeight,
-        letterSpacing = TypeScaleTokens.XSLetterSpacing,
+    val Body1NormalBold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Body1NormalFontSize,
+        TypeScaleTokens.Body1NormalLineHeight,
+        TypeScaleTokens.Body1NormalLetterSpacing
     )
-    val XSMedium: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.XSMediumWeight,
-        fontSize = TypeScaleTokens.XSFontSize,
-        lineHeight = TypeScaleTokens.XSLineHeight,
-        letterSpacing = TypeScaleTokens.XSLetterSpacing,
+
+    // Body 1 - Reading
+    val Body1ReadingRegular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Body1ReadingFontSize,
+        TypeScaleTokens.Body1ReadingLineHeight,
+        TypeScaleTokens.Body1ReadingLetterSpacing
     )
-    val XSNormal: TextStyle = DefaultTextStyle.copy(
-        fontWeight = TypeScaleTokens.XSNormalWeight,
-        fontSize = TypeScaleTokens.XSFontSize,
-        lineHeight = TypeScaleTokens.XSLineHeight,
-        letterSpacing = TypeScaleTokens.XSLetterSpacing,
+    val Body1ReadingMedium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Body1ReadingFontSize,
+        TypeScaleTokens.Body1ReadingLineHeight,
+        TypeScaleTokens.Body1ReadingLetterSpacing
+    )
+    val Body1ReadingSemibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Body1ReadingFontSize,
+        TypeScaleTokens.Body1ReadingLineHeight,
+        TypeScaleTokens.Body1ReadingLetterSpacing
+    )
+    val Body1ReadingBold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Body1ReadingFontSize,
+        TypeScaleTokens.Body1ReadingLineHeight,
+        TypeScaleTokens.Body1ReadingLetterSpacing
+    )
+
+    // Body 2 - Normal
+    val Body2NormalRegular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Body2NormalFontSize,
+        TypeScaleTokens.Body2NormalLineHeight,
+        TypeScaleTokens.Body2NormalLetterSpacing
+    )
+    val Body2NormalMedium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Body2NormalFontSize,
+        TypeScaleTokens.Body2NormalLineHeight,
+        TypeScaleTokens.Body2NormalLetterSpacing
+    )
+    val Body2NormalSemibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Body2NormalFontSize,
+        TypeScaleTokens.Body2NormalLineHeight,
+        TypeScaleTokens.Body2NormalLetterSpacing
+    )
+    val Body2NormalBold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Body2NormalFontSize,
+        TypeScaleTokens.Body2NormalLineHeight,
+        TypeScaleTokens.Body2NormalLetterSpacing
+    )
+
+    // Body 2 - Reading
+    val Body2ReadingRegular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Body2ReadingFontSize,
+        TypeScaleTokens.Body2ReadingLineHeight,
+        TypeScaleTokens.Body2ReadingLetterSpacing
+    )
+    val Body2ReadingMedium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Body2ReadingFontSize,
+        TypeScaleTokens.Body2ReadingLineHeight,
+        TypeScaleTokens.Body2ReadingLetterSpacing
+    )
+    val Body2ReadingSemibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Body2ReadingFontSize,
+        TypeScaleTokens.Body2ReadingLineHeight,
+        TypeScaleTokens.Body2ReadingLetterSpacing
+    )
+    val Body2ReadingBold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Body2ReadingFontSize,
+        TypeScaleTokens.Body2ReadingLineHeight,
+        TypeScaleTokens.Body2ReadingLetterSpacing
+    )
+
+    // Label 1 - Normal
+    val Label1NormalRegular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Label1NormalFontSize,
+        TypeScaleTokens.Label1NormalLineHeight,
+        TypeScaleTokens.Label1NormalLetterSpacing
+    )
+    val Label1NormalMedium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Label1NormalFontSize,
+        TypeScaleTokens.Label1NormalLineHeight,
+        TypeScaleTokens.Label1NormalLetterSpacing
+    )
+    val Label1NormalSemibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Label1NormalFontSize,
+        TypeScaleTokens.Label1NormalLineHeight,
+        TypeScaleTokens.Label1NormalLetterSpacing
+    )
+    val Label1NormalBold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Label1NormalFontSize,
+        TypeScaleTokens.Label1NormalLineHeight,
+        TypeScaleTokens.Label1NormalLetterSpacing
+    )
+
+    // Label 1 - Reading
+    val Label1ReadingRegular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Label1ReadingFontSize,
+        TypeScaleTokens.Label1ReadingLineHeight,
+        TypeScaleTokens.Label1ReadingLetterSpacing
+    )
+    val Label1ReadingMedium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Label1ReadingFontSize,
+        TypeScaleTokens.Label1ReadingLineHeight,
+        TypeScaleTokens.Label1ReadingLetterSpacing
+    )
+    val Label1ReadingSemibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Label1ReadingFontSize,
+        TypeScaleTokens.Label1ReadingLineHeight,
+        TypeScaleTokens.Label1ReadingLetterSpacing
+    )
+    val Label1ReadingBold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Label1ReadingFontSize,
+        TypeScaleTokens.Label1ReadingLineHeight,
+        TypeScaleTokens.Label1ReadingLetterSpacing
+    )
+
+    // Label 2
+    val Label2Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Label2FontSize,
+        TypeScaleTokens.Label2LineHeight,
+        TypeScaleTokens.Label2LetterSpacing
+    )
+    val Label2Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Label2FontSize,
+        TypeScaleTokens.Label2LineHeight,
+        TypeScaleTokens.Label2LetterSpacing
+    )
+    val Label2Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Label2FontSize,
+        TypeScaleTokens.Label2LineHeight,
+        TypeScaleTokens.Label2LetterSpacing
+    )
+    val Label2Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Label2FontSize,
+        TypeScaleTokens.Label2LineHeight,
+        TypeScaleTokens.Label2LetterSpacing
+    )
+
+    // Caption 1
+    val Caption1Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Caption1FontSize,
+        TypeScaleTokens.Caption1LineHeight,
+        TypeScaleTokens.Caption1LetterSpacing
+    )
+    val Caption1Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Caption1FontSize,
+        TypeScaleTokens.Caption1LineHeight,
+        TypeScaleTokens.Caption1LetterSpacing
+    )
+    val Caption1Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Caption1FontSize,
+        TypeScaleTokens.Caption1LineHeight,
+        TypeScaleTokens.Caption1LetterSpacing
+    )
+    val Caption1Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Caption1FontSize,
+        TypeScaleTokens.Caption1LineHeight,
+        TypeScaleTokens.Caption1LetterSpacing
+    )
+
+    // Caption 2
+    val Caption2Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Caption2FontSize,
+        TypeScaleTokens.Caption2LineHeight,
+        TypeScaleTokens.Caption2LetterSpacing
+    )
+    val Caption2Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Caption2FontSize,
+        TypeScaleTokens.Caption2LineHeight,
+        TypeScaleTokens.Caption2LetterSpacing
+    )
+    val Caption2Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Caption2FontSize,
+        TypeScaleTokens.Caption2LineHeight,
+        TypeScaleTokens.Caption2LetterSpacing
+    )
+    val Caption2Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Caption2FontSize,
+        TypeScaleTokens.Caption2LineHeight,
+        TypeScaleTokens.Caption2LetterSpacing
+    )
+
+    // Caption 3
+    val Caption3Regular = typeStyle(
+        TypeScaleTokens.RegularWeight,
+        TypeScaleTokens.Caption3FontSize,
+        TypeScaleTokens.Caption3LineHeight,
+        TypeScaleTokens.Caption3LetterSpacing
+    )
+    val Caption3Medium = typeStyle(
+        TypeScaleTokens.MediumWeight,
+        TypeScaleTokens.Caption3FontSize,
+        TypeScaleTokens.Caption3LineHeight,
+        TypeScaleTokens.Caption3LetterSpacing
+    )
+    val Caption3Semibold = typeStyle(
+        TypeScaleTokens.SemiboldWeight,
+        TypeScaleTokens.Caption3FontSize,
+        TypeScaleTokens.Caption3LineHeight,
+        TypeScaleTokens.Caption3LetterSpacing
+    )
+    val Caption3Bold = typeStyle(
+        TypeScaleTokens.BoldWeight,
+        TypeScaleTokens.Caption3FontSize,
+        TypeScaleTokens.Caption3LineHeight,
+        TypeScaleTokens.Caption3LetterSpacing
     )
 }
+
+private fun typeStyle(
+    fontWeight: FontWeight,
+    fontSize: TextUnit,
+    lineHeight: TextUnit,
+    letterSpacing: TextUnit = TextUnit.Unspecified,
+): TextStyle = DefaultTextStyle.copy(
+    fontWeight = fontWeight,
+    fontSize = fontSize,
+    lineHeight = lineHeight,
+    letterSpacing = letterSpacing,
+)
 
 internal val DefaultLineHeightStyle: LineHeightStyle = LineHeightStyle(
     alignment = LineHeightStyle.Alignment.Center,

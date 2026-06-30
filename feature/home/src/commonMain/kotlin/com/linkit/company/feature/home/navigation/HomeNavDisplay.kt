@@ -23,11 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.savedstate.serialization.SavedStateConfiguration
-import com.linkit.company.core.designsystem.legacy.theme.G2
-import com.linkit.company.core.designsystem.legacy.theme.G8
-import com.linkit.company.core.designsystem.legacy.theme.G9
-import com.linkit.company.core.designsystem.legacy.theme.LinkItTextStyle
-import com.linkit.company.core.designsystem.legacy.theme.White
+import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.core.navigation.LinkItNavDisplay
 import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LinkItNavigator
@@ -45,10 +41,10 @@ fun LinkItNavigationBar(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        HorizontalDivider(thickness = 1.dp, color = G2)
+        HorizontalDivider(thickness = 1.dp, color = LinkItTheme.color.semantic.line.solid.normal)
         NavigationBar(
             modifier = Modifier.height(60.dp),
-            containerColor = White,
+            containerColor = LinkItTheme.color.semantic.static.white,
             tonalElevation = 0.dp,
         ) {
             for ((key, tab) in TopLevelRoutes) {
@@ -66,15 +62,15 @@ fun LinkItNavigationBar(
                     label = {
                         Text(
                             text = tab.label,
-                            style = LinkItTextStyle.xs,
+                            style = LinkItTheme.typography.caption3Medium,
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = G9,
-                        selectedTextColor = G9,
-                        unselectedIconColor = G8,
-                        unselectedTextColor = G8,
-                        indicatorColor = White,
+                        selectedIconColor = LinkItTheme.color.semantic.label.normal,
+                        selectedTextColor = LinkItTheme.color.semantic.label.normal,
+                        unselectedIconColor = LinkItTheme.color.semantic.label.alternative,
+                        unselectedTextColor = LinkItTheme.color.semantic.label.alternative,
+                        indicatorColor = LinkItTheme.color.semantic.static.white,
                     ),
                 )
             }
@@ -108,15 +104,9 @@ fun HomeNavDisplay(
 //                navigator.navigate(LinkItNavKey.ScheduleEdit)
                 navigateToScheduleEdit()
             },
-            onOpenDesignShowcase = {
-                navigator.navigate(LinkItNavKey.DesignShowcase)
-            },
         )
         storageEntry()
         exploreEntry()
-        designShowcaseEntry(
-            onBack = navigator::navigateBack,
-        )
     }
 
     CompositionLocalProvider(LocalLinkItNavigator provides navigator) {

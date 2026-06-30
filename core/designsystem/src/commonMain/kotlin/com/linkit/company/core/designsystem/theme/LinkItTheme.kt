@@ -4,43 +4,62 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import com.linkit.company.core.designsystem.foundation.color.LinkItColor
-import com.linkit.company.core.designsystem.foundation.color.LocalColor
-import com.linkit.company.core.designsystem.foundation.radius.LinkItRadius
-import com.linkit.company.core.designsystem.foundation.radius.LocalRadius
+import com.linkit.company.core.designsystem.foundation.border.LinkItBorderWidth
+import com.linkit.company.core.designsystem.foundation.border.LocalBorderWidth
+import com.linkit.company.core.designsystem.foundation.color.ColorScheme
+import com.linkit.company.core.designsystem.foundation.color.LocalColorScheme
+import com.linkit.company.core.designsystem.foundation.color.lightColorScheme
+import com.linkit.company.core.designsystem.foundation.shape.LinkItShapes
+import com.linkit.company.core.designsystem.foundation.shape.LocalShapes
+import com.linkit.company.core.designsystem.foundation.spacing.LinkItSpacing
+import com.linkit.company.core.designsystem.foundation.spacing.LocalSpacing
 import com.linkit.company.core.designsystem.foundation.typography.LinkItTypography
 import com.linkit.company.core.designsystem.foundation.typography.LocalTypography
 import com.linkit.company.core.designsystem.foundation.typography.provideDefaultFontFamily
 
 @Composable
 fun LinkItTheme(
-    color: LinkItColor = LinkItTheme.color,
+    color: ColorScheme = LinkItTheme.color,
     typography: LinkItTypography = LinkItTheme.typography,
-    radius: LinkItRadius = LinkItTheme.radius,
+    shape: LinkItShapes = LinkItTheme.shape,
+    borderWidth: LinkItBorderWidth = LinkItTheme.borderWidth,
+    spacing: LinkItSpacing = LinkItTheme.spacing,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalColor provides color,
+        LocalColorScheme provides color,
         LocalTypography provides typography.provideDefaultFontFamily(),
-        LocalRadius provides radius,
+        LocalShapes provides shape,
+        LocalBorderWidth provides borderWidth,
+        LocalSpacing provides spacing,
     ) {
-        ProvideTextStyle(value = typography.base1Medium, content = content)
+        ProvideTextStyle(value = typography.body1NormalMedium, content = content)
     }
 }
 
 object LinkItTheme {
-    val color: LinkItColor
+    val color: ColorScheme
         @Composable
         @ReadOnlyComposable
-        get() = LocalColor.current
+        get() = LocalColorScheme.current
 
     val typography: LinkItTypography
         @Composable
         @ReadOnlyComposable
         get() = LocalTypography.current
 
-    val radius: LinkItRadius
+    val shape: LinkItShapes
         @Composable
         @ReadOnlyComposable
-        get() = LocalRadius.current
+        get() = LocalShapes.current
+
+    val borderWidth: LinkItBorderWidth
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalBorderWidth.current
+
+    val spacing: LinkItSpacing
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalSpacing.current
 }

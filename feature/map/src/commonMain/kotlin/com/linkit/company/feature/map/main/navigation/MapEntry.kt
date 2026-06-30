@@ -8,13 +8,11 @@ import com.linkit.company.feature.map.main.MapScreen
 fun EntryProviderScope<NavKey>.mapEntry(
     onOpenSchedule: () -> Unit,
     navigateToScheduleEdit: () -> Unit,
-    onOpenDesignShowcase: () -> Unit = {},
 ) {
     entry<LinkItNavKey.Map> {
         MapScreen(
             onOpenSchedule = onOpenSchedule,
             navigateToScheduleEdit = navigateToScheduleEdit,
-            onOpenDesignShowcase = onOpenDesignShowcase,
         )
     }
 }

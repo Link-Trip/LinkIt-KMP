@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -28,7 +27,6 @@ import com.linkit.company.feature.map.schedule.ScheduleBottomSheet
 fun MapScreen(
     onOpenSchedule: () -> Unit,
     navigateToScheduleEdit: () -> Unit,
-    onOpenDesignShowcase: () -> Unit = {},
 ) {
     var showScheduleSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -55,15 +53,6 @@ fun MapScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Open Schedule")
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedButton(
-            onClick = onOpenDesignShowcase,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("디자인 컴포넌트 보기")
         }
     }
 
