@@ -25,7 +25,6 @@ import com.linkit.company.feature.map.schedule.ScheduleBottomSheet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    onOpenSchedule: () -> Unit,
     navigateToScheduleEdit: () -> Unit,
 ) {
     var showScheduleSheet by rememberSaveable { mutableStateOf(false) }
@@ -48,7 +47,6 @@ fun MapScreen(
         Button(
             onClick = {
                 showScheduleSheet = true
-                onOpenSchedule()
             },
             modifier = Modifier.fillMaxWidth()
         ) {

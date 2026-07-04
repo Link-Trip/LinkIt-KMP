@@ -1174,7 +1174,7 @@
 
   <main class="app-layout">
     <aside class="panel sidebar">
-      <p class="panel-title">Screens</p>
+      <p class="panel-title">Areas</p>
       <div class="screen-list" id="screenList"></div>
 
       <div class="filter-group">
@@ -1487,7 +1487,51 @@
       return data;
     }
 
-    const data = addDemoFeature(normalizeFeatureList(window.SPEC_COMMAND_CENTER_FEATURE_LIST));
+    const commonAreaSpec = {
+      slug: 'common',
+      title: '공통',
+      area: 'Common',
+      path: 'README.md',
+      file: 'README.md',
+      version: 'shared',
+      figma: '-',
+      accent: '#475569',
+      reviewStatus: 'shared',
+    };
+
+    function isCommonAreaValue(value) {
+      return ['common', 'global', 'shared', '공통'].includes(String(value || '').trim().toLowerCase());
+    }
+
+    function isCommonAreaFeature(feature) {
+      return (
+        isCommonAreaValue(feature.screenSlug) ||
+        isCommonAreaValue(feature.area) ||
+        (feature.tags || []).some(isCommonAreaValue)
+      );
+    }
+
+    function isCommonAreaTbd(tbd) {
+      return isCommonAreaValue(tbd.screenSlug);
+    }
+
+    function addCommonArea(data) {
+      const specs = data.specs.filter((spec) => spec.slug !== commonAreaSpec.slug);
+      return {
+        ...data,
+        specs: [commonAreaSpec, ...specs],
+        features: data.features.map((feature) => (
+          isCommonAreaFeature(feature)
+            ? { ...feature, screenSlug: commonAreaSpec.slug, area: commonAreaSpec.area }
+            : feature
+        )),
+        tbds: data.tbds.map((tbd) => (
+          isCommonAreaTbd(tbd) ? { ...tbd, screenSlug: commonAreaSpec.slug } : tbd
+        )),
+      };
+    }
+
+    const data = addCommonArea(addDemoFeature(normalizeFeatureList(window.SPEC_COMMAND_CENTER_FEATURE_LIST)));
     const labels = {
       confirmed: 'Confirmed',
       partial: 'Partial',
@@ -1956,16 +2000,26 @@
     }
 
     function screenStats(slug) {
-      const features = data.features.filter((feature) => feature.screenSlug === slug);
-      const tbds = data.tbds.filter((tbd) => tbd.screenSlug === slug);
+      const features = data.features.filter((feature) => featureMatchesArea(feature, slug));
+      const tbds = data.tbds.filter((tbd) => tbdMatchesArea(tbd, slug));
       const notStarted = features.filter((feature) => feature.deliveryStatus === 'not_started').length;
       return { features: features.length, tbds: tbds.length, notStarted };
+    }
+
+    function featureMatchesArea(feature, slug) {
+      if (slug === commonAreaSpec.slug) return isCommonAreaFeature(feature);
+      return feature.screenSlug === slug;
+    }
+
+    function tbdMatchesArea(tbd, slug) {
+      if (slug === commonAreaSpec.slug) return isCommonAreaTbd(tbd);
+      return tbd.screenSlug === slug;
     }
 
     function filteredFeatures() {
       const query = state.query.trim().toLowerCase();
       return data.features.filter((feature) => {
-        const screenMatch = state.screen === 'all' || feature.screenSlug === state.screen;
+        const screenMatch = state.screen === 'all' || featureMatchesArea(feature, state.screen);
         const typeMatch = state.type === 'all' || feature.type === state.type;
         const specMatch = state.specStatus === 'all' || feature.specStatus === state.specStatus;
         const deliveryMatch = state.delivery === 'all' || feature.deliveryStatus === state.delivery;
@@ -2025,7 +2079,7 @@
       const cards = [`
         <button class="screen-card ${allActive}" type="button" data-screen="all">
           <div class="screen-card-top">
-            <span class="screen-name">All Screens</span>
+            <span class="screen-name">All Areas</span>
             <span class="screen-version">registry</span>
           </div>
           <div class="screen-stats"><span>${allStats.features} features</span><span>${allStats.tbds} TBD</span><span>${allStats.notStarted} not started</span></div>
@@ -2148,7 +2202,7 @@
       const featureUids = new Set(features.map((feature) => feature.uid));
       const tbdRefs = new Set(features.flatMap((feature) => feature.tbdRefs));
       const visibleTbds = data.tbds.filter((tbd) => {
-        const screenMatch = state.screen === 'all' || tbd.screenSlug === state.screen;
+        const screenMatch = state.screen === 'all' || tbdMatchesArea(tbd, state.screen);
         return screenMatch && (tbdRefs.has(tbd.uid) || state.screen !== 'all');
       }).slice(0, 8);
       byId('policyCount').textContent = visibleTbds.length;

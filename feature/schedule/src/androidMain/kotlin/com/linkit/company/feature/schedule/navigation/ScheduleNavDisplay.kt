@@ -23,10 +23,17 @@ fun ScheduleNavDisplay(
         topLevelRoutes = setOf(LinkItNavKey.ScheduleEdit),
     )
     val navigator = remember(navigationState) { LinkItNavigator(navigationState) }
+    val handleBack = {
+        if (navigationState.currentRoute == LinkItNavKey.ScheduleEdit) {
+            onFinishActivity()
+        } else {
+            navigator.navigateBack()
+        }
+    }
 
     val entryProvider = entryProvider {
         scheduleEditEntry(
-            onBack = { navigator.navigateBack() },
+            onBack = handleBack,
         )
     }
 
@@ -35,13 +42,7 @@ fun ScheduleNavDisplay(
             .fillMaxSize()
             .systemBarsPadding(),
         backStack = navigationState.currentTopLevelBackStack,
-        onBack = {
-            if (navigationState.currentRoute == LinkItNavKey.ScheduleEdit) {
-                onFinishActivity()
-            } else {
-                navigator.navigateBack()
-            }
-        },
+        onBack = handleBack,
         entryProvider = entryProvider,
     )
 }

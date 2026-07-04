@@ -96,12 +96,7 @@ fun HomeNavDisplay(
 
     val entryProvider = entryProvider {
         mapEntry(
-            onOpenSchedule = {
-//                navigator.navigate(LinkItNavKey.ScheduleEdit)
-                navigateToScheduleEdit()
-            },
             navigateToScheduleEdit = {
-//                navigator.navigate(LinkItNavKey.ScheduleEdit)
                 navigateToScheduleEdit()
             },
         )
