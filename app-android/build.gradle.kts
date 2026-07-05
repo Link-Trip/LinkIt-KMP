@@ -12,6 +12,11 @@ android {
         applicationId = "com.linkit.company"
         versionCode = libs.versions.app.versionCode.get().toInt()
         versionName = libs.versions.app.versionName.get()
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = providers
+            .gradleProperty("GOOGLE_MAPS_API_KEY")
+            .orElse(providers.environmentVariable("GOOGLE_MAPS_API_KEY"))
+            .orElse("")
+            .get()
     }
 }
 
