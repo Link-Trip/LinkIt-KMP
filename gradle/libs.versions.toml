@@ -22,7 +22,7 @@ core = "1.7.0"
 multiplatform-nav3-ui = "1.0.0-alpha06"
 compose-multiplatform-adaptive = "1.3.0-alpha03"
 compose-multiplatform-lifecycle = "2.10.0-alpha07"
-googleMapsCompose = "8.3.0"
+googleMapsCompose = "6.12.2"
 googlePlayServicesMaps = "20.0.0"
 
 kotlinxSerializationCore = "1.9.0"
