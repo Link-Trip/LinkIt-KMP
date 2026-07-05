@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -32,8 +31,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.linkit.company.core.designsystem.component.button.ButtonSize
-import com.linkit.company.core.designsystem.component.button.LinkItButton
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 
@@ -41,12 +38,12 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 fun MapScreen(
     navigateToScheduleEdit: () -> Unit,
 ) {
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(LinkItTheme.color.semantic.background.normal.alternative),
     ) {
-        val panelHeight = (maxHeight.value * PanelHeightRatio).dp.coerceIn(300.dp, 360.dp)
+        val spacing = LinkItTheme.spacing
 
         GoogleMapBackground(
             modifier = Modifier.fillMaxSize(),
@@ -62,26 +59,64 @@ fun MapScreen(
         LocationChip(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = panelHeight + 12.dp),
+                .padding(bottom = SavedSchedulePanelHeight + spacing.space12),
         )
 
         SavedSchedulePanel(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(panelHeight),
+                .height(SavedSchedulePanelHeight),
         )
 
-        LinkItButton(
+        CreateScheduleFloatingButton(
             onClick = navigateToScheduleEdit,
-            text = "일정 생성",
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 24.dp)
-                .height(40.dp)
-                .widthIn(min = 101.dp),
-            size = ButtonSize.Medium,
-            shadow = true,
+                .padding(end = spacing.space20, bottom = spacing.space8),
+        )
+    }
+}
+
+@Composable
+private fun CreateScheduleFloatingButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val atomic = LinkItTheme.color.atomic
+    val spacing = LinkItTheme.spacing
+    Row(
+        modifier = modifier
+            .height(spacing.space40)
+            .widthIn(min = CreateScheduleButtonMinWidth)
+            .clip(LinkItTheme.shape.rounded)
+            .background(atomic.Neutral600)
+            .clickable(onClick = onClick)
+            .padding(
+                start = spacing.space8,
+                top = spacing.space4,
+                end = spacing.space12,
+                bottom = spacing.space4,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(spacing.space4, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier.size(spacing.space20),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = LinkItIcon.Control.CreateSchedule,
+                contentDescription = null,
+                modifier = Modifier.size(CreateScheduleButtonIconSize),
+                tint = atomic.BlueGray95,
+            )
+        }
+        Text(
+            text = "일정 생성",
+            style = LinkItTheme.typography.label1NormalMedium,
+            color = atomic.BlueGray95,
+            maxLines = 1,
         )
     }
 }
@@ -460,7 +495,9 @@ private fun MapFloatingActionButton(
     }
 }
 
-private const val PanelHeightRatio = 0.49f
+private val SavedSchedulePanelHeight = 360.dp
+private val CreateScheduleButtonMinWidth = 101.dp
+private val CreateScheduleButtonIconSize = 15.dp
 private val CreateButtonPanelReserve = 64.dp
 
 internal enum class MainMapMarkerType {

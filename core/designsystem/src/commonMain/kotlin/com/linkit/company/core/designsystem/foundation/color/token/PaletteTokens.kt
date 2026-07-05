@@ -28,6 +28,7 @@ object PaletteTokens {
     val Neutral20 = Color(0xFF2A2A2A)
     val Neutral22 = Color(0xFF303030)
     val Neutral30 = Color(0xFF474747)
+    val Neutral600 = Color(0xFF2A2F38)
     val Neutral40 = Color(0xFF5C5C5C)
     val Neutral50 = Color(0xFF737373)
     val Neutral60 = Color(0xFF8A8A8A)
@@ -158,6 +159,7 @@ object PaletteTokens {
     val Blue70 = Color(0xFF69A5FF)
     val Blue80 = Color(0xFF9EC5FF)
     val Blue90 = Color(0xFFC9DEFE)
+    val BlueGray95 = Color(0xFFE6EDF8)
     val Blue95 = Color(0xFFEAF2FE)
     val Blue99 = Color(0xFFF7FBFF)
 
