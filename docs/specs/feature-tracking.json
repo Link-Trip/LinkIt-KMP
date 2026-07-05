@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-05T03:16:51.772Z",
+  "updatedAt": "2026-07-05T03:29:00.139Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -2090,15 +2090,15 @@
     },
     "main:MAP_UI_IMPLEMENTATION": {
       "featureUid": "main:MAP_UI_IMPLEMENTATION",
-      "workStatus": "in_progress",
+      "workStatus": "implemented",
       "developer": "fbghgus123",
       "issue": null,
       "pr": null,
       "branch": "codex/34-overall-design-implementation",
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "testStatus": "failed",
+      "screenshotStatus": "not_applicable",
       "blockedReason": null,
-      "notes": "",
+      "notes": "Android compile/home/manifest passed. iOS checks blocked by existing Metro KLIB ABI mismatch and missing iOS 26.5 simulator destination.",
       "workPlan": {
         "status": "draft",
         "summary": "메인 지도 탭의 플레이스홀더를 Figma 메타데이터 기준 UI와 공식 Google Maps 플랫폼 SDK 기반 지도 배경으로 교체한다. 공식 Google KMP SDK는 없으므로 common UI는 지도 배경 경계만 두고 Android는 Maps Compose, iOS는 Maps SDK for iOS를 플랫폼별 actual로 연동한다. 구현 범위는 정적 화면 구성과 기존 일정 생성 진입 연결로 제한한다.",
@@ -2153,7 +2153,7 @@
         "updatedBy": "sky.woonie"
       },
       "promptHistory": [],
-      "updatedAt": "2026-07-05T03:16:51.772Z",
+      "updatedAt": "2026-07-05T03:29:00.138Z",
       "updatedBy": "sky.woonie"
     },
     "main:MAP_GOOGLE_MAP_INTEGRATION": {
@@ -2208,14 +2208,7 @@
     }
   },
   "activeWork": {
-    "codex": {
-      "featureUid": "main:MAP_UI_IMPLEMENTATION",
-      "title": "메인지도 UI 구현",
-      "agent": "codex",
-      "actor": "fbghgus123",
-      "branch": "codex/34-overall-design-implementation",
-      "startedAt": "2026-07-05T03:16:51.771Z"
-    },
+    "codex": null,
     "claude": null
   }
 }
