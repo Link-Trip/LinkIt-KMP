@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -308,33 +310,41 @@ private fun SavedSchedulePanel(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Column(
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(bottom = CreateButtonPanelReserve),
             ) {
-                SavedScheduleCard(
-                    title = "도쿄 신주쿠 여행",
-                    styleTag = "맛집 중심",
-                    duration = "3박4일",
-                    price = "82만원",
-                    thumbnailBrush = Brush.linearGradient(
-                        listOf(
-                            semantic.accent.background.lightBlue,
-                            semantic.accent.background.lime,
+                item {
+                    SavedScheduleCard(
+                        title = "도쿄 신주쿠 여행",
+                        styleTag = "맛집 중심",
+                        duration = "3박4일",
+                        price = "82만원",
+                        thumbnailBrush = Brush.linearGradient(
+                            listOf(
+                                semantic.accent.background.lightBlue,
+                                semantic.accent.background.lime,
+                            ),
                         ),
-                    ),
-                )
-                SavedScheduleCard(
-                    title = "도쿄 하라주쿠 여행",
-                    styleTag = "쇼핑 중심",
-                    duration = "2박3일",
-                    price = "64만원",
-                    thumbnailBrush = Brush.linearGradient(
-                        listOf(
-                            semantic.accent.background.pink,
-                            semantic.accent.background.cyan,
+                    )
+                }
+                item {
+                    SavedScheduleCard(
+                        title = "도쿄 하라주쿠 여행",
+                        styleTag = "쇼핑 중심",
+                        duration = "2박3일",
+                        price = "64만원",
+                        thumbnailBrush = Brush.linearGradient(
+                            listOf(
+                                semantic.accent.background.pink,
+                                semantic.accent.background.cyan,
+                            ),
                         ),
-                    ),
-                )
+                    )
+                }
             }
         }
     }
@@ -493,3 +503,4 @@ private fun MapFloatingActionButton(
 private const val FigmaScreenWidth = 375f
 private const val FigmaStatusBarHeight = 38f
 private const val PanelHeightRatio = 0.49f
+private val CreateButtonPanelReserve = 64.dp
