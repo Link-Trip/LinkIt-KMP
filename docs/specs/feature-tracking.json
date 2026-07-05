@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-05T03:12:49.454Z",
+  "updatedAt": "2026-07-05T03:16:51.772Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -2090,11 +2090,11 @@
     },
     "main:MAP_UI_IMPLEMENTATION": {
       "featureUid": "main:MAP_UI_IMPLEMENTATION",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_progress",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
+      "branch": "codex/34-overall-design-implementation",
       "testStatus": "not_started",
       "screenshotStatus": "not_started",
       "blockedReason": null,
@@ -2153,7 +2153,7 @@
         "updatedBy": "sky.woonie"
       },
       "promptHistory": [],
-      "updatedAt": "2026-07-05T03:12:49.454Z",
+      "updatedAt": "2026-07-05T03:16:51.772Z",
       "updatedBy": "sky.woonie"
     },
     "main:MAP_GOOGLE_MAP_INTEGRATION": {
@@ -2208,7 +2208,14 @@
     }
   },
   "activeWork": {
-    "codex": null,
+    "codex": {
+      "featureUid": "main:MAP_UI_IMPLEMENTATION",
+      "title": "메인지도 UI 구현",
+      "agent": "codex",
+      "actor": "fbghgus123",
+      "branch": "codex/34-overall-design-implementation",
+      "startedAt": "2026-07-05T03:16:51.771Z"
+    },
     "claude": null
   }
 }
