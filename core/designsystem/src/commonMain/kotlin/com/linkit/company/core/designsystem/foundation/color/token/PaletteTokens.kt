@@ -16,6 +16,7 @@ object PaletteTokens {
     const val Opacity35 = 0.35f
     const val Opacity43 = 0.43f
     const val Opacity52 = 0.52f
+    const val Opacity60 = 0.60f
     const val Opacity61 = 0.61f
     const val Opacity74 = 0.74f
     const val Opacity88 = 0.88f
@@ -149,6 +150,7 @@ object PaletteTokens {
 
     val Blue10 = Color(0xFF001536)
     val Blue20 = Color(0xFF002966)
+    val BlueGray20 = Color(0xFF1C4360)
     val Blue30 = Color(0xFF003E9C)
     val Blue40 = Color(0xFF0054D1)
     val Blue45 = Color(0xFF005EEB)

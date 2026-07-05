@@ -1,12 +1,13 @@
 package com.linkit.company.feature.home.navigation
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -106,11 +107,13 @@ fun HomeNavDisplay(
 
     CompositionLocalProvider(LocalLinkItNavigator provides navigator) {
         Scaffold(
-            modifier = modifier.fillMaxSize().systemBarsPadding(),
+            modifier = modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 LinkItNavigationBar(
                     currentTab = navigationState.currentTopLevelRoute,
                     onTabSelected = { key -> navigator.navigate(key) },
+                    modifier = Modifier.navigationBarsPadding(),
                 )
             }
         ) { paddingValues ->

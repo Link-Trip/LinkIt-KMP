@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.map.generated.resources.Res
@@ -59,6 +61,7 @@ fun MapScreen(
         TopFloatingActions(
             modifier = Modifier
                 .align(Alignment.TopEnd)
+                .statusBarsPadding()
                 .padding(top = 20.dp, end = 16.dp),
         )
 
@@ -209,35 +212,21 @@ internal fun PlaceMarker(
 private fun LocationChip(
     modifier: Modifier = Modifier,
 ) {
-    val semantic = LinkItTheme.color.semantic
-    Row(
+    val atomic = LinkItTheme.color.atomic
+    Box(
         modifier = modifier
-            .height(32.dp)
-            .shadow(4.dp, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
-            .background(semantic.static.white)
-            .border(1.dp, semantic.line.normal.alternative, RoundedCornerShape(16.dp))
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .shadow(1.dp, RoundedCornerShape(100.dp))
+            .clip(RoundedCornerShape(100.dp))
+            .background(atomic.White.copy(alpha = atomic.Opacity60))
+            .border(1.dp, atomic.White, RoundedCornerShape(100.dp))
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = LinkItIcon.Location.LocationFill,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = semantic.primary.normal,
-        )
         Text(
             text = "일본, 도쿄",
-            style = LinkItTheme.typography.caption1Semibold,
-            color = semantic.label.normal,
+            style = LinkItTheme.typography.caption1Bold.copy(letterSpacing = 0.sp),
+            color = atomic.BlueGray20,
             maxLines = 1,
-        )
-        Icon(
-            imageVector = LinkItIcon.Arrow.ChevronDownSmall,
-            contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = semantic.label.alternative,
         )
     }
 }
@@ -576,29 +565,19 @@ private fun MapFloatingActionButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .shadow(1.dp, RoundedCornerShape(20.dp))
-            .clip(RoundedCornerShape(20.dp))
+            .shadow(1.dp, CircleShape)
+            .clip(CircleShape)
             .background(semantic.background.normal.normal)
-            .clickable(onClick = {})
-            .padding(4.dp),
+            .border(1.dp, semantic.line.normal.neutral, CircleShape)
+            .clickable(onClick = {}),
         contentAlignment = Alignment.Center,
     ) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(semantic.background.normal.normal)
-                .border(1.dp, semantic.line.normal.neutral, RoundedCornerShape(10.dp))
-                .padding(6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = contentDescription,
-                modifier = Modifier.size(20.dp),
-                tint = semantic.label.normal,
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(20.dp),
+            tint = semantic.label.normal,
+        )
     }
 }
 
