@@ -1943,11 +1943,11 @@
       return typeof item === 'string' ? item : item?.text || '';
     }
 
-    function renderTodoList(items) {
+    function renderTodoList(items, planStatus = '') {
       const values = (items || []).filter((item) => todoText(item));
       if (!values.length) return '<div class="empty-state">아직 기록된 작업이 없습니다.</div>';
       return `<div class="todo-list">${values.map((item) => {
-        const done = typeof item === 'object' && Boolean(item.done);
+        const done = planStatus === 'done' || (typeof item === 'object' && Boolean(item.done));
         return `
           <div class="todo-item ${done ? 'done' : ''}">
             <span class="todo-check" aria-hidden="true">${done ? '✓' : ''}</span>
@@ -1967,7 +1967,7 @@
           <div class="feature-meta"><span>${badge(plan.status || 'draft')}</span><span>Updated: ${escapeHtml(plan.updatedAt || '-')}</span><span>${escapeHtml(plan.updatedBy || '-')}</span></div>
           <p class="plan-summary">${escapeHtml(plan.summary || '요약 없음')}</p>
           <div class="policy-title">Tasks</div>
-          ${renderTodoList(plan.tasks)}
+          ${renderTodoList(plan.tasks, plan.status)}
           <div class="policy-title" style="margin-top: 10px;">Affected Files</div>
           ${listItems(plan.affectedFiles)}
           <div class="policy-title" style="margin-top: 10px;">Tests</div>
