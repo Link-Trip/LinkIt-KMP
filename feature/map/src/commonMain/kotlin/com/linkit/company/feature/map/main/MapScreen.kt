@@ -38,6 +38,7 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun MapScreen(
@@ -80,6 +81,14 @@ fun MapScreen(
                 .align(Alignment.BottomEnd)
                 .padding(end = spacing.space20, bottom = spacing.space8),
         )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+private fun MapScreenPreview() {
+    LinkItTheme {
+        MapScreen(navigateToScheduleEdit = {})
     }
 }
 
@@ -567,19 +576,29 @@ private fun MapFloatingActionButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .shadow(6.dp, CircleShape)
-            .clip(CircleShape)
-            .background(semantic.static.white)
-            .border(1.dp, semantic.line.normal.alternative, CircleShape)
-            .clickable(onClick = {}),
+            .shadow(1.dp, RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .background(semantic.background.normal.normal)
+            .clickable(onClick = {})
+            .padding(4.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(20.dp),
-            tint = semantic.label.normal,
-        )
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(semantic.background.normal.normal)
+                .border(1.dp, semantic.line.normal.neutral, RoundedCornerShape(10.dp))
+                .padding(6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(20.dp),
+                tint = semantic.label.normal,
+            )
+        }
     }
 }
 
