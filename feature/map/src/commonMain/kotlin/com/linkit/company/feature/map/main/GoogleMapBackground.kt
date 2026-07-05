@@ -4,4 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-internal expect fun GoogleMapBackground(modifier: Modifier)
+internal expect fun GoogleMapBackground(
+    modifier: Modifier,
+    markers: List<MainMapMarker>,
+)

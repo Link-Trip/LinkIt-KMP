@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +31,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.component.button.ButtonSize
 import com.linkit.company.core.designsystem.component.button.LinkItButton
@@ -48,12 +46,12 @@ fun MapScreen(
             .fillMaxSize()
             .background(LinkItTheme.color.semantic.background.normal.alternative),
     ) {
-        val widthScale = (maxWidth.value / FigmaScreenWidth).coerceIn(0.88f, 1.2f)
         val panelHeight = (maxHeight.value * PanelHeightRatio).dp.coerceIn(300.dp, 360.dp)
 
-        GoogleMapBackground(modifier = Modifier.fillMaxSize())
-
-        MapMarkerLayer(widthScale = widthScale)
+        GoogleMapBackground(
+            modifier = Modifier.fillMaxSize(),
+            markers = MainMapMarkers,
+        )
 
         TopFloatingActions(
             modifier = Modifier
@@ -89,41 +87,7 @@ fun MapScreen(
 }
 
 @Composable
-private fun MapMarkerLayer(widthScale: Float) {
-    PlaceMarker(
-        modifier = Modifier.offset(x = figmaX(224f, widthScale), y = figmaY(132f, widthScale)),
-    )
-    PlaceMarker(
-        modifier = Modifier.offset(x = figmaX(117f, widthScale), y = figmaY(298f, widthScale)),
-    )
-    PlaceMarker(
-        modifier = Modifier.offset(x = figmaX(300f, widthScale), y = figmaY(182f, widthScale)),
-    )
-
-    ScheduleMarkerChip(
-        text = "도쿄 하라주쿠 여행",
-        modifier = Modifier.offset(x = figmaX(51f, widthScale), y = figmaY(80f, widthScale)),
-    )
-    ScheduleMarkerChip(
-        text = "도쿄 신주쿠 여행",
-        modifier = Modifier.offset(x = figmaX(229f, widthScale), y = figmaY(254f, widthScale)),
-    )
-    ScheduleMarkerChip(
-        text = "도쿄 하라주쿠 여행",
-        modifier = Modifier.offset(x = figmaX(73f, widthScale), y = figmaY(214f, widthScale)),
-    )
-    ScheduleMarkerChip(
-        text = "도쿄 하라주쿠 여행",
-        modifier = Modifier.offset(x = figmaX(161f, widthScale), y = figmaY(154f, widthScale)),
-    )
-    CountMarker(
-        count = "2",
-        modifier = Modifier.offset(x = figmaX(50f, widthScale), y = figmaY(199f, widthScale)),
-    )
-}
-
-@Composable
-private fun ScheduleMarkerChip(
+internal fun ScheduleMarkerChip(
     text: String,
     modifier: Modifier = Modifier,
 ) {
@@ -148,7 +112,7 @@ private fun ScheduleMarkerChip(
 }
 
 @Composable
-private fun CountMarker(
+internal fun CountMarker(
     count: String,
     modifier: Modifier = Modifier,
 ) {
@@ -170,7 +134,7 @@ private fun CountMarker(
 }
 
 @Composable
-private fun PlaceMarker(
+internal fun PlaceMarker(
     modifier: Modifier = Modifier,
 ) {
     val semantic = LinkItTheme.color.semantic
@@ -191,10 +155,6 @@ private fun PlaceMarker(
         )
     }
 }
-
-private fun figmaX(value: Float, widthScale: Float): Dp = (value * widthScale).dp
-
-private fun figmaY(value: Float, widthScale: Float): Dp = ((value - FigmaStatusBarHeight).coerceAtLeast(0f) * widthScale).dp
 
 @Composable
 private fun LocationChip(
@@ -500,7 +460,80 @@ private fun MapFloatingActionButton(
     }
 }
 
-private const val FigmaScreenWidth = 375f
-private const val FigmaStatusBarHeight = 38f
 private const val PanelHeightRatio = 0.49f
 private val CreateButtonPanelReserve = 64.dp
+
+internal enum class MainMapMarkerType {
+    Schedule,
+    Place,
+    Count,
+}
+
+internal data class MainMapMarker(
+    val id: String,
+    val type: MainMapMarkerType,
+    val latitude: Double,
+    val longitude: Double,
+    val title: String,
+    val count: String? = null,
+)
+
+internal val MainMapMarkers = listOf(
+    MainMapMarker(
+        id = "schedule-harajuku-west",
+        type = MainMapMarkerType.Schedule,
+        latitude = 35.6719,
+        longitude = 139.7026,
+        title = "도쿄 하라주쿠 여행",
+    ),
+    MainMapMarker(
+        id = "schedule-shinjuku",
+        type = MainMapMarkerType.Schedule,
+        latitude = 35.6909,
+        longitude = 139.7003,
+        title = "도쿄 신주쿠 여행",
+    ),
+    MainMapMarker(
+        id = "schedule-harajuku-east",
+        type = MainMapMarkerType.Schedule,
+        latitude = 35.6692,
+        longitude = 139.7076,
+        title = "도쿄 하라주쿠 여행",
+    ),
+    MainMapMarker(
+        id = "schedule-yoyogi",
+        type = MainMapMarkerType.Schedule,
+        latitude = 35.6762,
+        longitude = 139.6956,
+        title = "도쿄 하라주쿠 여행",
+    ),
+    MainMapMarker(
+        id = "cluster-harajuku",
+        type = MainMapMarkerType.Count,
+        latitude = 35.6697,
+        longitude = 139.7042,
+        title = "겹친 일정",
+        count = "2",
+    ),
+    MainMapMarker(
+        id = "place-takeshita",
+        type = MainMapMarkerType.Place,
+        latitude = 35.6721,
+        longitude = 139.7038,
+        title = "다케시타 거리",
+    ),
+    MainMapMarker(
+        id = "place-meiji",
+        type = MainMapMarkerType.Place,
+        latitude = 35.6764,
+        longitude = 139.6993,
+        title = "메이지 신궁",
+    ),
+    MainMapMarker(
+        id = "place-omotesando",
+        type = MainMapMarkerType.Place,
+        latitude = 35.6652,
+        longitude = 139.7121,
+        title = "오모테산도",
+    ),
+)

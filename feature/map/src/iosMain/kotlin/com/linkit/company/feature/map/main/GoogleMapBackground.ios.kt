@@ -10,7 +10,10 @@ import platform.UIKit.UIView
 
 @OptIn(BetaInteropApi::class)
 @Composable
-internal actual fun GoogleMapBackground(modifier: Modifier) {
+internal actual fun GoogleMapBackground(
+    modifier: Modifier,
+    markers: List<MainMapMarker>,
+) {
     UIKitView(
         modifier = modifier,
         factory = {
