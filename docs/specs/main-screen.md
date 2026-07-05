@@ -1,10 +1,10 @@
 # 메인화면 스펙
 
-> 기준 Figma: [Pingo v3.0.3](https://www.figma.com/design/Pym5oUSWQjyWVtN86oj6lb/Pingo--v3.0.3?node-id=13008-1945&m=dev)  
+> 기준 Figma: [Pingo v3.0.3](https://www.figma.com/design/Pym5oUSWQjyWVtN86oj6lb/Pingo--v3.0.3?node-id=17789-48296&m=dev)  
 > 기준 영역: `메인화면 / 지도`, `지도 / 일정마커`, `일정 마커 선택`, `장소 마커 선택`, `일정 생성`, `2-1 일정마커 표현방식`, `3-1 마커 겹침`  
-> 스펙 버전: `v0.2.0`  
+> 스펙 버전: `v0.2.1`  
 > 작성일: 2026-06-08
-> 최종 수정일: 2026-06-14
+> 최종 수정일: 2026-07-05
 
 ## 1. 한눈에 보기
 
@@ -33,6 +33,7 @@
 | 지도 | 저장 일정이 위치한 지역을 보여주는 기본 탐색 영역 |
 | 일정마커 | 저장한 일정의 대표 위치 |
 | 바텀시트 | 저장한 일정 목록과 필터 |
+| 우측 상단 플로팅 버튼 | 프로필/검색/지도뷰/현재위치 계열 지도 오버레이 액션 |
 | 일정 생성 버튼 | 새 일정 생성 방식 선택 진입 |
 
 ### 2.2 일정마커 선택
@@ -107,6 +108,8 @@
 | 장소 선택 중 지도 이동 | 포커스가 해제되지 않는다. |
 | 마커 확대/축소 | 지도 배율만 바뀌고 마커 크기는 유지된다. |
 | 마커 겹침 | 줌 레벨에 따라 겹친 마커를 `+숫자`로 표시한다. 묶음 기준은 미정이다. |
+| 지도 제공자 | 최신 Figma의 `Map` 컴포넌트와 기존 줌 레벨 명세 기준으로 Google Map SDK/API 기반 지도를 사용한다. |
+| 우측 상단 플로팅 버튼 | 최신 Figma 기준 기본 지도 화면에는 `My page`, `Map type` 40px 원형 버튼이 우측 상단에 세로 배치된다. 지도 액션 확장 상태에서는 `Person`, `Search`, `Map`, `Gps fixed` 아이콘 버튼이 52px 간격으로 노출된다. |
 
 ## 4. 참조 정책 이미지
 
@@ -183,12 +186,15 @@
 
 | Feature ID | 기능 | Trigger | 화면 반응 | 확정 수준 | 관련 이미지 |
 |---|---|---|---|---|---|
+| `MAP_GOOGLE_MAP_INTEGRATION` | Google Map 연동 | 메인 지도 탭 진입 | Google Map SDK/API로 지도 타일을 렌더링하고, 카메라 중심/줌/지도 타입 변경을 메인 지도 상태와 연결한다. | 확정 | IMG-01 |
+| `MAP_UI_IMPLEMENTATION` | 메인지도 UI 구현 | 메인 지도 탭 진입 | Google Map 기반 지도 배경, 우측 상단 플로팅 버튼, 일정마커/장소마커, 저장한 일정 목록 패널, 일정 생성 버튼을 메인 지도 화면 구성으로 표시한다. | 확정 | IMG-01, IMG-06, IMG-10 |
+| `MAP_TOP_FLOATING_BUTTONS` | 우측 상단 플로팅 버튼 | 메인 지도 탭 진입 | 지도 우측 상단에 `My page`, `Map type` 원형 플로팅 버튼을 고정 표시한다. 지도 액션 확장 상태에서는 프로필, 검색, 지도뷰, 현재위치 아이콘 버튼 묶음을 표시한다. | 확정 | IMG-01, IMG-06 |
 | `MAP_INITIAL_FOCUS` | 최초 지도 위치 결정 | 메인화면 최초 진입 | Figma 메모상 지구가 줌인되며 내 위치로 확장하는 연출이 고려되어 있다. 위치 권한이 없으면 한국/서울이 보이는 위치를 기본값으로 둔다. | 메모 기반, 연출 상세 미정 | - |
 | `MAP_PAN` | 지도 이동 | 지도 드래그 | 지도 중심이 이동한다. 일정마커 선택 상태라면 포커스는 유지된다. | 확정 | IMG-03 |
 | `MAP_ZOOM_IN` | 지도 확대 | 핀치/지도 SDK 확대 | Google Map API 기준 최대 줌 레벨 21. 마커 크기는 유지된다. | 확정 | IMG-05 |
 | `MAP_ZOOM_OUT` | 지도 축소 | 핀치/지도 SDK 축소 | Google Map API 기준 최소 줌 레벨 3. 마커 크기는 유지된다. | 확정 | IMG-04 |
-| `MAP_VIEW_CHANGE` | 지도뷰 변경 | 지도뷰 변경 버튼 선택 | 기본값/위성뷰를 전환한다. | sitemap 기반 | - |
-| `MAP_CURRENT_LOCATION` | 현재 위치 이동 | 현재 위치 버튼 선택 | 위치 권한이 있으면 GPS 기준 이동, 없으면 권한 팝업을 띄운다. | sitemap 기반 | - |
+| `MAP_VIEW_CHANGE` | 지도뷰 변경 | 우측 상단 지도뷰 버튼 선택 | 기본값/위성뷰를 전환한다. | sitemap/Figma 기반 | - |
+| `MAP_CURRENT_LOCATION` | 현재 위치 이동 | 우측 상단 현재위치 버튼 선택 | 위치 권한이 있으면 GPS 기준 이동, 없으면 권한 팝업을 띄운다. | sitemap/Figma 기반 | - |
 
 ### 6.2 저장한 일정 바텀시트
 
@@ -254,7 +260,9 @@
 | `MainMapUiState` | `clusterMarkers` | `List<ClusterMarkerUiModel>` | `+숫자` 묶음 마커 목록 |
 | `MainMapUiState` | `selectedScheduleMarkerId` | `String?` | 선택된 일정마커 ID |
 | `MainMapUiState` | `selectedPlaceMarkerId` | `String?` | 선택된 장소마커 ID |
+| `MainMapUiState` | `topFloatingActions` | `List<MapFloatingActionUiModel>` | 우측 상단 지도 오버레이 버튼 목록 |
 | `MapCameraUiModel` | `zoomLevel` | `Float` | Google Map API 기준 3~21 범위 |
+| `MapCameraUiModel` | `mapProvider` | `GoogleMap` | 메인 지도 구현 기준 제공자 |
 | `ScheduleMarkerUiModel` | `centerLatLng` | `LatLng` | 장소마커 경계 박스의 중앙 좌표 |
 | `ScheduleMarkerUiModel` | `placeMarkerIds` | `List<String>` | 포함된 장소마커 ID 목록 |
 | `PlaceMarkerUiModel` | `latLng` | `LatLng` | 장소 좌표 |
@@ -281,3 +289,4 @@
 |---|---|---|---|---|
 | `v0.1.0` | 2026-06-08 | Codex | 메인화면 스펙 최초 작성. 화면 상태별 이미지, 핵심 UX 규칙, 상세 기능 명세 정리 | Figma description / 화면 캡처 / sitemap |
 | `v0.2.0` | 2026-06-14 | Codex | 서브에이전트 리뷰 결과 반영. 뒤로가기/지도선택 정책을 미정으로 분리, 마커/영역 선택과 일정 상세페이지 이동 관계 보강, CTA 라벨 위치별 구분, 이미지 매핑표 추가, 데이터 모델 초안의 구현 추론 성격 명시 | Spec Document Reviewer Agent 재검토 `Pass` |
+| `v0.2.1` | 2026-07-05 | Codex | 최신 `메인화면 / 지도` Figma 섹션 기준으로 Google Map 연동과 우측 상단 플로팅 버튼 Feature를 추가하고 메인지도 UI Feature 범위를 보강 | Figma node `17789:48296`, `17789:48299`, `17789:50456`, `17789:50508` 메타데이터 재검토 |

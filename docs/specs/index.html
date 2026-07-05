@@ -1281,8 +1281,11 @@
     </div>
   </div>
 
-  <script src="./feature-list.js"></script>
-  <script src="./feature-tracking.js"></script>
+  <script>
+    const sccAssetVersion = Date.now();
+    document.write(`<script src="./feature-list.js?v=${sccAssetVersion}"><\/script>`);
+    document.write(`<script src="./feature-tracking.js?v=${sccAssetVersion}"><\/script>`);
+  </script>
   <script>
     function normalizeFeatureList(registry) {
       const tracking = window.SPEC_COMMAND_CENTER_FEATURE_TRACKING || { features: {} };

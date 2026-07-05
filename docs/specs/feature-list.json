@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-list.v1.1",
-  "generatedAt": "2026-06-14T05:47:10.838Z",
+  "generatedAt": "2026-07-05T02:04:17.951Z",
   "project": {
     "name": "Pingo",
     "figmaFile": "Pingo v3.0.3",
@@ -64,7 +64,7 @@
       "title": "메인 지도",
       "area": "Main Map",
       "path": "main-screen.md",
-      "specVersion": "v0.2.0",
+      "specVersion": "v0.2.1",
       "figmaSection": "15091:144859",
       "accent": "#2563eb",
       "reviewStatus": "Pass"
@@ -219,7 +219,7 @@
       "description": "메인 기본 진입",
       "source": {
         "path": "main-screen.md",
-        "line": 155
+        "line": 158
       }
     },
     {
@@ -230,7 +230,7 @@
       "description": "일정마커 선택",
       "source": {
         "path": "main-screen.md",
-        "line": 156
+        "line": 159
       }
     },
     {
@@ -241,7 +241,7 @@
       "description": "일정마커 선택 후 지도 이동",
       "source": {
         "path": "main-screen.md",
-        "line": 157
+        "line": 160
       }
     },
     {
@@ -252,7 +252,7 @@
       "description": "지도 축소",
       "source": {
         "path": "main-screen.md",
-        "line": 158
+        "line": 161
       }
     },
     {
@@ -263,7 +263,7 @@
       "description": "지도 확대",
       "source": {
         "path": "main-screen.md",
-        "line": 159
+        "line": 162
       }
     },
     {
@@ -274,7 +274,7 @@
       "description": "장소마커 선택",
       "source": {
         "path": "main-screen.md",
-        "line": 160
+        "line": 163
       }
     },
     {
@@ -285,7 +285,7 @@
       "description": "뒤로가기/선택 복귀 후보 상태",
       "source": {
         "path": "main-screen.md",
-        "line": 161
+        "line": 164
       }
     },
     {
@@ -296,7 +296,7 @@
       "description": "일정마커 위치 산정 방식",
       "source": {
         "path": "main-screen.md",
-        "line": 162
+        "line": 165
       }
     },
     {
@@ -307,7 +307,7 @@
       "description": "일정마커/장소마커 의미",
       "source": {
         "path": "main-screen.md",
-        "line": 163
+        "line": 166
       }
     },
     {
@@ -318,7 +318,7 @@
       "description": "일정생성 버튼 애니메이션",
       "source": {
         "path": "main-screen.md",
-        "line": 164
+        "line": 167
       }
     },
     {
@@ -329,7 +329,7 @@
       "description": "마커 겹침 표현",
       "source": {
         "path": "main-screen.md",
-        "line": 165
+        "line": 168
       }
     },
     {
@@ -643,7 +643,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 267
+        "line": 275
       }
     },
     {
@@ -656,6 +656,7 @@
       "resolver": "PM",
       "impact": {
         "featureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
@@ -664,7 +665,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 268
+        "line": 276
       }
     },
     {
@@ -680,7 +681,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 269
+        "line": 277
       }
     },
     {
@@ -698,7 +699,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 270
+        "line": 278
       }
     },
     {
@@ -716,7 +717,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 271
+        "line": 279
       }
     },
     {
@@ -734,7 +735,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 272
+        "line": 280
       }
     },
     {
@@ -752,7 +753,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 273
+        "line": 281
       }
     },
     {
@@ -771,7 +772,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 274
+        "line": 282
       }
     },
     {
@@ -791,7 +792,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 275
+        "line": 283
       }
     },
     {
@@ -811,7 +812,7 @@
       },
       "source": {
         "path": "main-screen.md",
-        "line": 276
+        "line": 284
       }
     },
     {
@@ -2056,6 +2057,194 @@
       }
     },
     {
+      "uid": "main:MAP_GOOGLE_MAP_INTEGRATION",
+      "featureId": "MAP_GOOGLE_MAP_INTEGRATION",
+      "title": "Google Map 연동",
+      "behavior": {
+        "trigger": "메인 지도 탭 진입",
+        "response": "Google Map SDK/API로 지도 타일을 렌더링하고, 카메라 중심/줌/지도 타입 변경을 메인 지도 상태와 연결한다."
+      },
+      "classification": {
+        "screenSlug": "main",
+        "area": "Main Map",
+        "subarea": "map",
+        "type": "map_interaction",
+        "tags": [
+          "main",
+          "map",
+          "map_interaction",
+          "confirmed",
+          "not_started",
+          "figma_confirmed"
+        ]
+      },
+      "status": {
+        "spec": "confirmed",
+        "evidence": "figma_confirmed",
+        "delivery": "not_started",
+        "raw": "확정"
+      },
+      "assignment": {
+        "developer": "Unassigned",
+        "issue": null,
+        "pr": null,
+        "branch": null
+      },
+      "verification": {
+        "testStatus": "not_started",
+        "screenshotStatus": "not_started",
+        "notes": ""
+      },
+      "links": {
+        "imageRefs": [
+          "main:IMG-01"
+        ],
+        "tbdRefs": [
+          "main:TBD-02"
+        ],
+        "dependsOn": [],
+        "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
+          "main:MAP_INITIAL_FOCUS",
+          "main:MAP_PAN",
+          "main:MAP_ZOOM_IN",
+          "main:MAP_ZOOM_OUT",
+          "main:MAP_VIEW_CHANGE",
+          "main:MAP_CURRENT_LOCATION"
+        ],
+        "specPath": "main-screen.md",
+        "sourceLine": 189,
+        "figmaSection": "15091:144859",
+        "specVersion": "v0.2.1"
+      }
+    },
+    {
+      "uid": "main:MAP_UI_IMPLEMENTATION",
+      "featureId": "MAP_UI_IMPLEMENTATION",
+      "title": "메인지도 UI 구현",
+      "behavior": {
+        "trigger": "메인 지도 탭 진입",
+        "response": "Google Map 기반 지도 배경, 우측 상단 플로팅 버튼, 일정마커/장소마커, 저장한 일정 목록 패널, 일정 생성 버튼을 메인 지도 화면 구성으로 표시한다."
+      },
+      "classification": {
+        "screenSlug": "main",
+        "area": "Main Map",
+        "subarea": "map",
+        "type": "map_interaction",
+        "tags": [
+          "main",
+          "map",
+          "map_interaction",
+          "confirmed",
+          "not_started",
+          "figma_confirmed"
+        ]
+      },
+      "status": {
+        "spec": "confirmed",
+        "evidence": "figma_confirmed",
+        "delivery": "not_started",
+        "raw": "확정"
+      },
+      "assignment": {
+        "developer": "Unassigned",
+        "issue": null,
+        "pr": null,
+        "branch": null
+      },
+      "verification": {
+        "testStatus": "not_started",
+        "screenshotStatus": "not_started",
+        "notes": ""
+      },
+      "links": {
+        "imageRefs": [
+          "main:IMG-01",
+          "main:IMG-06",
+          "main:IMG-10"
+        ],
+        "tbdRefs": [],
+        "dependsOn": [],
+        "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
+          "main:MAP_INITIAL_FOCUS",
+          "main:MAP_PAN",
+          "main:MAP_ZOOM_IN",
+          "main:MAP_ZOOM_OUT",
+          "main:MAP_VIEW_CHANGE",
+          "main:MAP_CURRENT_LOCATION"
+        ],
+        "specPath": "main-screen.md",
+        "sourceLine": 190,
+        "figmaSection": "15091:144859",
+        "specVersion": "v0.2.1"
+      }
+    },
+    {
+      "uid": "main:MAP_TOP_FLOATING_BUTTONS",
+      "featureId": "MAP_TOP_FLOATING_BUTTONS",
+      "title": "우측 상단 플로팅 버튼",
+      "behavior": {
+        "trigger": "메인 지도 탭 진입",
+        "response": "지도 우측 상단에 `My page`, `Map type` 원형 플로팅 버튼을 고정 표시한다. 지도 액션 확장 상태에서는 프로필, 검색, 지도뷰, 현재위치 아이콘 버튼 묶음을 표시한다."
+      },
+      "classification": {
+        "screenSlug": "main",
+        "area": "Main Map",
+        "subarea": "map",
+        "type": "map_interaction",
+        "tags": [
+          "main",
+          "map",
+          "map_interaction",
+          "confirmed",
+          "not_started",
+          "figma_confirmed"
+        ]
+      },
+      "status": {
+        "spec": "confirmed",
+        "evidence": "figma_confirmed",
+        "delivery": "not_started",
+        "raw": "확정"
+      },
+      "assignment": {
+        "developer": "Unassigned",
+        "issue": null,
+        "pr": null,
+        "branch": null
+      },
+      "verification": {
+        "testStatus": "not_started",
+        "screenshotStatus": "not_started",
+        "notes": ""
+      },
+      "links": {
+        "imageRefs": [
+          "main:IMG-01",
+          "main:IMG-06"
+        ],
+        "tbdRefs": [],
+        "dependsOn": [],
+        "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_INITIAL_FOCUS",
+          "main:MAP_PAN",
+          "main:MAP_ZOOM_IN",
+          "main:MAP_ZOOM_OUT",
+          "main:MAP_VIEW_CHANGE",
+          "main:MAP_CURRENT_LOCATION"
+        ],
+        "specPath": "main-screen.md",
+        "sourceLine": 191,
+        "figmaSection": "15091:144859",
+        "specVersion": "v0.2.1"
+      }
+    },
+    {
       "uid": "main:MAP_INITIAL_FOCUS",
       "featureId": "MAP_INITIAL_FOCUS",
       "title": "최초 지도 위치 결정",
@@ -2102,19 +2291,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
           "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE",
-          "main:SCHEDULE_MARKER_SELECT"
+          "main:MAP_CURRENT_LOCATION"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 186,
+        "sourceLine": 192,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2163,19 +2352,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
           "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE",
-          "main:SCHEDULE_MARKER_SELECT"
+          "main:MAP_CURRENT_LOCATION"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 187,
+        "sourceLine": 193,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2226,19 +2415,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_OUT",
           "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE",
-          "main:SCHEDULE_MARKER_SELECT"
+          "main:MAP_CURRENT_LOCATION"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 188,
+        "sourceLine": 194,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2290,19 +2479,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SHEET_DRAG",
-          "main:SHEET_COLLAPSE_ON_PLACE_SELECT"
+          "main:MAP_CURRENT_LOCATION"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 189,
+        "sourceLine": 195,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2310,7 +2499,7 @@
       "featureId": "MAP_VIEW_CHANGE",
       "title": "지도뷰 변경",
       "behavior": {
-        "trigger": "지도뷰 변경 버튼 선택",
+        "trigger": "우측 상단 지도뷰 버튼 선택",
         "response": "기본값/위성뷰를 전환한다."
       },
       "classification": {
@@ -2331,7 +2520,7 @@
         "spec": "confirmed",
         "evidence": "sitemap_based",
         "delivery": "not_started",
-        "raw": "sitemap 기반"
+        "raw": "sitemap/Figma 기반"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -2351,19 +2540,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE",
-          "main:SCHEDULE_MARKER_SELECT"
+          "main:MAP_CURRENT_LOCATION"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 190,
+        "sourceLine": 196,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2371,7 +2560,7 @@
       "featureId": "MAP_CURRENT_LOCATION",
       "title": "현재 위치 이동",
       "behavior": {
-        "trigger": "현재 위치 버튼 선택",
+        "trigger": "우측 상단 현재위치 버튼 선택",
         "response": "위치 권한이 있으면 GPS 기준 이동, 없으면 권한 팝업을 띄운다."
       },
       "classification": {
@@ -2392,7 +2581,7 @@
         "spec": "confirmed",
         "evidence": "sitemap_based",
         "delivery": "not_started",
-        "raw": "sitemap 기반"
+        "raw": "sitemap/Figma 기반"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -2412,19 +2601,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE",
-          "main:SCHEDULE_MARKER_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 191,
+        "sourceLine": 197,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2475,19 +2664,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_DRAG",
-          "main:SHEET_COLLAPSE_ON_PLACE_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 197,
+        "sourceLine": 203,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2538,18 +2727,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_ZOOM_OUT",
           "main:SHEET_INITIAL_HALF",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:SHEET_SCHEDULE_SELECT",
-          "main:SHEET_COUNTRY_FILTER",
-          "main:SHEET_DETAIL_FILTER",
-          "main:SCHEDULE_MARKER_SHOW"
+          "main:SHEET_COUNTRY_FILTER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 198,
+        "sourceLine": 204,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2600,19 +2790,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_ZOOM_OUT",
           "main:SHEET_INITIAL_HALF",
           "main:SHEET_DRAG",
           "main:SHEET_SCHEDULE_SELECT",
           "main:SHEET_COUNTRY_FILTER",
-          "main:SHEET_DETAIL_FILTER",
-          "main:PLACE_MARKER_SHOW",
-          "main:PLACE_MARKER_SELECT"
+          "main:SHEET_DETAIL_FILTER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 199,
+        "sourceLine": 205,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2664,19 +2854,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_ZOOM_OUT",
           "main:SHEET_INITIAL_HALF",
           "main:SHEET_DRAG",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
-          "main:SHEET_COUNTRY_FILTER",
-          "main:SHEET_DETAIL_FILTER",
-          "main:SCHEDULE_MARKER_SHOW",
-          "main:SCHEDULE_DETAIL_FROM_MARKER"
+          "main:SHEET_COUNTRY_FILTER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 200,
+        "sourceLine": 206,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2725,17 +2915,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_INITIAL_HALF",
           "main:SHEET_DRAG",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:SHEET_SCHEDULE_SELECT",
-          "main:SHEET_DETAIL_FILTER",
-          "main:SCHEDULE_MARKER_SHOW"
+          "main:SHEET_DETAIL_FILTER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 201,
+        "sourceLine": 207,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2784,17 +2976,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_INITIAL_HALF",
           "main:SHEET_DRAG",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:SHEET_SCHEDULE_SELECT",
-          "main:SHEET_COUNTRY_FILTER",
-          "main:SCHEDULE_MARKER_SHOW"
+          "main:SHEET_COUNTRY_FILTER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 202,
+        "sourceLine": 208,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2844,19 +3038,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_INITIAL_HALF",
           "main:SHEET_DRAG",
           "main:SHEET_SCHEDULE_SELECT",
           "main:SHEET_COUNTRY_FILTER",
-          "main:SHEET_DETAIL_FILTER",
-          "main:SCHEDULE_MARKER_SWITCH",
-          "main:PLACE_MARKER_SHOW",
-          "main:PLACE_MARKER_SCHEDULE_FOCUS"
+          "main:SHEET_DETAIL_FILTER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 208,
+        "sourceLine": 214,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2905,19 +3099,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 209,
+        "sourceLine": 215,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -2968,19 +3162,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 210,
+        "sourceLine": 216,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3029,19 +3223,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 211,
+        "sourceLine": 217,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3096,9 +3290,9 @@
           "main:PLACE_CLOSE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 212,
+        "sourceLine": 218,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3149,19 +3343,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SCHEDULE_MARKER_CENTER_RULE"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 213,
+        "sourceLine": 219,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3211,19 +3405,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SHEET_SCHEDULE_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 214,
+        "sourceLine": 220,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3273,19 +3467,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SHEET_COLLAPSE_ON_PLACE_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 220,
+        "sourceLine": 226,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3334,19 +3528,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:PLACE_MARKER_SHOW",
           "main:PLACE_MARKER_SCHEDULE_FOCUS",
           "main:PLACE_MARKER_SELECT_ANOTHER",
           "main:PLACE_MARKER_FOCUS_KEEP",
-          "main:PLACE_PREV_NEXT",
-          "main:PLACE_VIEW_IN_SCHEDULE",
-          "main:PLACE_DETAIL_OPEN"
+          "main:PLACE_PREV_NEXT"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 221,
+        "sourceLine": 227,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3395,19 +3589,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:SCHEDULE_MARKER_SHOW",
           "main:SCHEDULE_MARKER_SWITCH",
           "main:PLACE_MARKER_SHOW",
           "main:PLACE_MARKER_SELECT",
-          "main:PLACE_MARKER_SELECT_ANOTHER",
-          "main:PLACE_MARKER_FOCUS_KEEP",
-          "main:PLACE_PREV_NEXT"
+          "main:PLACE_MARKER_SELECT_ANOTHER"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 222,
+        "sourceLine": 228,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3456,19 +3650,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:PLACE_MARKER_SHOW",
           "main:PLACE_MARKER_SELECT",
           "main:PLACE_MARKER_SCHEDULE_FOCUS",
           "main:PLACE_MARKER_FOCUS_KEEP",
-          "main:PLACE_PREV_NEXT",
-          "main:PLACE_VIEW_IN_SCHEDULE",
-          "main:PLACE_DETAIL_OPEN"
+          "main:PLACE_PREV_NEXT"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 223,
+        "sourceLine": 229,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3517,19 +3711,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SHEET_COLLAPSE_ON_PLACE_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 224,
+        "sourceLine": 230,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3578,19 +3772,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:PLACE_MARKER_SHOW",
           "main:PLACE_MARKER_SELECT",
           "main:PLACE_MARKER_SCHEDULE_FOCUS",
           "main:PLACE_MARKER_SELECT_ANOTHER",
-          "main:PLACE_MARKER_FOCUS_KEEP",
-          "main:PLACE_VIEW_IN_SCHEDULE",
-          "main:PLACE_DETAIL_OPEN"
+          "main:PLACE_MARKER_FOCUS_KEEP"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 225,
+        "sourceLine": 231,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3645,9 +3839,9 @@
           "main:PLACE_MARKER_SCHEDULE_FOCUS"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 226,
+        "sourceLine": 232,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3698,19 +3892,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_GOOGLE_MAP_INTEGRATION",
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:MAP_INITIAL_FOCUS",
           "main:MAP_PAN",
           "main:MAP_ZOOM_IN",
           "main:MAP_ZOOM_OUT",
-          "main:MAP_VIEW_CHANGE",
-          "main:MAP_CURRENT_LOCATION",
-          "main:SHEET_INITIAL_HALF",
-          "main:SHEET_COLLAPSE_ON_PLACE_SELECT"
+          "main:MAP_VIEW_CHANGE"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 227,
+        "sourceLine": 233,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3759,19 +3953,19 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:PLACE_MARKER_SHOW",
           "main:PLACE_MARKER_SELECT",
           "main:PLACE_MARKER_SCHEDULE_FOCUS",
           "main:PLACE_MARKER_SELECT_ANOTHER",
-          "main:PLACE_MARKER_FOCUS_KEEP",
-          "main:PLACE_PREV_NEXT",
-          "main:PLACE_VIEW_IN_SCHEDULE"
+          "main:PLACE_MARKER_FOCUS_KEEP"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 228,
+        "sourceLine": 234,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3823,19 +4017,19 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
+          "main:MAP_TOP_FLOATING_BUTTONS",
           "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
           "main:SHEET_SCHEDULE_SELECT",
           "main:SCHEDULE_DETAIL_FROM_MARKER",
           "main:PLACE_MARKER_SHOW",
           "main:PLACE_MARKER_SELECT",
-          "main:PLACE_MARKER_SCHEDULE_FOCUS",
-          "main:PLACE_MARKER_SELECT_ANOTHER",
-          "main:PLACE_MARKER_FOCUS_KEEP"
+          "main:PLACE_MARKER_SCHEDULE_FOCUS"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 229,
+        "sourceLine": 235,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3887,6 +4081,7 @@
         ],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
           "main:CREATE_VIDEO_LINK",
           "main:CLIPBOARD_LINK_ACTIVE",
           "main:CLIPBOARD_LINK_DISABLED",
@@ -3895,9 +4090,9 @@
           "main:CREATE_SUBMIT_INVALID"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 235,
+        "sourceLine": 241,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -3946,6 +4141,7 @@
         "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
+          "main:MAP_UI_IMPLEMENTATION",
           "main:CREATE_BUTTON_EXPAND",
           "main:CLIPBOARD_LINK_ACTIVE",
           "main:CLIPBOARD_LINK_DISABLED",
@@ -3954,9 +4150,9 @@
           "main:CREATE_SUBMIT_INVALID"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 236,
+        "sourceLine": 242,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4011,9 +4207,9 @@
           "main:CREATE_SUBMIT_INVALID"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 237,
+        "sourceLine": 243,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4068,9 +4264,9 @@
           "main:CREATE_SUBMIT_INVALID"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 238,
+        "sourceLine": 244,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4125,9 +4321,9 @@
           "main:CREATE_SUBMIT_INVALID"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 239,
+        "sourceLine": 245,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4182,9 +4378,9 @@
           "main:CREATE_SUBMIT_INVALID"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 240,
+        "sourceLine": 246,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4239,9 +4435,9 @@
           "main:CREATE_SUBMIT_INITIAL"
         ],
         "specPath": "main-screen.md",
-        "sourceLine": 241,
+        "sourceLine": 247,
         "figmaSection": "15091:144859",
-        "specVersion": "v0.2.0"
+        "specVersion": "v0.2.1"
       }
     },
     {
