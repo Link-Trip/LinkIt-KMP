@@ -1,5 +1,6 @@
 package com.linkit.company.feature.map.main
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -27,12 +28,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import linkitcompany.feature.map.generated.resources.Res
+import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun MapScreen(
@@ -233,112 +238,71 @@ private fun SavedSchedulePanel(
     modifier: Modifier = Modifier,
 ) {
     val semantic = LinkItTheme.color.semantic
+    val spacing = LinkItTheme.spacing
     Box(
         modifier = modifier
-            .shadow(16.dp, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .shadow(10.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(semantic.background.normal.normal),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 20.dp),
+                .background(semantic.background.normal.normal),
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(width = 42.dp, height = 4.dp)
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(semantic.line.normal.neutral),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text(
-                text = "저장한 일정",
-                style = LinkItTheme.typography.title3Bold,
-                color = semantic.label.normal,
-                maxLines = 1,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                FilterChip(text = "지역")
-                FilterChip(text = "여행 스타일")
-                FilterChip(text = "기간")
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "총 8개 일정",
-                    style = LinkItTheme.typography.label1NormalSemibold,
-                    color = semantic.label.normal,
-                    maxLines = 1,
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "최신순",
-                    style = LinkItTheme.typography.caption1Medium,
-                    color = semantic.label.alternative,
-                    maxLines = 1,
-                )
-                Icon(
-                    imageVector = LinkItIcon.Arrow.ChevronDownSmall,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = semantic.label.alternative,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyColumn(
+            BottomSheetHandle()
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = CreateButtonPanelReserve),
+                verticalArrangement = Arrangement.spacedBy(spacing.space16),
             ) {
-                item {
-                    SavedScheduleCard(
-                        title = "도쿄 신주쿠 여행",
-                        styleTag = "맛집 중심",
-                        duration = "3박4일",
-                        price = "82만원",
-                        thumbnailBrush = Brush.linearGradient(
-                            listOf(
-                                semantic.accent.background.lightBlue,
-                                semantic.accent.background.lime,
-                            ),
-                        ),
-                    )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(spacing.space8),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .padding(horizontal = spacing.space20),
+                        contentAlignment = Alignment.BottomStart,
+                    ) {
+                        Text(
+                            text = "저장한 일정",
+                            style = LinkItTheme.typography.body2NormalBold,
+                            color = semantic.label.normal,
+                            maxLines = 1,
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(34.dp)
+                            .padding(horizontal = spacing.space20),
+                        horizontalArrangement = Arrangement.spacedBy(spacing.space8),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        FilterChip(text = "지역", icon = LinkItIcon.Utility.Globe)
+                        FilterChip(text = "여행 스타일", icon = LinkItIcon.Utility.Category)
+                        FilterChip(text = "기간", icon = LinkItIcon.Utility.AttachMoney)
+                    }
                 }
-                item {
-                    SavedScheduleCard(
-                        title = "도쿄 하라주쿠 여행",
-                        styleTag = "쇼핑 중심",
-                        duration = "2박3일",
-                        price = "64만원",
-                        thumbnailBrush = Brush.linearGradient(
-                            listOf(
-                                semantic.accent.background.pink,
-                                semantic.accent.background.cyan,
-                            ),
-                        ),
-                    )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(spacing.space4),
+                ) {
+                    DetailInfo()
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentPadding = PaddingValues(bottom = CreateButtonPanelReserve),
+                    ) {
+                        items(SavedScheduleItems) { item ->
+                            SavedScheduleCard(item = item)
+                        }
+                    }
                 }
             }
         }
@@ -348,105 +312,229 @@ private fun SavedSchedulePanel(
 @Composable
 private fun FilterChip(
     text: String,
+    icon: ImageVector,
     modifier: Modifier = Modifier,
 ) {
     val semantic = LinkItTheme.color.semantic
+    val spacing = LinkItTheme.spacing
     Row(
         modifier = modifier
-            .height(32.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .height(34.dp)
+            .clip(LinkItTheme.shape.rounded)
             .background(semantic.fill.normal)
-            .padding(start = 12.dp, end = 10.dp),
+            .padding(start = spacing.space12, end = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(spacing.space4),
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = Color.Unspecified,
+        )
         Text(
             text = text,
-            style = LinkItTheme.typography.caption1Medium,
-            color = semantic.label.neutral,
+            style = LinkItTheme.typography.label2Bold,
+            color = semantic.static.black,
             maxLines = 1,
         )
         Icon(
             imageVector = LinkItIcon.Arrow.ChevronDownSmall,
             contentDescription = null,
-            modifier = Modifier.size(14.dp),
-            tint = semantic.label.alternative,
+            modifier = Modifier.size(16.dp),
+            tint = semantic.static.black,
         )
     }
 }
 
 @Composable
 private fun SavedScheduleCard(
-    title: String,
-    styleTag: String,
-    duration: String,
-    price: String,
-    thumbnailBrush: Brush,
+    item: SavedScheduleItem,
+    modifier: Modifier = Modifier,
+) {
+    val atomic = LinkItTheme.color.atomic
+    val semantic = LinkItTheme.color.semantic
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(125.dp)
+            .background(semantic.background.normal.normal),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Image(
+                painter = painterResource(Res.drawable.main_sheet_schedule_thumbnail),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(width = 80.dp, height = 101.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        item.badges.forEach { badge ->
+                            ContentBadge(text = badge)
+                        }
+                    }
+                    Icon(
+                        imageVector = LinkItIcon.Utility.MoreHorizontal,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = semantic.label.normal,
+                    )
+                }
+                Text(
+                    text = item.title,
+                    style = LinkItTheme.typography.body2NormalBold,
+                    color = semantic.label.normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ScheduleMeta(icon = LinkItIcon.Utility.Calendar, text = item.duration)
+                        Box(
+                            modifier = Modifier
+                                .size(width = 1.dp, height = 20.dp)
+                                .padding(vertical = 4.dp)
+                                .background(semantic.line.solid.normal),
+                        )
+                        ScheduleMeta(icon = LinkItIcon.Utility.Money, text = item.price)
+                    }
+                    Text(
+                        text = item.summary,
+                        style = LinkItTheme.typography.caption1Bold,
+                        color = atomic.CoolNeutral40,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(1.dp)
+                .background(atomic.BlueGray95),
+        )
+    }
+}
+
+@Composable
+private fun BottomSheetHandle(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(15.dp)
+            .padding(top = 8.dp, bottom = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 48.dp, height = 3.dp)
+                .clip(LinkItTheme.shape.rounded)
+                .background(LinkItTheme.color.atomic.CoolNeutral50.copy(alpha = 0.2f)),
+        )
+    }
+}
+
+@Composable
+private fun DetailInfo(
     modifier: Modifier = Modifier,
 ) {
     val semantic = LinkItTheme.color.semantic
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(76.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(semantic.background.elevated.normal)
-            .border(1.dp, semantic.line.normal.normal, RoundedCornerShape(8.dp))
-            .padding(10.dp),
+            .height(29.dp)
+            .padding(horizontal = 20.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .width(64.dp)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(8.dp))
-                .background(thumbnailBrush),
+        Text(
+            text = "총 8개 일정",
+            style = LinkItTheme.typography.label2Medium,
+            color = semantic.label.alternative,
+            maxLines = 1,
         )
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SmallTag(text = styleTag)
-                SmallTag(text = duration)
-            }
-            Text(
-                text = title,
-                style = LinkItTheme.typography.label1NormalBold,
-                color = semantic.label.normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = "$price · AI 한줄 요약된 여행지 정보",
-                style = LinkItTheme.typography.caption1Regular,
-                color = semantic.label.alternative,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "최신순",
+            style = LinkItTheme.typography.label2Medium,
+            color = LinkItTheme.color.atomic.CoolNeutral40,
+            maxLines = 1,
+        )
     }
 }
 
 @Composable
-private fun SmallTag(
+private fun ContentBadge(
     text: String,
     modifier: Modifier = Modifier,
 ) {
+    val semantic = LinkItTheme.color.semantic
     Text(
         text = text,
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(LinkItTheme.color.semantic.fill.alternative)
-            .padding(horizontal = 7.dp, vertical = 3.dp),
-        style = LinkItTheme.typography.caption1Medium,
-        color = LinkItTheme.color.semantic.label.neutral,
+            .clip(RoundedCornerShape(6.dp))
+            .border(1.dp, semantic.line.normal.neutral, RoundedCornerShape(6.dp))
+            .padding(horizontal = 6.dp, vertical = 5.dp),
+        style = LinkItTheme.typography.caption2Medium,
+        color = semantic.label.alternative,
         maxLines = 1,
     )
+}
+
+@Composable
+private fun ScheduleMeta(
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = LinkItTheme.color.atomic.CoolNeutral50,
+        )
+        Text(
+            text = text,
+            style = LinkItTheme.typography.caption1Bold,
+            color = LinkItTheme.color.atomic.CoolNeutral50,
+            maxLines = 1,
+        )
+    }
 }
 
 @Composable
@@ -499,6 +587,45 @@ private val SavedSchedulePanelHeight = 360.dp
 private val CreateScheduleButtonMinWidth = 101.dp
 private val CreateScheduleButtonIconSize = 15.dp
 private val CreateButtonPanelReserve = 64.dp
+
+private data class SavedScheduleItem(
+    val title: String,
+    val badges: List<String>,
+    val duration: String,
+    val price: String,
+    val summary: String,
+)
+
+private val SavedScheduleItems = listOf(
+    SavedScheduleItem(
+        title = "도쿄 신주쿠 여행",
+        badges = listOf("맛집 중심", "쇼핑 중심"),
+        duration = "3박4일",
+        price = "82만원",
+        summary = "AI 한줄 요약된 여행지 정보",
+    ),
+    SavedScheduleItem(
+        title = "도쿄 신주쿠 여행",
+        badges = listOf("맛집 중심", "쇼핑 중심"),
+        duration = "3박4일",
+        price = "82만원",
+        summary = "AI 한줄 요약된 여행지 정보",
+    ),
+    SavedScheduleItem(
+        title = "도쿄 신주쿠 여행",
+        badges = listOf("맛집 중심", "쇼핑 중심"),
+        duration = "3박4일",
+        price = "82만원",
+        summary = "AI 한줄 요약된 여행지 정보",
+    ),
+    SavedScheduleItem(
+        title = "도쿄 신주쿠 여행",
+        badges = listOf("맛집 중심", "쇼핑 중심"),
+        duration = "3박4일",
+        price = "82만원",
+        summary = "AI 한줄 요약된 여행지 정보",
+    ),
+)
 
 internal enum class MainMapMarkerType {
     Schedule,
