@@ -1,20 +1,30 @@
 package com.linkit.company.feature.map.main
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -25,30 +35,139 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.map.generated.resources.Res
-import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail
+import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail_1
+import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail_2
+import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail_3
+import linkitcompany.feature.map.generated.resources.main_sheet_schedule_thumbnail_4
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun MapScreen(
     navigateToScheduleEdit: () -> Unit,
 ) {
+    var isScheduleSheetExpanded by remember { mutableStateOf(false) }
+    var isScheduleSheetOverlayVisible by remember { mutableStateOf(false) }
+    var isDraggingFromCollapsedSheet by remember { mutableStateOf(false) }
+    var mapContentHeightPx by remember { mutableStateOf(0) }
+    var sheetOffsetPx by remember { mutableStateOf(0f) }
+    val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
+    val sheetOffsetAnimation = remember { Animatable(0f) }
+    val collapsedSheetOffsetPx = with(density) {
+        (mapContentHeightPx - SavedSchedulePanelHeight.toPx()).coerceAtLeast(0f)
+    }
+
+    LaunchedEffect(collapsedSheetOffsetPx) {
+        if (collapsedSheetOffsetPx > 0f &&
+            !isScheduleSheetExpanded &&
+            !isScheduleSheetOverlayVisible
+        ) {
+            sheetOffsetPx = collapsedSheetOffsetPx
+            sheetOffsetAnimation.snapTo(collapsedSheetOffsetPx)
+        }
+    }
+
+    fun animateScheduleSheet(
+        targetOffsetPx: Float,
+        onFinished: () -> Unit,
+    ) {
+        coroutineScope.launch {
+            sheetOffsetAnimation.stop()
+            sheetOffsetAnimation.snapTo(sheetOffsetPx)
+            sheetOffsetAnimation.animateTo(
+                targetValue = targetOffsetPx,
+                animationSpec = MapSheetAnimationSpec,
+            ) {
+                sheetOffsetPx = value
+            }
+            sheetOffsetPx = targetOffsetPx
+            onFinished()
+        }
+    }
+
+    fun settleScheduleSheet(expand: Boolean) {
+        if (expand) {
+            isDraggingFromCollapsedSheet = false
+            isScheduleSheetOverlayVisible = true
+            isScheduleSheetExpanded = true
+            animateScheduleSheet(targetOffsetPx = 0f, onFinished = {})
+        } else {
+            isScheduleSheetOverlayVisible = true
+            animateScheduleSheet(targetOffsetPx = collapsedSheetOffsetPx) {
+                isScheduleSheetExpanded = false
+                isDraggingFromCollapsedSheet = false
+                isScheduleSheetOverlayVisible = false
+            }
+        }
+    }
+
+    val scheduleSheetDragState = rememberDraggableState { delta ->
+        if (collapsedSheetOffsetPx > 0f) {
+            sheetOffsetPx = (sheetOffsetPx + delta).coerceIn(0f, collapsedSheetOffsetPx)
+        }
+    }
+    val scheduleSheetDragModifier = Modifier.draggable(
+        state = scheduleSheetDragState,
+        orientation = Orientation.Vertical,
+        startDragImmediately = true,
+        onDragStarted = {
+            if (collapsedSheetOffsetPx > 0f) {
+                isScheduleSheetOverlayVisible = true
+                isDraggingFromCollapsedSheet = !isScheduleSheetExpanded
+                sheetOffsetPx = if (isScheduleSheetExpanded) 0f else collapsedSheetOffsetPx
+                coroutineScope.launch {
+                    sheetOffsetAnimation.stop()
+                    sheetOffsetAnimation.snapTo(sheetOffsetPx)
+                }
+            }
+        },
+        onDragStopped = { velocity ->
+            if (collapsedSheetOffsetPx > 0f) {
+                val shouldExpand = when {
+                    velocity <= -MapSheetSettleVelocityThresholdPx -> true
+                    velocity >= MapSheetSettleVelocityThresholdPx -> false
+                    else -> sheetOffsetPx < collapsedSheetOffsetPx * MapSheetSettleOffsetRatio
+                }
+                settleScheduleSheet(expand = shouldExpand)
+            }
+        },
+    )
+    val expandedSheetVisible = isScheduleSheetExpanded ||
+        (isScheduleSheetOverlayVisible && !isDraggingFromCollapsedSheet)
+    val collapsedSheetVisible = !isScheduleSheetExpanded || isDraggingFromCollapsedSheet
+    val collapsedSheetDragOffsetPx = sheetOffsetPx - collapsedSheetOffsetPx
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .onSizeChanged { mapContentHeightPx = it.height }
             .background(LinkItTheme.color.semantic.background.normal.alternative),
     ) {
         val spacing = LinkItTheme.spacing
@@ -58,32 +177,64 @@ fun MapScreen(
             markers = MainMapMarkers,
         )
 
-        TopFloatingActions(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .statusBarsPadding()
-                .padding(top = 20.dp, end = 16.dp),
-        )
+        if (expandedSheetVisible) {
+            ExpandedScheduleSheet(
+                onCollapse = { settleScheduleSheet(expand = false) },
+                onCreateSchedule = navigateToScheduleEdit,
+                headerDragModifier = scheduleSheetDragModifier,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y = sheetOffsetPx.roundToInt(),
+                        )
+                    },
+            )
+        }
 
-        LocationChip(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = SavedSchedulePanelHeight + spacing.space12),
-        )
+        if (collapsedSheetVisible) {
+            TopFloatingActions(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .statusBarsPadding()
+                    .padding(top = 20.dp, end = 16.dp),
+            )
 
-        SavedSchedulePanel(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(SavedSchedulePanelHeight),
-        )
+            LocationChip(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = SavedSchedulePanelHeight + spacing.space12),
+            )
 
-        CreateScheduleFloatingButton(
-            onClick = navigateToScheduleEdit,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = spacing.space20, bottom = spacing.space8),
-        )
+            SavedSchedulePanel(
+                onExpandRequest = { settleScheduleSheet(expand = true) },
+                dragModifier = scheduleSheetDragModifier,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(SavedSchedulePanelHeight)
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y = collapsedSheetDragOffsetPx.roundToInt(),
+                        )
+                    },
+            )
+
+            CreateScheduleFloatingButton(
+                onClick = navigateToScheduleEdit,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = spacing.space20, bottom = spacing.space8)
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y = collapsedSheetDragOffsetPx.roundToInt(),
+                        )
+                    },
+            )
+        }
     }
 }
 
@@ -233,6 +384,8 @@ private fun LocationChip(
 
 @Composable
 private fun SavedSchedulePanel(
+    onExpandRequest: () -> Unit,
+    dragModifier: Modifier,
     modifier: Modifier = Modifier,
 ) {
     val semantic = LinkItTheme.color.semantic
@@ -241,14 +394,17 @@ private fun SavedSchedulePanel(
         modifier = modifier
             .shadow(10.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-            .background(semantic.background.normal.normal),
+            .background(semantic.background.normal.normal)
+            .then(dragModifier),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(semantic.background.normal.normal),
         ) {
-            BottomSheetHandle()
+            BottomSheetHandle(
+                modifier = Modifier.clickable(onClick = onExpandRequest),
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -281,9 +437,7 @@ private fun SavedSchedulePanel(
                         horizontalArrangement = Arrangement.spacedBy(spacing.space8),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        FilterChip(text = "지역", icon = LinkItIcon.Utility.Globe)
-                        FilterChip(text = "여행 스타일", icon = LinkItIcon.Utility.Category)
-                        FilterChip(text = "기간", icon = LinkItIcon.Utility.AttachMoney)
+                        ScheduleFilterChips()
                     }
                 }
                 Column(
@@ -291,19 +445,202 @@ private fun SavedSchedulePanel(
                     verticalArrangement = Arrangement.spacedBy(spacing.space4),
                 ) {
                     DetailInfo()
-                    LazyColumn(
+                    SavedScheduleList(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
                         contentPadding = PaddingValues(bottom = CreateButtonPanelReserve),
-                    ) {
-                        items(SavedScheduleItems) { item ->
-                            SavedScheduleCard(item = item)
-                        }
-                    }
+                        userScrollEnabled = false,
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExpandedScheduleSheet(
+    onCollapse: () -> Unit,
+    onCreateSchedule: () -> Unit,
+    headerDragModifier: Modifier,
+    modifier: Modifier = Modifier,
+) {
+    val atomic = LinkItTheme.color.atomic
+    Box(
+        modifier = modifier
+            .background(atomic.White),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(atomic.White),
+        ) {
+            ExpandedScheduleTopBar(
+                onCollapse = onCollapse,
+                dragModifier = headerDragModifier,
+            )
+            ExpandedScheduleContent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            )
+        }
+        CreateScheduleIconButton(
+            onClick = onCreateSchedule,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 20.dp, bottom = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun ExpandedScheduleTopBar(
+    onCollapse: () -> Unit,
+    dragModifier: Modifier,
+    modifier: Modifier = Modifier,
+) {
+    val atomic = LinkItTheme.color.atomic
+    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(statusBarHeight + ExpandedScheduleTopBarHeight)
+            .background(atomic.White)
+            .then(dragModifier),
+    ) {
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .height(ExpandedScheduleTopBarHeight)
+                .padding(start = 12.dp, top = 8.dp, end = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(width = 24.dp, height = 44.dp)
+                    .clickable(onClick = onCollapse),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = LinkItIcon.Arrow.ChevronLeft,
+                    contentDescription = "지도 화면으로 돌아가기",
+                    modifier = Modifier.size(24.dp),
+                    tint = MapExpandedHeaderTextColor,
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(
+                    text = "일정",
+                    style = LinkItTheme.typography.headline1Bold.copy(
+                        lineHeight = 24.sp,
+                        letterSpacing = 0.sp,
+                    ),
+                    color = MapExpandedHeaderTextColor,
+                    maxLines = 1,
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(atomic.CoolNeutral98),
+        )
+    }
+}
+
+@Composable
+private fun ExpandedScheduleContent(
+    modifier: Modifier = Modifier,
+) {
+    val atomic = LinkItTheme.color.atomic
+    Column(
+        modifier = modifier
+            .background(atomic.White),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp)
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ScheduleFilterChips()
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        DetailInfo()
+        Spacer(modifier = Modifier.height(8.dp))
+        SavedScheduleList(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(bottom = ExpandedScheduleListBottomPadding),
+        )
+    }
+}
+
+@Composable
+private fun ScheduleFilterChips() {
+    FilterChip(text = "지역", icon = LinkItIcon.Utility.Globe)
+    FilterChip(text = "여행 스타일", icon = LinkItIcon.Utility.Category)
+    FilterChip(text = "기간", icon = LinkItIcon.Utility.AttachMoney)
+}
+
+@Composable
+private fun SavedScheduleList(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues,
+    userScrollEnabled: Boolean = true,
+) {
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = contentPadding,
+        userScrollEnabled = userScrollEnabled,
+    ) {
+        items(SavedScheduleItems) { item ->
+            SavedScheduleCard(item = item)
+        }
+    }
+}
+
+@Composable
+private fun CreateScheduleIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val atomic = LinkItTheme.color.atomic
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        atomic.Neutral600,
+                        MapFloatingButtonGradientEnd,
+                    ),
+                ),
+                shape = CircleShape,
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = LinkItIcon.Control.CreateSchedule,
+            contentDescription = "일정 생성",
+            modifier = Modifier.size(24.dp),
+            tint = atomic.BlueGray95,
+        )
     }
 }
 
@@ -332,7 +669,7 @@ private fun FilterChip(
         )
         Text(
             text = text,
-            style = LinkItTheme.typography.label2Bold,
+            style = LinkItTheme.typography.label2Bold.copy(letterSpacing = 0.sp),
             color = semantic.static.black,
             maxLines = 1,
         )
@@ -367,11 +704,11 @@ private fun SavedScheduleCard(
             verticalAlignment = Alignment.Top,
         ) {
             Image(
-                painter = painterResource(Res.drawable.main_sheet_schedule_thumbnail),
+                painter = painterResource(item.thumbnail),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(width = 80.dp, height = 101.dp)
+                    .size(width = 80.dp, height = 100.dp)
                     .clip(RoundedCornerShape(8.dp)),
             )
             Column(
@@ -401,8 +738,8 @@ private fun SavedScheduleCard(
                 }
                 Text(
                     text = item.title,
-                    style = LinkItTheme.typography.body2NormalBold,
-                    color = semantic.label.normal,
+                    style = LinkItTheme.typography.body2NormalBold.copy(letterSpacing = 0.sp),
+                    color = MapExpandedNeutral800,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -425,8 +762,11 @@ private fun SavedScheduleCard(
                     }
                     Text(
                         text = item.summary,
-                        style = LinkItTheme.typography.caption1Bold,
-                        color = atomic.CoolNeutral40,
+                        style = LinkItTheme.typography.caption1Bold.copy(
+                            lineHeight = 17.4f.sp,
+                            letterSpacing = 0.sp,
+                        ),
+                        color = MapExpandedNeutral400,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -477,15 +817,15 @@ private fun DetailInfo(
     ) {
         Text(
             text = "총 8개 일정",
-            style = LinkItTheme.typography.label2Medium,
+            style = LinkItTheme.typography.label2Medium.copy(letterSpacing = 0.sp),
             color = semantic.label.alternative,
             maxLines = 1,
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "최신순",
-            style = LinkItTheme.typography.label2Medium,
-            color = LinkItTheme.color.atomic.CoolNeutral40,
+            style = LinkItTheme.typography.label2Medium.copy(letterSpacing = 0.sp),
+            color = MapExpandedNeutral400,
             maxLines = 1,
         )
     }
@@ -503,7 +843,7 @@ private fun ContentBadge(
             .clip(RoundedCornerShape(6.dp))
             .border(1.dp, semantic.line.normal.neutral, RoundedCornerShape(6.dp))
             .padding(horizontal = 6.dp, vertical = 5.dp),
-        style = LinkItTheme.typography.caption2Medium,
+        style = LinkItTheme.typography.caption2Medium.copy(letterSpacing = 0.sp),
         color = semantic.label.alternative,
         maxLines = 1,
     )
@@ -524,12 +864,15 @@ private fun ScheduleMeta(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
-            tint = LinkItTheme.color.atomic.CoolNeutral50,
+            tint = MapExpandedNeutral300,
         )
         Text(
             text = text,
-            style = LinkItTheme.typography.caption1Bold,
-            color = LinkItTheme.color.atomic.CoolNeutral50,
+            style = LinkItTheme.typography.caption1Bold.copy(
+                lineHeight = 16.2f.sp,
+                letterSpacing = 0.sp,
+            ),
+            color = MapExpandedNeutral300,
             maxLines = 1,
         )
     }
@@ -582,11 +925,25 @@ private fun MapFloatingActionButton(
 }
 
 private val SavedSchedulePanelHeight = 360.dp
+private val ExpandedScheduleTopBarHeight = 52.dp
+private val ExpandedScheduleListBottomPadding = 64.dp
 private val CreateScheduleButtonMinWidth = 101.dp
 private val CreateScheduleButtonIconSize = 15.dp
 private val CreateButtonPanelReserve = 64.dp
+private val MapExpandedHeaderTextColor = Color(0xFF3E3E3E)
+private val MapExpandedNeutral800 = Color(0xFF17191F)
+private val MapExpandedNeutral400 = Color(0xFF5D6470)
+private val MapExpandedNeutral300 = Color(0xFF7B8696)
+private val MapFloatingButtonGradientEnd = Color(0xFF77859E)
+private val MapSheetAnimationSpec = spring<Float>(
+    dampingRatio = Spring.DampingRatioNoBouncy,
+    stiffness = Spring.StiffnessMediumLow,
+)
+private const val MapSheetSettleVelocityThresholdPx = 1_200f
+private const val MapSheetSettleOffsetRatio = 0.58f
 
 private data class SavedScheduleItem(
+    val thumbnail: DrawableResource,
     val title: String,
     val badges: List<String>,
     val duration: String,
@@ -596,6 +953,7 @@ private data class SavedScheduleItem(
 
 private val SavedScheduleItems = listOf(
     SavedScheduleItem(
+        thumbnail = Res.drawable.main_sheet_schedule_thumbnail_1,
         title = "도쿄 신주쿠 여행",
         badges = listOf("맛집 중심", "쇼핑 중심"),
         duration = "3박4일",
@@ -603,6 +961,7 @@ private val SavedScheduleItems = listOf(
         summary = "AI 한줄 요약된 여행지 정보",
     ),
     SavedScheduleItem(
+        thumbnail = Res.drawable.main_sheet_schedule_thumbnail_2,
         title = "도쿄 신주쿠 여행",
         badges = listOf("맛집 중심", "쇼핑 중심"),
         duration = "3박4일",
@@ -610,6 +969,7 @@ private val SavedScheduleItems = listOf(
         summary = "AI 한줄 요약된 여행지 정보",
     ),
     SavedScheduleItem(
+        thumbnail = Res.drawable.main_sheet_schedule_thumbnail_3,
         title = "도쿄 신주쿠 여행",
         badges = listOf("맛집 중심", "쇼핑 중심"),
         duration = "3박4일",
@@ -617,6 +977,7 @@ private val SavedScheduleItems = listOf(
         summary = "AI 한줄 요약된 여행지 정보",
     ),
     SavedScheduleItem(
+        thumbnail = Res.drawable.main_sheet_schedule_thumbnail_4,
         title = "도쿄 신주쿠 여행",
         badges = listOf("맛집 중심", "쇼핑 중심"),
         duration = "3박4일",
