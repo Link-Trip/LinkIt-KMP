@@ -13,6 +13,7 @@ private val linkItSerializersModule = SerializersModule {
         subclass(LinkItNavKey.StorageSearch::class, LinkItNavKey.StorageSearch.serializer())
         subclass(LinkItNavKey.StorageSearchResult::class, LinkItNavKey.StorageSearchResult.serializer())
         subclass(LinkItNavKey.StorageAddSaved::class, LinkItNavKey.StorageAddSaved.serializer())
+        subclass(LinkItNavKey.StorageDetail::class, LinkItNavKey.StorageDetail.serializer())
         subclass(LinkItNavKey.Explore::class, LinkItNavKey.Explore.serializer())
         subclass(LinkItNavKey.ScheduleEdit::class, LinkItNavKey.ScheduleEdit.serializer())
     }
@@ -40,6 +41,9 @@ interface LinkItNavKey : NavKey {
 
     @Serializable
     data object StorageAddSaved : LinkItNavKey
+
+    @Serializable
+    data object StorageDetail : LinkItNavKey
 
     @Serializable
     data object ScheduleEdit : LinkItNavKey
