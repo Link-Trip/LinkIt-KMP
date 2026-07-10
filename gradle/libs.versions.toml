@@ -27,7 +27,7 @@ kotlinxSerializationCore = "1.9.0"
 kotlinxCollectionsImmutable = "0.4.0"
 kotlinxDatetime = "0.7.1"
 
-metro = "0.10.4"
+metro = "0.10.2"
 ktor = "3.2.1"
 ktorfit = "2.6.2"
 
