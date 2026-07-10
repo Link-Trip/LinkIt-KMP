@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-10T13:37:04.799Z",
+  "updatedAt": "2026-07-10T13:40:27.681Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -1565,13 +1565,13 @@
     },
     "mypage:MYPAGE_OPEN": {
       "featureUid": "mypage:MYPAGE_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1585,8 +1585,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T13:40:27.680Z",
+      "updatedBy": "yuhohyeon"
     },
     "mypage:MAP_TYPE_DEFAULT": {
       "featureUid": "mypage:MAP_TYPE_DEFAULT",
