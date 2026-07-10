@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LocalLinkItNavigator
 import com.linkit.company.feature.storage.StorageSearchScreen
+import com.linkit.company.feature.storage.StorageSearchResultScreen
 import com.linkit.company.feature.storage.StorageScreen
 
 fun EntryProviderScope<NavKey>.storageEntry() {
@@ -13,6 +14,11 @@ fun EntryProviderScope<NavKey>.storageEntry() {
         StorageScreen(onSearch = { navigator.navigate(LinkItNavKey.StorageSearch) })
     }
     entry<LinkItNavKey.StorageSearch> {
-        StorageSearchScreen()
+        val navigator = LocalLinkItNavigator.current
+        StorageSearchScreen(onSearch = { navigator.navigate(LinkItNavKey.StorageSearchResult) })
+    }
+    entry<LinkItNavKey.StorageSearchResult> {
+        val navigator = LocalLinkItNavigator.current
+        StorageSearchResultScreen(onBack = navigator::navigateBack)
     }
 }
