@@ -20,20 +20,29 @@ import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(sdk = [35], qualifiers = "w375dp-h979dp-mdpi")
+@Config(sdk = [35], qualifiers = "w375dp-h1600dp-mdpi")
 class ExploreScreenshotTest {
     @get:Rule
     val composeRule = createComposeRule()
 
     @Test
     fun initialCountryExplore() {
+        capture(ExploreUiState(), 979.dp)
+    }
+
+    @Test
+    fun japanCountryExplore() {
+        capture(ExploreUiState(selectedCountry = ExploreCountry.JAPAN), 1416.dp)
+    }
+
+    private fun capture(state: ExploreUiState, height: androidx.compose.ui.unit.Dp) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
-                    Box(Modifier.requiredSize(375.dp, 979.dp)) {
+                    Box(Modifier.requiredSize(375.dp, height)) {
                         ExploreContent(
-                            uiState = ExploreUiState(),
+                            uiState = state,
                             onIntent = {},
                         )
                     }

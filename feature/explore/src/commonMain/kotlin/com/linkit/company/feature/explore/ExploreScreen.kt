@@ -2,7 +2,6 @@ package com.linkit.company.feature.explore
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -75,28 +74,25 @@ fun ExploreContent(
     onIntent: (ExploreIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(LinkItTheme.color.semantic.background.normal.normal),
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            ExploreToolbar()
-            ExploreTabs(
-                selectedTab = uiState.selectedTab,
-                onTabSelected = { onIntent(ExploreIntent.SelectTab(it)) },
+        ExploreToolbar()
+        ExploreTabs(
+            selectedTab = uiState.selectedTab,
+            onTabSelected = { onIntent(ExploreIntent.SelectTab(it)) },
+        )
+        when (uiState.selectedTab) {
+            ExploreTab.COUNTRY -> CountryExploreContent(
+                selectedCountry = uiState.selectedCountry,
+                onCountrySelected = { onIntent(ExploreIntent.SelectCountry(it)) },
+                modifier = Modifier.weight(1f),
             )
-            when (uiState.selectedTab) {
-                ExploreTab.COUNTRY -> CountryExploreContent(
-                    selectedCountry = uiState.selectedCountry,
-                    onCountrySelected = { onIntent(ExploreIntent.SelectCountry(it)) },
-                    modifier = Modifier.weight(1f),
-                )
 
-                ExploreTab.THEME -> ThemeExploreContent(modifier = Modifier.weight(1f))
-            }
+            ExploreTab.THEME -> ThemeExploreContent(modifier = Modifier.weight(1f))
         }
-        ScheduleGeneratingBadge(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -156,13 +152,13 @@ private fun CountryExploreContent(
             )
         }
         item {
-            DestinationSection()
+            DestinationSection(selectedCountry)
         }
         item {
-            CreatorSection()
+            CreatorSection(selectedCountry)
         }
         item {
-            TrendingVideoSection()
+            TrendingVideoSection(selectedCountry)
         }
     }
 }
@@ -218,7 +214,7 @@ private fun CountryChip(
 }
 
 @Composable
-private fun DestinationSection() {
+private fun DestinationSection(selectedCountry: ExploreCountry) {
     val destinations = listOf(
         Destination("도쿄", "네온사인, 애니메이션 문화, 미슐랭 스타 라멘", Res.drawable.explore_tokyo),
         Destination("교토", "고대 사원, 대나무 숲, 게이샤 거리", Res.drawable.explore_kyoto),
@@ -227,8 +223,16 @@ private fun DestinationSection() {
     )
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionHeading(
-            title = "🌏 인기 여행지 둘러보기",
-            subtitle = "어디로 떠나볼까요?",
+            title = if (selectedCountry == ExploreCountry.ALL) {
+                "🌏 인기 여행지 둘러보기"
+            } else {
+                "🌏 ${selectedCountry.label} 인기 여행지 둘러보기"
+            },
+            subtitle = if (selectedCountry == ExploreCountry.ALL) {
+                "어디로 떠나볼까요?"
+            } else {
+                "${selectedCountry.label} 어디로 떠나볼까요?"
+            },
         )
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -290,11 +294,19 @@ private fun DestinationCard(destination: Destination) {
 }
 
 @Composable
-private fun CreatorSection() {
+private fun CreatorSection(selectedCountry: ExploreCountry) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionHeading(
-            title = "인기있는 여행 크리에이터",
-            subtitle = "나랑 맞는 크리에이터는 누가 있을까요?",
+            title = if (selectedCountry == ExploreCountry.ALL) {
+                "인기있는 여행 크리에이터"
+            } else {
+                "${selectedCountry.label}여행, 이런 유튜버는 어때요?"
+            },
+            subtitle = if (selectedCountry == ExploreCountry.ALL) {
+                "나랑 맞는 크리에이터는 누가 있을까요?"
+            } else {
+                "${selectedCountry.label}여행 에서 추천하는 여행 유튜버예요"
+            },
             action = "더보기",
         )
         LazyRow(
@@ -358,11 +370,19 @@ private fun CreatorCard() {
 }
 
 @Composable
-private fun TrendingVideoSection() {
+private fun TrendingVideoSection(selectedCountry: ExploreCountry) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeading(
-            title = "많이 분석된 여행 영상",
-            subtitle = "많이 분석된 영상을 보고 영감을 얻어보세요",
+            title = if (selectedCountry == ExploreCountry.ALL) {
+                "많이 분석된 여행 영상"
+            } else {
+                "많이 요약된 ${selectedCountry.label}여행 영상"
+            },
+            subtitle = if (selectedCountry == ExploreCountry.ALL) {
+                "사람들이 많이 분석한 영상이에요"
+            } else {
+                "한국 사람들이 많이 분석한 ${selectedCountry.label}관련 영상이에요"
+            },
         )
         Column(
             modifier = Modifier.padding(horizontal = 20.dp),
@@ -370,6 +390,10 @@ private fun TrendingVideoSection() {
         ) {
             VideoCard(image = painterResource(Res.drawable.explore_video_osaka))
             VideoCard(image = painterResource(Res.drawable.explore_video_mushroom))
+            if (selectedCountry != ExploreCountry.ALL) {
+                VideoCard(image = painterResource(Res.drawable.explore_video_osaka))
+                VideoCard(image = painterResource(Res.drawable.explore_video_mushroom))
+            }
         }
     }
 }
@@ -565,44 +589,6 @@ private fun SectionHeading(
                 text = action,
                 style = LinkItTheme.typography.caption1Bold,
                 color = ExploreBlue,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ScheduleGeneratingBadge(modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(8.dp)
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(45.dp)
-            .padding(vertical = 6.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(
-            modifier = Modifier
-                .width(145.dp)
-                .border(1.dp, Color(0xFF8EC1F9), shape)
-                .clip(shape)
-                .background(Color.White.copy(alpha = 0.9f))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = LinkItIcon.Utility.Ai,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = Color(0xFF627BFE),
-            )
-            Text(
-                text = "1개의 일정 생성중...",
-                style = LinkItTheme.typography.caption1Bold.copy(
-                    lineHeight = 17.sp,
-                    letterSpacing = (-0.1).sp,
-                ),
-                color = Color.Black,
             )
         }
     }
