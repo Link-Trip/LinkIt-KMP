@@ -26,7 +26,7 @@ fun ScheduleNavDisplay(
 
     val entryProvider = entryProvider {
         scheduleEditEntry(
-            onBack = { navigator.navigateBack() },
+            onCreateSchedule = {},
         )
     }
 
