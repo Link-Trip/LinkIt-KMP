@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":app-shared"))
     implementation(project(":feature:intro"))
     implementation(project(":feature:home"))
+    implementation(project(":feature:explore"))
     implementation(project(":feature:schedule"))
     implementation(libs.androidx.activity.compose)
 }
