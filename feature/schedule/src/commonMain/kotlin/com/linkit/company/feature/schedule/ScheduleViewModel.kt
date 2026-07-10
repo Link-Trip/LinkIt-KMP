@@ -37,6 +37,9 @@ class ScheduleViewModel : ViewModel() {
                 copy(showInvalidLinkMessage = !videoLink.contains("youtu"))
             }
             ScheduleIntent.DismissInvalidLink -> reduce { copy(showInvalidLinkMessage = false) }
+            is ScheduleIntent.SelectTripDetailTab -> reduce {
+                copy(tripDetailTab = intent.tab, showTripMapPreview = false)
+            }
         }
     }
 

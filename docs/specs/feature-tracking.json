@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-10T13:56:09.684Z",
+  "updatedAt": "2026-07-10T14:02:10.896Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -390,13 +390,13 @@
     },
     "onboarding:TRIP_DETAIL_ENTRY": {
       "featureUid": "onboarding:TRIP_DETAIL_ENTRY",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -410,18 +410,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T14:02:10.821Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:TRIP_DETAIL_ITINERARY": {
       "featureUid": "onboarding:TRIP_DETAIL_ITINERARY",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -435,18 +435,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T14:02:10.860Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:TRIP_DETAIL_SUMMARY": {
       "featureUid": "onboarding:TRIP_DETAIL_SUMMARY",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -460,8 +460,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T14:02:10.895Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:MAP_INITIAL_FOCUS": {
       "featureUid": "main:MAP_INITIAL_FOCUS",

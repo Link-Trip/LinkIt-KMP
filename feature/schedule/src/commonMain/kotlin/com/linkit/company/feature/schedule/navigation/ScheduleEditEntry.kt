@@ -6,6 +6,7 @@ import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.feature.schedule.ScheduleAnalysisLoadingScreen
 import com.linkit.company.feature.schedule.ScheduleAnalysisCompleteScreen
 import com.linkit.company.feature.schedule.ScheduleEditScreen
+import com.linkit.company.feature.schedule.ScheduleTripDetailScreen
 
 fun EntryProviderScope<NavKey>.scheduleEditEntry(
     onCreateSchedule: () -> Unit,
@@ -28,5 +29,9 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
 
     entry<LinkItNavKey.ScheduleAnalysisComplete> {
         ScheduleAnalysisCompleteScreen(onConfirm = onConfirmAnalysis)
+    }
+
+    entry<LinkItNavKey.ScheduleTripDetail> {
+        ScheduleTripDetailScreen(onBack = onBack)
     }
 }

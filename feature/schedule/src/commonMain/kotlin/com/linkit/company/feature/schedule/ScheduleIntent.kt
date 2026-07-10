@@ -7,4 +7,5 @@ sealed interface ScheduleIntent : Intent {
     data class CopyRecommendedLink(val index: Int) : ScheduleIntent
     data object SubmitVideoLink : ScheduleIntent
     data object DismissInvalidLink : ScheduleIntent
+    data class SelectTripDetailTab(val tab: TripDetailTab) : ScheduleIntent
 }

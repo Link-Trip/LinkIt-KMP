@@ -28,7 +28,7 @@ fun ScheduleNavDisplay(
         scheduleEditEntry(
             onCreateSchedule = { navigator.navigate(LinkItNavKey.ScheduleAnalysisLoading) },
             onAnalysisComplete = { navigator.navigate(LinkItNavKey.ScheduleAnalysisComplete) },
-            onConfirmAnalysis = {},
+            onConfirmAnalysis = { navigator.navigate(LinkItNavKey.ScheduleTripDetail) },
             onBack = navigator::navigateBack,
         )
     }

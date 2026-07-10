@@ -18,6 +18,7 @@ private val linkItSerializersModule = SerializersModule {
         subclass(LinkItNavKey.ScheduleEdit::class, LinkItNavKey.ScheduleEdit.serializer())
         subclass(LinkItNavKey.ScheduleAnalysisLoading::class, LinkItNavKey.ScheduleAnalysisLoading.serializer())
         subclass(LinkItNavKey.ScheduleAnalysisComplete::class, LinkItNavKey.ScheduleAnalysisComplete.serializer())
+        subclass(LinkItNavKey.ScheduleTripDetail::class, LinkItNavKey.ScheduleTripDetail.serializer())
         subclass(LinkItNavKey.MyPage::class, LinkItNavKey.MyPage.serializer())
     }
 }
@@ -56,6 +57,9 @@ interface LinkItNavKey : NavKey {
 
     @Serializable
     data object ScheduleAnalysisComplete : LinkItNavKey
+
+    @Serializable
+    data object ScheduleTripDetail : LinkItNavKey
 
     @Serializable
     data object MyPage : LinkItNavKey
