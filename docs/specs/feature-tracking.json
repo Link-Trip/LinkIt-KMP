@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-06-28T01:58:09.799Z",
+  "updatedAt": "2026-07-10T13:25:42.066Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -615,13 +615,13 @@
     },
     "main:SHEET_INITIAL_HALF": {
       "featureUid": "main:SHEET_INITIAL_HALF",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -635,8 +635,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T13:25:42.060Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SHEET_DRAG": {
       "featureUid": "main:SHEET_DRAG",
