@@ -91,7 +91,11 @@ fun ExploreContent(
                 modifier = Modifier.weight(1f),
             )
 
-            ExploreTab.THEME -> ThemeExploreContent(modifier = Modifier.weight(1f))
+            ExploreTab.THEME -> ThemeExploreContent(
+                selectedTheme = uiState.selectedTheme,
+                onThemeSelected = { onIntent(ExploreIntent.SelectTheme(it)) },
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -399,7 +403,11 @@ private fun TrendingVideoSection(selectedCountry: ExploreCountry) {
 }
 
 @Composable
-private fun VideoCard(image: Painter) {
+private fun VideoCard(
+    image: Painter,
+    imageHeight: androidx.compose.ui.unit.Dp = 112.dp,
+    showAnalysisCount: Boolean = true,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -409,7 +417,7 @@ private fun VideoCard(image: Painter) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(112.dp),
+                .height(imageHeight),
         ) {
             Image(
                 painter = image,
@@ -424,30 +432,34 @@ private fun VideoCard(image: Painter) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Black.copy(alpha = 0.2f))
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
-                ) {
-                    Text(
-                        text = "40회 분석됨",
-                        style = LinkItTheme.typography.caption1Bold,
-                        color = Color.White,
-                    )
+                if (showAnalysisCount) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.2f))
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                    ) {
+                        Text(
+                            text = "40회 분석됨",
+                            style = LinkItTheme.typography.caption1Bold,
+                            color = Color.White,
+                        )
+                    }
+                } else {
+                    Box(Modifier.size(1.dp))
                 }
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
+                        .size(36.dp)
                         .clip(CircleShape)
-                        .background(Color(0x330F1114)),
+                        .background(Color.White),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = LinkItIcon.Utility.Ai,
+                        imageVector = LinkItIcon.Control.Bookmark,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = Color.White,
+                        modifier = Modifier.size(20.dp),
+                        tint = ExploreText,
                     )
                 }
             }
@@ -510,48 +522,74 @@ private fun VideoMetaText(text: String) {
 }
 
 @Composable
-private fun ThemeExploreContent(modifier: Modifier = Modifier) {
+private fun ThemeExploreContent(
+    selectedTheme: ExploreTheme,
+    onThemeSelected: (ExploreTheme) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
             .background(ExploreBackground),
-        contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             SectionHeading(
                 title = "테마별 추천 영상",
                 subtitle = "선택된 테마에 따라 영상을 추천해드려요",
-                horizontalPadding = 0.dp,
             )
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ThemeFilter("◉", "지역")
-                ThemeFilter("♣", "여행 스타일")
-                ThemeFilter("●", "기간")
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(ExploreTheme.entries) { theme ->
+                    ThemeFilter(
+                        theme = theme,
+                        selected = theme != ExploreTheme.ALL && theme == selectedTheme,
+                        onClick = { onThemeSelected(theme) },
+                    )
+                }
             }
         }
         items(3) {
-            VideoCard(image = painterResource(Res.drawable.explore_kyoto))
+            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                VideoCard(
+                    image = painterResource(
+                        if (it % 2 == 0) Res.drawable.explore_fuji else Res.drawable.explore_kyoto,
+                    ),
+                    imageHeight = 168.dp,
+                    showAnalysisCount = false,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun ThemeFilter(icon: String, label: String) {
+private fun ThemeFilter(
+    theme: ExploreTheme,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .height(34.dp)
             .clip(CircleShape)
-            .background(Color.White)
+            .background(if (selected) ExploreText else Color.White)
+            .clickable(onClick = onClick)
             .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = icon, style = LinkItTheme.typography.caption1Bold)
-        Text(text = label, style = LinkItTheme.typography.label2Bold)
-        Text(text = "⌄", style = LinkItTheme.typography.caption1Bold)
+        Text(text = "🍜", fontSize = 13.sp, lineHeight = 16.sp)
+        Text(
+            text = theme.label,
+            style = LinkItTheme.typography.label2Bold,
+            color = if (selected) Color.White else Color.Black,
+        )
     }
 }
 

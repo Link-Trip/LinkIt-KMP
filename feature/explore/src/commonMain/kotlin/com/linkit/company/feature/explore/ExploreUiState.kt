@@ -20,7 +20,16 @@ enum class ExploreCountry(
     NORTH_AMERICA("북미", "🇺🇸"),
 }
 
+enum class ExploreTheme(val label: String) {
+    ALL("전체"),
+    FOOD("미식 여행"),
+    HEALING("힐링 여행"),
+    CITY("도심지 여행"),
+    NATURE("자연속 여행"),
+}
+
 data class ExploreUiState(
     val selectedTab: ExploreTab = ExploreTab.COUNTRY,
     val selectedCountry: ExploreCountry = ExploreCountry.ALL,
+    val selectedTheme: ExploreTheme = ExploreTheme.ALL,
 ) : UiState

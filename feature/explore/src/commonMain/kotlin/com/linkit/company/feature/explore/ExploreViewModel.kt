@@ -25,6 +25,7 @@ class ExploreViewModel : ViewModel() {
         when (intent) {
             is ExploreIntent.SelectCountry -> reduce { copy(selectedCountry = intent.country) }
             is ExploreIntent.SelectTab -> reduce { copy(selectedTab = intent.tab) }
+            is ExploreIntent.SelectTheme -> reduce { copy(selectedTheme = intent.theme) }
         }
     }
 

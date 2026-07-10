@@ -35,6 +35,11 @@ class ExploreScreenshotTest {
         capture(ExploreUiState(selectedCountry = ExploreCountry.JAPAN), 1416.dp)
     }
 
+    @Test
+    fun themeExplore() {
+        capture(ExploreUiState(selectedTab = ExploreTab.THEME), 979.dp)
+    }
+
     private fun capture(state: ExploreUiState, height: androidx.compose.ui.unit.Dp) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
