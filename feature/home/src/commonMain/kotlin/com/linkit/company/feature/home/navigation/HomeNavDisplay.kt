@@ -76,7 +76,7 @@ fun HomeNavDisplay(
             },
         )
         storageEntry()
-        exploreEntry()
+        exploreEntry(navigator)
     }
 
     CompositionLocalProvider(LocalLinkItNavigator provides navigator) {

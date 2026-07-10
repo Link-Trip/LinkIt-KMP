@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-10T23:18:19.519Z",
+  "updatedAt": "2026-07-10T23:23:25.718Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -1465,13 +1465,13 @@
     },
     "explore:CREATOR_VIDEO_SECTION": {
       "featureUid": "explore:CREATOR_VIDEO_SECTION",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1485,18 +1485,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T23:23:25.639Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:CREATOR_MORE_OPEN": {
       "featureUid": "explore:CREATOR_MORE_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1510,8 +1510,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-10T23:23:25.601Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:VIDEO_OPEN": {
       "featureUid": "explore:VIDEO_OPEN",

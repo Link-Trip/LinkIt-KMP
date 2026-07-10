@@ -15,6 +15,7 @@ private val linkItSerializersModule = SerializersModule {
         subclass(LinkItNavKey.StorageAddSaved::class, LinkItNavKey.StorageAddSaved.serializer())
         subclass(LinkItNavKey.StorageDetail::class, LinkItNavKey.StorageDetail.serializer())
         subclass(LinkItNavKey.Explore::class, LinkItNavKey.Explore.serializer())
+        subclass(LinkItNavKey.ExploreCreators::class, LinkItNavKey.ExploreCreators.serializer())
         subclass(LinkItNavKey.ScheduleEdit::class, LinkItNavKey.ScheduleEdit.serializer())
         subclass(LinkItNavKey.ScheduleAnalysisLoading::class, LinkItNavKey.ScheduleAnalysisLoading.serializer())
         subclass(LinkItNavKey.ScheduleAnalysisComplete::class, LinkItNavKey.ScheduleAnalysisComplete.serializer())
@@ -33,6 +34,9 @@ interface LinkItNavKey : NavKey {
 
     @Serializable
     data object Explore : LinkItNavKey
+
+    @Serializable
+    data object ExploreCreators : LinkItNavKey
 
     @Serializable
     data object Storage : LinkItNavKey

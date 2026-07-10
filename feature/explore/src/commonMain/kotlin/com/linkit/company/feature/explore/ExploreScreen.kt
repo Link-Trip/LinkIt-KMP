@@ -43,6 +43,7 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import linkitcompany.feature.explore.generated.resources.Res
 import linkitcompany.feature.explore.generated.resources.explore_channel_avatar
+import linkitcompany.feature.explore.generated.resources.explore_creator_avatar
 import linkitcompany.feature.explore.generated.resources.explore_fuji
 import linkitcompany.feature.explore.generated.resources.explore_kyoto
 import linkitcompany.feature.explore.generated.resources.explore_osaka
@@ -59,12 +60,14 @@ private val ExploreBlue = Color(0xFF388AFE)
 
 @Composable
 fun ExploreScreen(
+    onOpenCreators: () -> Unit = {},
     viewModel: ExploreViewModel = metroViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     ExploreContent(
         uiState = uiState,
         onIntent = viewModel::onIntent,
+        onOpenCreators = onOpenCreators,
     )
 }
 
@@ -72,6 +75,7 @@ fun ExploreScreen(
 fun ExploreContent(
     uiState: ExploreUiState,
     onIntent: (ExploreIntent) -> Unit,
+    onOpenCreators: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -88,6 +92,7 @@ fun ExploreContent(
             ExploreTab.COUNTRY -> CountryExploreContent(
                 selectedCountry = uiState.selectedCountry,
                 onCountrySelected = { onIntent(ExploreIntent.SelectCountry(it)) },
+                onOpenCreators = onOpenCreators,
                 modifier = Modifier.weight(1f),
             )
 
@@ -140,6 +145,7 @@ private fun ExploreTabs(
 private fun CountryExploreContent(
     selectedCountry: ExploreCountry,
     onCountrySelected: (ExploreCountry) -> Unit,
+    onOpenCreators: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -159,7 +165,7 @@ private fun CountryExploreContent(
             DestinationSection(selectedCountry)
         }
         item {
-            CreatorSection(selectedCountry)
+            CreatorSection(selectedCountry, onOpenCreators)
         }
         item {
             TrendingVideoSection(selectedCountry)
@@ -298,7 +304,10 @@ private fun DestinationCard(destination: Destination) {
 }
 
 @Composable
-private fun CreatorSection(selectedCountry: ExploreCountry) {
+private fun CreatorSection(
+    selectedCountry: ExploreCountry,
+    onOpenCreators: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionHeading(
             title = if (selectedCountry == ExploreCountry.ALL) {
@@ -312,6 +321,7 @@ private fun CreatorSection(selectedCountry: ExploreCountry) {
                 "${selectedCountry.label}여행 에서 추천하는 여행 유튜버예요"
             },
             action = "더보기",
+            onAction = onOpenCreators,
         )
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -338,11 +348,13 @@ private fun CreatorCard() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Box(
+        Image(
+            painter = painterResource(Res.drawable.explore_creator_avatar),
+            contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFF7F7F8)),
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop,
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -392,18 +404,18 @@ private fun TrendingVideoSection(selectedCountry: ExploreCountry) {
             modifier = Modifier.padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            VideoCard(image = painterResource(Res.drawable.explore_video_osaka))
-            VideoCard(image = painterResource(Res.drawable.explore_video_mushroom))
+            ExploreVideoCard(image = painterResource(Res.drawable.explore_video_osaka))
+            ExploreVideoCard(image = painterResource(Res.drawable.explore_video_mushroom))
             if (selectedCountry != ExploreCountry.ALL) {
-                VideoCard(image = painterResource(Res.drawable.explore_video_osaka))
-                VideoCard(image = painterResource(Res.drawable.explore_video_mushroom))
+                ExploreVideoCard(image = painterResource(Res.drawable.explore_video_osaka))
+                ExploreVideoCard(image = painterResource(Res.drawable.explore_video_mushroom))
             }
         }
     }
 }
 
 @Composable
-private fun VideoCard(
+internal fun ExploreVideoCard(
     image: Painter,
     imageHeight: androidx.compose.ui.unit.Dp = 112.dp,
     showAnalysisCount: Boolean = true,
@@ -556,7 +568,7 @@ private fun ThemeExploreContent(
         }
         items(3) {
             Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                VideoCard(
+                ExploreVideoCard(
                     image = painterResource(
                         if (it % 2 == 0) Res.drawable.explore_fuji else Res.drawable.explore_kyoto,
                     ),
@@ -598,6 +610,7 @@ private fun SectionHeading(
     title: String,
     subtitle: String,
     action: String? = null,
+    onAction: () -> Unit = {},
     horizontalPadding: androidx.compose.ui.unit.Dp = 20.dp,
 ) {
     Row(
@@ -625,6 +638,7 @@ private fun SectionHeading(
         if (action != null) {
             Text(
                 text = action,
+                modifier = Modifier.clickable(onClick = onAction),
                 style = LinkItTheme.typography.caption1Bold,
                 color = ExploreBlue,
             )
