@@ -24,6 +24,7 @@ class StorageViewModel : ViewModel() {
     private fun MviContext<StorageUiState, StorageSideEffect>.handleIntent(intent: StorageIntent) {
         when (intent) {
             is StorageIntent.UpdateQuery -> reduce { copy(query = intent.value) }
+            is StorageIntent.UpdateVideoUrl -> reduce { copy(videoUrl = intent.value) }
             StorageIntent.ToggleAddMenu -> reduce { copy(isAddMenuVisible = !isAddMenuVisible) }
             StorageIntent.DismissAddMenu -> reduce { copy(isAddMenuVisible = false) }
         }

@@ -6,12 +6,16 @@ import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LocalLinkItNavigator
 import com.linkit.company.feature.storage.StorageSearchScreen
 import com.linkit.company.feature.storage.StorageSearchResultScreen
+import com.linkit.company.feature.storage.StorageAddSavedScreen
 import com.linkit.company.feature.storage.StorageScreen
 
 fun EntryProviderScope<NavKey>.storageEntry() {
     entry<LinkItNavKey.Storage> {
         val navigator = LocalLinkItNavigator.current
-        StorageScreen(onSearch = { navigator.navigate(LinkItNavKey.StorageSearch) })
+        StorageScreen(
+            onSearch = { navigator.navigate(LinkItNavKey.StorageSearch) },
+            onAddSavedItem = { navigator.navigate(LinkItNavKey.StorageAddSaved) },
+        )
     }
     entry<LinkItNavKey.StorageSearch> {
         val navigator = LocalLinkItNavigator.current
@@ -20,5 +24,9 @@ fun EntryProviderScope<NavKey>.storageEntry() {
     entry<LinkItNavKey.StorageSearchResult> {
         val navigator = LocalLinkItNavigator.current
         StorageSearchResultScreen(onBack = navigator::navigateBack)
+    }
+    entry<LinkItNavKey.StorageAddSaved> {
+        val navigator = LocalLinkItNavigator.current
+        StorageAddSavedScreen(onBack = navigator::navigateBack)
     }
 }
