@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,12 +25,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun ScheduleAnalysisLoadingScreen(
     onBack: () -> Unit = {},
+    onAnalysisComplete: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    LaunchedEffect(Unit) {
+        delay(1_600)
+        onAnalysisComplete()
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()

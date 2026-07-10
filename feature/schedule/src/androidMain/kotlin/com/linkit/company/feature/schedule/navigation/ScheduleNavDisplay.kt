@@ -27,6 +27,8 @@ fun ScheduleNavDisplay(
     val entryProvider = entryProvider {
         scheduleEditEntry(
             onCreateSchedule = { navigator.navigate(LinkItNavKey.ScheduleAnalysisLoading) },
+            onAnalysisComplete = { navigator.navigate(LinkItNavKey.ScheduleAnalysisComplete) },
+            onConfirmAnalysis = {},
             onBack = navigator::navigateBack,
         )
     }
