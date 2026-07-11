@@ -1,6 +1,7 @@
 package com.linkit.company.feature.schedule
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -26,7 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,10 +35,17 @@ import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import linkitcompany.feature.schedule.generated.resources.Res
+import linkitcompany.feature.schedule.generated.resources.schedule_video_1
+import linkitcompany.feature.schedule.generated.resources.schedule_video_2
+import linkitcompany.feature.schedule.generated.resources.schedule_video_3
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ScheduleEditScreen(
     onCreateSchedule: () -> Unit = {},
+    onBack: () -> Unit = {},
     viewModel: ScheduleViewModel = metroViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -45,6 +53,7 @@ fun ScheduleEditScreen(
         uiState = uiState,
         onIntent = viewModel::onIntent,
         onCreateSchedule = onCreateSchedule,
+        onBack = onBack,
     )
 }
 
@@ -53,6 +62,7 @@ fun ScheduleEditContent(
     uiState: ScheduleUiState,
     onIntent: (ScheduleIntent) -> Unit,
     onCreateSchedule: () -> Unit = {},
+    onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -61,19 +71,37 @@ fun ScheduleEditContent(
             .background(LinkItTheme.color.semantic.background.normal.normal),
     ) {
         Column(Modifier.fillMaxSize()) {
-            Text(
-                text = "유튜브 영상 링크를 넣고\n여행 일정을 만들어보세요",
-                style = LinkItTheme.typography.heading2Semibold,
-                color = LinkItTheme.color.semantic.label.strong,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(top = 98.dp),
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().height(57.dp).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = LinkItIcon.Arrow.ChevronLeft,
+                    contentDescription = "뒤로가기",
+                    tint = LinkItTheme.color.semantic.label.strong,
+                    modifier = Modifier.size(24.dp).clickable(onClick = onBack),
+                )
+                Text(
+                    text = "영상 링크로 만들기",
+                    style = LinkItTheme.typography.heading2Bold,
+                    color = LinkItTheme.color.semantic.label.strong,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f).padding(end = 24.dp),
+                )
+            }
+
+            Box(
+                modifier = Modifier.fillMaxWidth().height(240.dp).background(LinkItTheme.color.semantic.background.normal.alternative),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("그래픽", style = LinkItTheme.typography.caption1Regular, color = LinkItTheme.color.semantic.label.assistive)
+            }
 
             Text(
                 text = "추천영상",
-                style = LinkItTheme.typography.body1NormalSemibold,
+                style = LinkItTheme.typography.caption1Bold,
                 color = LinkItTheme.color.semantic.label.strong,
-                modifier = Modifier.padding(start = 16.dp, top = 40.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 26.dp),
             )
             RecommendedVideos(
                 selectedIndex = uiState.copiedRecommendedIndex,
@@ -82,19 +110,19 @@ fun ScheduleEditContent(
 
             CopyLinkButton(
                 onClick = { onIntent(ScheduleIntent.CopyRecommendedLink(0)) },
-                modifier = Modifier.padding(start = 20.dp, top = 92.dp),
+                modifier = Modifier.padding(start = 20.dp, top = 33.dp),
             )
 
             Text(
                 text = "영상 링크",
                 style = LinkItTheme.typography.caption1Medium,
                 color = LinkItTheme.color.semantic.label.alternative,
-                modifier = Modifier.padding(start = 20.dp, top = 20.dp),
+                modifier = Modifier.padding(start = 20.dp, top = 5.dp),
             )
             VideoLinkField(
                 value = uiState.videoLink,
                 onValueChange = { onIntent(ScheduleIntent.UpdateVideoLink(it)) },
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 24.dp, bottom = 8.dp),
             )
 
             Spacer(Modifier.weight(1f))
@@ -105,16 +133,16 @@ fun ScheduleEditContent(
                         onIntent(ScheduleIntent.SubmitVideoLink)
                         if (uiState.videoLink.contains("youtu")) onCreateSchedule()
                     },
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 28.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
                 )
             } else {
-                Spacer(Modifier.height(104.dp))
+                Spacer(Modifier.height(64.dp))
             }
         }
 
         if (uiState.showInvalidLinkMessage) {
             InvalidLinkMessage(
-                modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 20.dp, vertical = 40.dp),
+                modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 20.dp, vertical = 14.dp),
             )
         }
     }
@@ -130,19 +158,18 @@ private fun RecommendedVideos(
         modifier = Modifier.fillMaxWidth().horizontalScroll(scrollState).padding(start = 16.dp, top = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val titles = listOf(
-            "유부남과 함께 오사카 좋...",
-            "'가루들이 안 보이네요..?'...",
-            "'가족 여행' 오키나와 브이로그",
+        val videos = listOf(
+            RecommendedVideo("유부남과 함께 오사카 좋은 놀이공원 가보기 【오사카上】", Res.drawable.schedule_video_1),
+            RecommendedVideo("'가루들이 안 보이네요..?'...", Res.drawable.schedule_video_2),
+            RecommendedVideo("'가족 여행' 오키나와 브이로그", Res.drawable.schedule_video_3),
         )
-        titles.forEachIndexed { index, title ->
+        videos.forEachIndexed { index, video ->
             Column(Modifier.width(160.dp)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(86.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(videoBrush(index))
                         .border(
                             width = if (selectedIndex == index) 2.dp else 0.dp,
                             color = LinkItTheme.color.semantic.primary.normal,
@@ -150,11 +177,11 @@ private fun RecommendedVideos(
                         )
                         .clickable { onCopy(index) },
                 ) {
-                    Text(
-                        text = listOf("오사카", "도쿄", "오키나와")[index],
-                        style = LinkItTheme.typography.body1NormalSemibold,
-                        color = LinkItTheme.color.semantic.static.white,
-                        modifier = Modifier.align(Alignment.Center),
+                    Image(
+                        painter = painterResource(video.thumbnail),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
                     )
                     Row(
                         modifier = Modifier
@@ -180,7 +207,7 @@ private fun RecommendedVideos(
                     }
                 }
                 Text(
-                    text = title,
+                    text = video.title,
                     style = LinkItTheme.typography.body2NormalMedium,
                     color = LinkItTheme.color.semantic.label.strong,
                     maxLines = 1,
@@ -199,30 +226,19 @@ private fun RecommendedVideos(
 }
 
 @Composable
-private fun videoBrush(index: Int): Brush {
-    val primary = LinkItTheme.color.semantic.primary.normal
-    val accent = when (index) {
-        0 -> LinkItTheme.color.semantic.accent.background.lime
-        1 -> LinkItTheme.color.semantic.accent.background.violet
-        else -> LinkItTheme.color.semantic.accent.background.lightBlue
-    }
-    return Brush.linearGradient(listOf(accent, primary, LinkItTheme.color.semantic.inverse.background))
-}
-
-@Composable
 private fun CopyLinkButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .height(36.dp)
             .clip(RoundedCornerShape(18.dp))
-            .border(1.dp, LinkItTheme.color.semantic.line.normal.strong, RoundedCornerShape(18.dp))
+            .background(LinkItTheme.color.semantic.background.normal.alternative)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = "복사한 링크 붙여넣기",
-            style = LinkItTheme.typography.body2NormalMedium,
+            style = LinkItTheme.typography.caption1Medium,
             color = LinkItTheme.color.semantic.label.alternative,
         )
     }
@@ -243,9 +259,9 @@ private fun VideoLinkField(
         ),
         modifier = modifier
             .fillMaxWidth()
-            .height(120.dp)
+            .height(82.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(LinkItTheme.color.semantic.background.normal.alternative)
+            .border(1.dp, LinkItTheme.color.semantic.line.normal.normal, RoundedCornerShape(8.dp))
             .padding(12.dp),
         decorationBox = { innerTextField ->
             Box {
@@ -289,7 +305,7 @@ private fun InvalidLinkMessage(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .height(50.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(LinkItTheme.color.semantic.label.alternative)
             .padding(horizontal = 18.dp),
@@ -306,10 +322,12 @@ private fun InvalidLinkMessage(modifier: Modifier = Modifier) {
             )
         }
         Text(
-            text = "유효한 영상 링크가 아닙니다",
+            text = "메시지에 마침표를 찍어요.",
             style = LinkItTheme.typography.body2NormalSemibold,
             color = LinkItTheme.color.semantic.static.white,
             modifier = Modifier.padding(start = 12.dp),
         )
     }
 }
+
+private data class RecommendedVideo(val title: String, val thumbnail: DrawableResource)

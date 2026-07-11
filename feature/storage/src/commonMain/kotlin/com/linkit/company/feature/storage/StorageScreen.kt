@@ -2,6 +2,7 @@ package com.linkit.company.feature.storage
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -136,16 +137,16 @@ private fun SearchBar(onClick: () -> Unit) {
 @Composable
 private fun FolderGrid(onOpenFolder: () -> Unit) {
     val folders = listOf(
-        FolderFixture("교토", 6, "⛩️", 0),
-        FolderFixture("식사", 5, "🍣", 1),
-        FolderFixture("관광지", 3, "🗼", 2),
-        FolderFixture("쇼핑", 4, "🛍️", 3),
+        FolderFixture("교통", 6),
+        FolderFixture("식사", 5),
+        FolderFixture("관광지", 3),
+        FolderFixture("쇼핑", 4),
     )
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 24.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 26.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(13.dp),
     ) {
         items(folders) { folder ->
             FolderCard(folder = folder, onClick = onOpenFolder)
@@ -156,23 +157,14 @@ private fun FolderGrid(onOpenFolder: () -> Unit) {
 
 @Composable
 private fun FolderCard(folder: FolderFixture, onClick: () -> Unit) {
-    val background = when (folder.accent) {
-        0 -> LinkItTheme.color.semantic.accent.background.redOrange
-        1 -> LinkItTheme.color.semantic.accent.background.lime
-        2 -> LinkItTheme.color.semantic.accent.background.cyan
-        else -> LinkItTheme.color.semantic.accent.background.violet
-    }.copy(alpha = .22f)
     Column(modifier = Modifier.clickable(onClick = onClick)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(112.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(background),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(folder.emoji, style = LinkItTheme.typography.display1Bold)
-        }
+                .height(92.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(LinkItTheme.color.semantic.background.normal.alternative),
+        )
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
             verticalAlignment = Alignment.Top,
@@ -180,12 +172,12 @@ private fun FolderCard(folder: FolderFixture, onClick: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text(
                     text = folder.name,
-                    style = LinkItTheme.typography.body1NormalSemibold,
+                    style = LinkItTheme.typography.caption1Bold,
                     color = LinkItTheme.color.semantic.label.strong,
                 )
                 Text(
                     text = "${folder.count}개",
-                    style = LinkItTheme.typography.body2NormalRegular,
+                    style = LinkItTheme.typography.caption1Regular,
                     color = LinkItTheme.color.semantic.label.alternative,
                     modifier = Modifier.padding(top = 2.dp),
                 )
@@ -206,21 +198,16 @@ private fun AddFolderTile() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(112.dp)
+                .height(92.dp)
                 .border(
                     width = 1.dp,
-                    color = LinkItTheme.color.semantic.line.normal.normal,
-                    shape = RoundedCornerShape(12.dp),
+                    color = com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens.Lavender80,
+                    shape = RoundedCornerShape(6.dp),
                 ),
             contentAlignment = Alignment.Center,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = LinkItIcon.Utility.CirclePlus,
-                    contentDescription = null,
-                    tint = LinkItTheme.color.semantic.label.alternative,
-                    modifier = Modifier.size(24.dp),
-                )
+                PlusGlyph(24)
                 Text(
                     text = "폴더 추가하기",
                     style = LinkItTheme.typography.body2NormalRegular,
@@ -240,9 +227,9 @@ private fun StorageAddMenu(
 ) {
     Column(
         modifier = modifier
-            .width(176.dp)
-            .shadow(8.dp, RoundedCornerShape(14.dp))
-            .clip(RoundedCornerShape(14.dp))
+            .width(162.dp)
+            .shadow(8.dp, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10.dp))
             .background(LinkItTheme.color.semantic.inverse.background)
             .padding(vertical = 7.dp),
     ) {
@@ -284,25 +271,35 @@ private fun FloatingAddButton(
 ) {
     Box(
         modifier = modifier
-            .size(48.dp)
+            .size(40.dp)
             .shadow(6.dp, CircleShape)
             .clip(CircleShape)
             .background(LinkItTheme.color.semantic.inverse.background)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = if (expanded) LinkItIcon.Utility.Close else LinkItIcon.Utility.CirclePlus,
-            contentDescription = if (expanded) "추가 메뉴 닫기" else "항목 추가",
-            tint = LinkItTheme.color.semantic.inverse.label,
-            modifier = Modifier.size(26.dp),
-        )
+        if (expanded) {
+            Icon(
+                imageVector = LinkItIcon.Utility.Close,
+                contentDescription = "추가 메뉴 닫기",
+                tint = LinkItTheme.color.semantic.inverse.label,
+                modifier = Modifier.size(24.dp),
+            )
+        } else {
+            PlusGlyph(24, inverse = true)
+        }
     }
 }
 
-private data class FolderFixture(
-    val name: String,
-    val count: Int,
-    val emoji: String,
-    val accent: Int,
-)
+@Composable
+private fun PlusGlyph(size: Int, inverse: Boolean = false) {
+    val color = if (inverse) LinkItTheme.color.semantic.inverse.label else LinkItTheme.color.semantic.label.alternative
+    Canvas(Modifier.size(size.dp)) {
+        val half = this.size.width / 2f
+        val inset = this.size.width * .27f
+        drawLine(color, androidx.compose.ui.geometry.Offset(inset, half), androidx.compose.ui.geometry.Offset(this.size.width - inset, half), strokeWidth = 1.6f)
+        drawLine(color, androidx.compose.ui.geometry.Offset(half, inset), androidx.compose.ui.geometry.Offset(half, this.size.height - inset), strokeWidth = 1.6f)
+    }
+}
+
+private data class FolderFixture(val name: String, val count: Int)

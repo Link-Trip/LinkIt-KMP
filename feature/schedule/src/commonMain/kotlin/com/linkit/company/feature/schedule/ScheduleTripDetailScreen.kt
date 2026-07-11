@@ -1,6 +1,7 @@
 package com.linkit.company.feature.schedule
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,16 +29,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import linkitcompany.feature.schedule.generated.resources.Res
+import linkitcompany.feature.schedule.generated.resources.schedule_map_background
+import linkitcompany.feature.schedule.generated.resources.schedule_map_calendar
+import linkitcompany.feature.schedule.generated.resources.schedule_map_money
+import linkitcompany.feature.schedule.generated.resources.schedule_map_schedule_thumbnail
+import linkitcompany.feature.schedule.generated.resources.schedule_map_selected_area
+import linkitcompany.feature.schedule.generated.resources.schedule_map_thumb_1
+import linkitcompany.feature.schedule.generated.resources.schedule_map_thumb_2
+import linkitcompany.feature.schedule.generated.resources.schedule_map_thumb_3
+import linkitcompany.feature.schedule.generated.resources.schedule_map_thumb_4
+import linkitcompany.feature.schedule.generated.resources.schedule_map_thumb_5
+import linkitcompany.feature.schedule.generated.resources.schedule_place_photo
+import linkitcompany.feature.schedule.generated.resources.schedule_summary_video
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ScheduleTripDetailScreen(
@@ -59,13 +73,17 @@ fun ScheduleTripDetailContent(
     onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    if (uiState.showTripMapPreview && uiState.tripDetailTab == TripDetailTab.ITINERARY) {
+        ScheduleSelectedMapPreview(modifier = modifier, onBack = onBack)
+        return
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(LinkItTheme.color.semantic.background.normal.normal),
     ) {
         TripDetailTopBar(
-            title = if (uiState.tripDetailTab == TripDetailTab.SUMMARY) "도쿄 시부야 여행" else "도쿄 신주쿠 여행",
+            title = "도쿄 신주쿠 여행",
             onBack = onBack,
             showMore = uiState.tripDetailTab == TripDetailTab.SUMMARY,
         )
@@ -76,9 +94,6 @@ fun ScheduleTripDetailContent(
                 .weight(1f)
                 .verticalScroll(rememberScrollState()),
         ) {
-            if (uiState.showTripMapPreview && uiState.tripDetailTab == TripDetailTab.ITINERARY) {
-                TripPreviewMap(Modifier.fillMaxWidth().height(445.dp))
-            }
             TripTabs(
                 selected = uiState.tripDetailTab,
                 onSelect = { onIntent(ScheduleIntent.SelectTripDetailTab(it)) },
@@ -120,64 +135,138 @@ private fun TripDetailTopBar(title: String, onBack: () -> Unit, showMore: Boolea
 }
 
 @Composable
-private fun TripPreviewMap(modifier: Modifier = Modifier) {
-    val background = LinkItTheme.color.semantic.background.normal.alternative
-    val road = LinkItTheme.color.semantic.static.white
-    val line = LinkItTheme.color.semantic.line.solid.normal
-    val primary = LinkItTheme.color.semantic.primary.normal
-    Box(modifier.background(background)) {
-        Canvas(Modifier.fillMaxSize()) {
-            repeat(8) { index ->
-                val y = size.height * (.06f + index * .13f)
-                drawLine(
-                    color = road,
-                    start = Offset(-30f, y),
-                    end = Offset(size.width + 30f, y + if (index % 2 == 0) 95f else -70f),
-                    strokeWidth = 15f,
-                    cap = StrokeCap.Round,
-                )
-                drawLine(
-                    color = line,
-                    start = Offset(-30f, y),
-                    end = Offset(size.width + 30f, y + if (index % 2 == 0) 95f else -70f),
-                    strokeWidth = 2f,
-                )
-            }
-            val route = Path().apply {
-                moveTo(size.width * .50f, size.height * .10f)
-                lineTo(size.width * .84f, size.height * .24f)
-                lineTo(size.width * .67f, size.height * .82f)
-                lineTo(size.width * .27f, size.height * .78f)
-                lineTo(size.width * .11f, size.height * .47f)
-                close()
-            }
-            drawPath(route, primary.copy(alpha = .12f))
-            drawPath(route, primary.copy(alpha = .55f), style = Stroke(width = 2.2f))
-        }
-        PreviewMarker("🏮", Modifier.align(Alignment.TopCenter).offset(x = 48.dp, y = 48.dp))
-        PreviewMarker("🚃", Modifier.align(Alignment.TopStart).offset(x = 96.dp, y = 96.dp))
-        PreviewMarker("🍜", Modifier.align(Alignment.Center).offset(x = 28.dp, y = 2.dp))
-        PreviewMarker("🏯", Modifier.align(Alignment.BottomStart).offset(x = 66.dp, y = (-78).dp))
-        PreviewMarker("🌆", Modifier.align(Alignment.BottomEnd).offset(x = (-78).dp, y = (-50).dp))
+private fun ScheduleSelectedMapPreview(modifier: Modifier, onBack: () -> Unit) {
+    Box(modifier.fillMaxSize().background(LinkItTheme.color.semantic.background.normal.normal)) {
+        Image(
+            painter = painterResource(Res.drawable.schedule_map_background),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize(),
+        )
+        Image(
+            painter = painterResource(Res.drawable.schedule_map_selected_area),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.offset(43.dp, 94.dp).width(273.dp).height(325.dp),
+        )
+        ScheduleMapPhotoMarker(Res.drawable.schedule_map_thumb_4, Modifier.offset(218.dp, 99.dp))
+        ScheduleMapPhotoMarker(Res.drawable.schedule_map_thumb_2, Modifier.offset(93.dp, 147.dp))
+        ScheduleMapPhotoMarker(Res.drawable.schedule_map_thumb_5, Modifier.offset(64.dp, 299.dp))
+        ScheduleMapPhotoMarker(Res.drawable.schedule_map_thumb_1, Modifier.offset(200.dp, 243.dp))
+        ScheduleMapPhotoMarker(Res.drawable.schedule_map_thumb_3, Modifier.offset(258.dp, 376.dp))
+        Text(
+            text = "도쿄 신주쿠 여행",
+            style = LinkItTheme.typography.label2Medium,
+            color = LinkItTheme.color.semantic.label.strong,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier
+                .offset(102.dp, 284.dp)
+                .width(118.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens.PingoMapSelectionBackground)
+                .border(1.dp, com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens.PingoMapSelectionBorder, RoundedCornerShape(12.dp))
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+        )
+        ScheduleMapSheet(
+            onBack = onBack,
+            modifier = Modifier.align(Alignment.BottomCenter).offset(y = 30.dp),
+        )
     }
 }
 
 @Composable
-private fun PreviewMarker(emoji: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(38.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(LinkItTheme.color.semantic.label.strong)
-            .padding(2.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)).background(LinkItTheme.color.semantic.static.white),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(emoji, style = LinkItTheme.typography.heading2Semibold)
+private fun ScheduleMapPhotoMarker(resource: DrawableResource, modifier: Modifier) {
+    val pointerColor = com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens.PingoNeutral600
+    Column(modifier = modifier.width(38.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Image(
+            painter = painterResource(resource),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(34.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(LinkItTheme.color.semantic.background.elevated.normal)
+                .border(2.dp, pointerColor, RoundedCornerShape(4.dp))
+                .padding(2.dp),
+        )
+        Canvas(Modifier.width(11.dp).height(10.dp)) {
+            val pointer = Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width, 0f)
+                lineTo(size.width / 2f, size.height)
+                close()
+            }
+            drawPath(pointer, pointerColor)
         }
+    }
+}
+
+@Composable
+private fun ScheduleMapSheet(onBack: () -> Unit, modifier: Modifier) {
+    Column(modifier.fillMaxWidth().height(246.dp)) {
+        Box(Modifier.fillMaxWidth().height(57.dp), contentAlignment = Alignment.TopCenter) {
+            Text(
+                text = "일본, 도쿄",
+                style = LinkItTheme.typography.caption1Bold,
+                color = LinkItTheme.color.semantic.label.strong,
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(LinkItTheme.color.semantic.static.white.copy(alpha = .6f))
+                    .border(1.dp, LinkItTheme.color.semantic.static.white, RoundedCornerShape(100.dp))
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+            )
+        }
+        Column(
+            Modifier.fillMaxWidth().height(189.dp).clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(LinkItTheme.color.semantic.background.elevated.normal),
+        ) {
+            Box(Modifier.fillMaxWidth().height(15.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.width(48.dp).height(3.dp).clip(CircleShape).background(LinkItTheme.color.semantic.label.alternative.copy(alpha = .2f)))
+            }
+            Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(LinkItIcon.Arrow.ChevronLeft, "뒤로가기", modifier = Modifier.size(24.dp).clickable(onClick = onBack))
+                Text("도쿄 신주쿠 여행", style = LinkItTheme.typography.heading2Bold, modifier = Modifier.padding(start = 4.dp).weight(1f))
+                Icon(LinkItIcon.Utility.MoreHorizontal, "더보기", modifier = Modifier.size(24.dp))
+            }
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
+                Image(
+                    painter = painterResource(Res.drawable.schedule_map_schedule_thumbnail),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.width(60.dp).height(75.dp).clip(RoundedCornerShape(8.dp)),
+                )
+                Column(Modifier.padding(start = 12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        ScheduleMapTag("맛집 중심")
+                        ScheduleMapTag("쇼핑 중심")
+                    }
+                    Text("도쿄 신주쿠 여행", style = LinkItTheme.typography.body2NormalBold, modifier = Modifier.padding(top = 6.dp))
+                    Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ScheduleMapMeta(Res.drawable.schedule_map_calendar, "3박4일")
+                        ScheduleMapMeta(Res.drawable.schedule_map_money, "82만원")
+                    }
+                    Text("AI 한줄 요약된 여행지 정보", style = LinkItTheme.typography.caption1Bold, color = LinkItTheme.color.semantic.label.neutral)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleMapTag(text: String) {
+    Text(
+        text = text,
+        style = LinkItTheme.typography.caption2Bold,
+        color = LinkItTheme.color.semantic.label.alternative,
+        modifier = Modifier.border(1.dp, LinkItTheme.color.semantic.line.normal.neutral, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 5.dp),
+    )
+}
+
+@Composable
+private fun ScheduleMapMeta(resource: DrawableResource, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Image(painterResource(resource), null, Modifier.size(16.dp))
+        Text(text, style = LinkItTheme.typography.caption1Bold, color = LinkItTheme.color.semantic.label.alternative)
     }
 }
 
@@ -228,7 +317,7 @@ private fun ItineraryContent() {
             style = LinkItTheme.typography.body2NormalMedium,
             color = LinkItTheme.color.semantic.label.strong,
             modifier = Modifier
-                .padding(top = 8.dp)
+                .padding(top = 0.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(LinkItTheme.color.semantic.fill.normal)
                 .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -243,24 +332,21 @@ private fun ItineraryContent() {
         ItineraryTimelineNode()
         ItineraryPlaceCard(
             title = "루브르 박물관",
-            categories = "박물관    조용한",
+            categories = "음식점",
             description = "세계 각지의 유물이 모여있는 박물관 입니다. 모나리자를 위해 드농 윙에 집중하세요.",
-            colors = listOf(LinkItTheme.color.semantic.accent.background.lime, LinkItTheme.color.semantic.inverse.background),
         )
         TransferCard()
         ItineraryTimelineNode()
         ItineraryPlaceCard(
-            title = "이치란 라멘",
-            categories = "음식    SNS 핫플",
-            description = "유명한 일본 라멘 체인점으로 독특한 1인 식사 경험을 제공하는 돈코츠 라멘 전문점.",
-            colors = listOf(LinkItTheme.color.semantic.status.cautionary, LinkItTheme.color.semantic.status.negative),
+            title = "루브르 박물관",
+            categories = "음식점",
+            description = "세계 각지의 유물이 모여있는 박물관 입니다. 모나리자를 위해 드농 윙에 집중하세요.",
         )
         ItineraryTimelineNode()
         ItineraryPlaceCard(
             title = "루브르 박물관",
-            categories = "박물관    조용한",
+            categories = "음식점",
             description = "세계 각지의 유물이 모여있는 박물관 입니다. 모나리자를 위해 드농 윙에 집중하세요.",
-            colors = listOf(LinkItTheme.color.semantic.accent.background.lime, LinkItTheme.color.semantic.inverse.background),
         )
         Spacer(Modifier.height(28.dp))
     }
@@ -269,7 +355,7 @@ private fun ItineraryContent() {
 @Composable
 private fun DayChips() {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 9.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         (1..7).forEach { day ->
@@ -327,7 +413,6 @@ private fun ItineraryPlaceCard(
     title: String,
     categories: String,
     description: String,
-    colors: List<androidx.compose.ui.graphics.Color>,
 ) {
     Column(
         modifier = Modifier
@@ -339,15 +424,12 @@ private fun ItineraryPlaceCard(
             .padding(14.dp),
     ) {
         Row {
-            Box(
-                modifier = Modifier
-                    .size(width = 80.dp, height = 100.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Brush.linearGradient(colors)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(if (title.contains("라멘")) "🍜" else "🌳", style = LinkItTheme.typography.display2Bold)
-            }
+            Image(
+                painter = painterResource(Res.drawable.schedule_place_photo),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(width = 72.dp, height = 64.dp).clip(RoundedCornerShape(8.dp)),
+            )
             Column(Modifier.padding(start = 14.dp).weight(1f)) {
                 Text(
                     text = categories,
@@ -371,7 +453,7 @@ private fun ItineraryPlaceCard(
         }
         Text(
             text = description,
-            style = LinkItTheme.typography.body2NormalRegular,
+            style = LinkItTheme.typography.caption1Regular,
             color = LinkItTheme.color.semantic.label.neutral,
             modifier = Modifier.padding(top = 12.dp),
         )
@@ -442,22 +524,13 @@ private fun VideoHero() {
         modifier = Modifier
             .fillMaxWidth()
             .height(170.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(
-                        LinkItTheme.color.semantic.status.cautionary,
-                        LinkItTheme.color.semantic.primary.normal,
-                        LinkItTheme.color.semantic.status.negative,
-                    ),
-                ),
-            ),
+            .clip(RoundedCornerShape(10.dp)),
     ) {
-        Text(
-            text = "2026년 최신판\n오사카 처음이라면\n14분 완벽정리",
-            style = LinkItTheme.typography.title2Bold,
-            color = LinkItTheme.color.semantic.static.white,
-            modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+        Image(
+            painter = painterResource(Res.drawable.schedule_summary_video),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
         )
         Box(
             Modifier.align(Alignment.Center).size(44.dp).clip(CircleShape).background(LinkItTheme.color.semantic.material.dimmer),
@@ -492,7 +565,7 @@ private fun AiSummaryBox() {
     ) {
         Text("✣  AI 요약정보", style = LinkItTheme.typography.body2NormalSemibold, color = LinkItTheme.color.semantic.label.strong)
         Text(
-            text = "신주쿠에서 최고의 주말을 경험하세요. 이 영상은 숨겨진 라멘 명소, 고층에서 바라보는 도시 전경, 그리고 추억의 골목을 알찬 1일 코스로 소개합니다.",
+            text = "신주쿠에서 최고의 주말을 경험하세요. 이 영상은 숨겨진 라멘 명소, 고층에서 바라보는 도시 전경, 그리고 추억의 골목(오모이데 요코초)의 활기찬 야간 생활에 초점을 맞춥니다.",
             style = LinkItTheme.typography.body2NormalRegular,
             color = LinkItTheme.color.semantic.label.neutral,
             modifier = Modifier.padding(top = 10.dp),
@@ -562,14 +635,7 @@ private fun TravelInfoRow(icon: String, label: String, value: String) {
 
 @Composable
 private fun Timeline() {
-    val items = listOf(
-        "0:00" to "인트로 & 시부야 도착",
-        "2:15" to "시부야 스크램블 교차로",
-        "5:30" to "이치란 라멘 점심",
-        "8:45" to "다케시타 거리 탐방",
-        "12:20" to "메이지 신궁 방문",
-        "15:00" to "신주쿠 야시장 투어",
-    )
+    val items = List(7) { "0:00" to "인트로 & 시부야 도착" }
     items.forEach { (time, description) ->
         Row(Modifier.height(62.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {

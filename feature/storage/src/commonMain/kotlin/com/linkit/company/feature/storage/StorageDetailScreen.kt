@@ -1,6 +1,7 @@
 package com.linkit.company.feature.storage
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,10 +29,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import linkitcompany.feature.storage.generated.resources.Res
+import linkitcompany.feature.storage.generated.resources.storage_related_video
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun StorageDetailScreen(
@@ -166,13 +171,13 @@ private fun AiSummary() {
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(LinkItIcon.Utility.Ai, null, tint = LinkItTheme.color.semantic.label.alternative, modifier = Modifier.size(22.dp))
+            Box(Modifier.size(24.dp).clip(CircleShape).background(LinkItTheme.color.semantic.fill.strong))
             Text("AI 분석 요약", style = LinkItTheme.typography.body1NormalSemibold, color = LinkItTheme.color.semantic.label.alternative, modifier = Modifier.padding(start = 7.dp))
             Spacer(Modifier.weight(1f))
             Text("프랑스", style = LinkItTheme.typography.label1NormalMedium, color = LinkItTheme.color.semantic.primary.normal)
         }
         Text(
-            text = "이 영상은 샹젤리제에서 즐기는 완벽한 48시간 해외 휴양지를 소개합니다. 이 여정은 상징적인 사진 촬영 명소와 숨겨진 현지 맛집을 조화롭게 구성했습니다.",
+            text = "이 영상은 산토리니에서 즐기는 완벽한 48시간 해안 휴양지를 소개합니다. 이 여정은 상징적인 사진 촬영 명소와 숨겨진 현지 맛집을 조화롭게 구성했습니다.",
             style = LinkItTheme.typography.body2ReadingRegular,
             color = LinkItTheme.color.semantic.label.alternative,
             modifier = Modifier.padding(top = 12.dp),
@@ -246,8 +251,7 @@ private fun TimelinePlaceCard(index: Int, expanded: Boolean) {
             Row {
                 Box(
                     modifier = Modifier.size(74.dp).clip(RoundedCornerShape(9.dp)).background(LinkItTheme.color.semantic.fill.strong),
-                    contentAlignment = Alignment.Center,
-                ) { Text(if (index == 0) "🖼️" else "🏛️") }
+                )
                 Column(modifier = Modifier.padding(start = 10.dp).weight(1f)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         DetailTag("박물관")
@@ -260,7 +264,7 @@ private fun TimelinePlaceCard(index: Int, expanded: Boolean) {
             }
             if (expanded) {
                 Text(
-                    text = "세계 각지의 유물이 모여있는 박물관 입니다. 모나리자를 위해 느긋하게 둘러보세요.",
+                    text = "세계 각지의 유물이 모여있는 박물관 입니다. 모나리자를 위해 드농 윙에 집중하세요.",
                     style = LinkItTheme.typography.caption1Regular,
                     color = LinkItTheme.color.semantic.label.alternative,
                     modifier = Modifier.padding(top = 12.dp),
@@ -292,10 +296,12 @@ private fun RelatedVideos() {
     LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         items(3) {
             Column(modifier = Modifier.width(160.dp)) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(86.dp).clip(RoundedCornerShape(10.dp)).background(LinkItTheme.color.semantic.fill.strong),
-                    contentAlignment = Alignment.Center,
-                ) { Text("🎬", style = LinkItTheme.typography.display2Bold) }
+                Image(
+                    painter = painterResource(Res.drawable.storage_related_video),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().height(86.dp).clip(RoundedCornerShape(10.dp)),
+                )
                 Text("Paracosm", style = LinkItTheme.typography.body2NormalMedium, color = LinkItTheme.color.semantic.label.alternative, modifier = Modifier.padding(top = 8.dp))
                 Text("Album · Absolutely", style = LinkItTheme.typography.caption1Regular, color = LinkItTheme.color.semantic.label.assistive)
             }

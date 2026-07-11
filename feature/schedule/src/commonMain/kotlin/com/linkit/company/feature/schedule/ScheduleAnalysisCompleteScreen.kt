@@ -1,6 +1,5 @@
 package com.linkit.company.feature.schedule
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
@@ -39,16 +36,15 @@ fun ScheduleAnalysisCompleteScreen(
             .background(LinkItTheme.color.semantic.background.normal.normal),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(192.dp))
+        Spacer(Modifier.height(232.dp))
         Box(
             modifier = Modifier
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth()
-                .height(207.dp)
+                .height(206.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(LinkItTheme.color.semantic.background.normal.alternative),
         ) {
-            MapLines(Modifier.fillMaxSize())
             SaveMenu(Modifier.align(Alignment.TopCenter).padding(top = 35.dp))
             Box(
                 modifier = Modifier
@@ -69,13 +65,13 @@ fun ScheduleAnalysisCompleteScreen(
         }
 
         Text(
-            text = "축하해요 일정 분석이 완료됐어요!",
+            text = "축하해요 첫일정 분석이 완료됐어요!",
             style = LinkItTheme.typography.body2NormalSemibold,
             color = LinkItTheme.color.semantic.label.strong,
             modifier = Modifier.padding(top = 30.dp),
         )
         Text(
-            text = "짜여진 일정을 저장하고 쉽게 관리해보세요~",
+            text = "짜여진 일정을 저장하고 쉽게 관리해보세요",
             style = LinkItTheme.typography.body2NormalRegular,
             color = LinkItTheme.color.semantic.label.neutral,
             modifier = Modifier.padding(top = 5.dp),
@@ -85,7 +81,7 @@ fun ScheduleAnalysisCompleteScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp)
+                .padding(start = 20.dp, end = 20.dp, bottom = 3.dp)
                 .height(48.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(LinkItTheme.color.semantic.label.strong)
@@ -93,7 +89,7 @@ fun ScheduleAnalysisCompleteScreen(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "확인",
+                text = "생성된 일정 확인하기",
                 style = LinkItTheme.typography.body1NormalSemibold,
                 color = LinkItTheme.color.semantic.static.white,
             )
@@ -135,22 +131,5 @@ private fun SaveMenuRow(text: String, bookmark: Boolean) {
             color = LinkItTheme.color.semantic.static.white,
             modifier = Modifier.padding(start = 9.dp),
         )
-    }
-}
-
-@Composable
-private fun MapLines(modifier: Modifier = Modifier) {
-    val line = LinkItTheme.color.semantic.line.solid.normal
-    Canvas(modifier) {
-        repeat(5) { index ->
-            val y = size.height * (.14f + index * .19f)
-            drawLine(
-                color = line,
-                start = Offset(-20f, y),
-                end = Offset(size.width + 20f, y + if (index % 2 == 0) 38f else -32f),
-                strokeWidth = 3f,
-                cap = StrokeCap.Round,
-            )
-        }
     }
 }

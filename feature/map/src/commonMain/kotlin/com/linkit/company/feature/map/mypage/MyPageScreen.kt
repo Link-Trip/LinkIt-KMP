@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,9 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
+import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 
@@ -139,24 +144,18 @@ private fun MapTypeCard(
     onClick: () -> Unit,
 ) {
     Column(modifier = modifier.clickable(onClick = onClick), horizontalAlignment = Alignment.CenterHorizontally) {
-        val mapBackground = if (satellite) LinkItTheme.color.semantic.label.neutral else LinkItTheme.color.semantic.background.normal.alternative
-        val roadColor = if (satellite) LinkItTheme.color.semantic.line.solid.strong else LinkItTheme.color.semantic.static.white
-        Canvas(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(92.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(mapBackground)
+                .background(LinkItTheme.color.semantic.background.normal.alternative)
                 .border(
                     width = if (selected) 2.dp else 0.dp,
                     color = if (selected) LinkItTheme.color.semantic.label.strong else androidx.compose.ui.graphics.Color.Transparent,
                     shape = RoundedCornerShape(12.dp),
                 ),
-        ) {
-            drawLine(roadColor, Offset(-20f, 25f), Offset(size.width + 20f, size.height - 6f), strokeWidth = 7f)
-            drawLine(roadColor, Offset(size.width * .2f, size.height + 8f), Offset(size.width * .65f, -8f), strokeWidth = 6f)
-            drawLine(roadColor, Offset(-12f, size.height * .7f), Offset(size.width + 12f, size.height * .35f), strokeWidth = 4f)
-        }
+        )
         Text(
             text = label,
             style = LinkItTheme.typography.body2NormalMedium,
@@ -176,12 +175,7 @@ private fun SettingRow(text: String, onClick: () -> Unit) {
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = LinkItIcon.Communication.Message,
-            contentDescription = null,
-            tint = LinkItTheme.color.semantic.label.neutral,
-            modifier = Modifier.size(18.dp),
-        )
+        SettingMessageIcon()
         Text(
             text = text,
             style = LinkItTheme.typography.body1NormalMedium,
@@ -199,6 +193,22 @@ private fun SettingRow(text: String, onClick: () -> Unit) {
 }
 
 @Composable
+private fun SettingMessageIcon() {
+    val iconColor = LinkItTheme.color.semantic.label.neutral
+    Canvas(Modifier.size(18.dp)) {
+        drawRoundRect(
+            color = iconColor,
+            topLeft = Offset(2.5f, 3f),
+            size = Size(12.5f, 10f),
+            cornerRadius = CornerRadius(1.5f, 1.5f),
+            style = Stroke(1.4f),
+        )
+        drawLine(iconColor, Offset(5f, 13f), Offset(3.7f, 15.7f), strokeWidth = 1.4f)
+        drawLine(iconColor, Offset(3.7f, 15.7f), Offset(8f, 13f), strokeWidth = 1.4f)
+    }
+}
+
+@Composable
 private fun ResetDialog(
     onDismiss: () -> Unit,
     onReset: () -> Unit,
@@ -206,6 +216,7 @@ private fun ResetDialog(
 ) {
     Column(
         modifier = modifier
+            .offset(y = 38.dp)
             .padding(horizontal = 38.dp)
             .fillMaxWidth()
             .shadow(10.dp, RoundedCornerShape(16.dp))
@@ -238,10 +249,10 @@ private fun ResetDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 14.dp)
+                .padding(top = 9.dp)
                 .height(44.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(LinkItTheme.color.semantic.primary.normal)
+                .background(PaletteTokens.Lavender50)
                 .clickable(onClick = onDismiss),
             contentAlignment = Alignment.Center,
         ) {
@@ -251,7 +262,7 @@ private fun ResetDialog(
             text = "초기화",
             style = LinkItTheme.typography.body1NormalMedium,
             color = LinkItTheme.color.semantic.label.alternative,
-            modifier = Modifier.padding(top = 18.dp, bottom = 4.dp).clickable(onClick = onReset),
+            modifier = Modifier.padding(top = 15.dp, bottom = 4.dp).clickable(onClick = onReset),
         )
     }
 }

@@ -17,6 +17,7 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
     entry<LinkItNavKey.ScheduleEdit> {
         ScheduleEditScreen(
             onCreateSchedule = onCreateSchedule,
+            onBack = onBack,
         )
     }
 

@@ -125,8 +125,10 @@ class XxxActivity(
         super.onCreate(savedInstanceState)
 
         setContent {
-            LinkItTheme {
-                // Screen Composable
+            CompositionLocalProvider(LocalMetroViewModelFactory provides viewModelFactory) {
+                LinkItTheme {
+                    // Screen Composable
+                }
             }
         }
     }
@@ -141,7 +143,7 @@ class XxxActivity(
 
 > **주의**: `binding<Activity>()`를 반드시 명시해야 합니다. 생략하면 `ComponentActivity` 타입으로 바인딩되어 `MetroAppComponentProviders.activityProviders` map에 수집되지 않고, 런타임에 "Couldn't call constructor" 에러가 발생합니다.
 
-`viewModelFactory`는 `InjectedViewModelFactory` 인스턴스(`MetroViewModelFactory` 타입)가 주입됩니다. `defaultViewModelProviderFactory`를 override하면 해당 Activity 내에서 `viewModel()`, `metroViewModel()`, `assistedMetroViewModel()` 등이 모두 Metro의 factory를 사용합니다.
+`viewModelFactory`는 `InjectedViewModelFactory` 인스턴스(`MetroViewModelFactory` 타입)가 주입됩니다. Android의 기본 `viewModel()` 경로를 위해 `defaultViewModelProviderFactory`를 override하고, Metro Compose의 `metroViewModel()` / `assistedMetroViewModel()` 경로를 위해 `LocalMetroViewModelFactory`에도 같은 인스턴스를 제공합니다. 후자를 누락하면 런타임에 `No MetroViewModelFactory registered`가 발생합니다.
 
 ### 2. AndroidManifest.xml 등록
 
@@ -161,6 +163,8 @@ dependencies {
     implementation(project(":feature:xxx"))
 }
 ```
+
+`@DependencyGraph`가 있는 `app-android`는 ViewModel의 `@ContributesIntoMap`을 수집할 수 있도록 **ViewModel이 선언된 모든 feature 모듈을 직접 의존**해야 합니다. 누락하면 빌드는 성공해도 해당 화면 진입 시 `Unknown model class`가 발생합니다.
 
 ### 4. feature:xxx/build.gradle.kts
 

@@ -1,7 +1,7 @@
 package com.linkit.company.feature.storage
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,10 +26,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import linkitcompany.feature.storage.generated.resources.Res
+import linkitcompany.feature.storage.generated.resources.storage_video_1
+import linkitcompany.feature.storage.generated.resources.storage_video_2
+import linkitcompany.feature.storage.generated.resources.storage_video_3
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun StorageAddSavedScreen(
@@ -84,13 +91,13 @@ fun StorageAddSavedContent(
             Text("더보기 〉", style = LinkItTheme.typography.label1NormalMedium, color = LinkItTheme.color.semantic.label.alternative)
         }
         val videos = listOf(
-            VideoFixture("유부남과 함께 오사카 중...", "조회수 113만회", "🏯"),
-            VideoFixture("가루들이 안 보이네요...?", "조회수 113만회", "🎎"),
-            VideoFixture("가을 도쿄 여행 브이로그", "조회수 98만회", "🍁"),
+            VideoFixture("유부남과 함께 오사카 좋은 놀이공원 가보기 【오사카上】", "조회수 113만회", Res.drawable.storage_video_1),
+            VideoFixture("가루들이 안 보이네요...?", "조회수 113만회", Res.drawable.storage_video_2),
+            VideoFixture("가을 도쿄 여행 브이로그", "조회수 98만회", Res.drawable.storage_video_3),
         )
         LazyRow(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(videos) { video -> RecommendedVideoCard(video) }
         }
@@ -98,14 +105,14 @@ fun StorageAddSavedContent(
             text = "영상 링크",
             style = LinkItTheme.typography.label1NormalMedium,
             color = LinkItTheme.color.semantic.label.alternative,
-            modifier = Modifier.padding(start = 20.dp, top = 54.dp, bottom = 10.dp),
+            modifier = Modifier.padding(start = 20.dp, top = 245.dp, bottom = 10.dp),
         )
         VideoUrlInput(videoUrl = videoUrl, onVideoUrlChange = onVideoUrlChange)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 28.dp)
-                .height(52.dp)
+                .padding(start = 20.dp, top = 43.dp, end = 20.dp)
+                .height(48.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .background(
                     if (videoUrl.isBlank()) LinkItTheme.color.semantic.interaction.disable
@@ -129,12 +136,16 @@ private fun RecommendedVideoCard(video: VideoFixture) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(88.dp)
+                .height(78.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(LinkItTheme.color.semantic.accent.background.redOrange.copy(alpha = .25f)),
-            contentAlignment = Alignment.Center,
+                .background(LinkItTheme.color.semantic.background.normal.alternative),
         ) {
-            Text(video.emoji, style = LinkItTheme.typography.display1Bold)
+            Image(
+                painter = painterResource(video.thumbnail),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -158,7 +169,7 @@ private fun RecommendedVideoCard(video: VideoFixture) {
             style = LinkItTheme.typography.body2NormalRegular,
             color = LinkItTheme.color.semantic.label.neutral,
             maxLines = 1,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 18.dp),
         )
         Text(
             text = video.views,
@@ -176,12 +187,13 @@ private fun VideoUrlInput(videoUrl: String, onVideoUrlChange: (String) -> Unit) 
         onValueChange = onVideoUrlChange,
         textStyle = LinkItTheme.typography.body1NormalRegular.copy(color = LinkItTheme.color.semantic.label.strong),
         cursorBrush = SolidColor(LinkItTheme.color.semantic.primary.normal),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(132.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 5.dp).height(120.dp),
         decorationBox = { innerTextField ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .border(1.dp, LinkItTheme.color.semantic.line.normal.normal, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LinkItTheme.color.semantic.background.normal.alternative)
                     .padding(14.dp),
             ) {
                 if (videoUrl.isBlank()) {
@@ -200,5 +212,5 @@ private fun VideoUrlInput(videoUrl: String, onVideoUrlChange: (String) -> Unit) 
 private data class VideoFixture(
     val title: String,
     val views: String,
-    val emoji: String,
+    val thumbnail: DrawableResource,
 )
