@@ -42,7 +42,6 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.map_calendar
-import linkitcompany.feature.map.generated.resources.map_background
 import linkitcompany.feature.map.generated.resources.map_place_photo
 import linkitcompany.feature.map.generated.resources.map_selected_area
 import linkitcompany.feature.map.generated.resources.map_selected_thumb_1
@@ -126,15 +125,7 @@ fun MapContent(
 
 @Composable
 private fun BoxScope.StaticMap(uiState: MapUiState) {
-    Image(
-        painter = painterResource(Res.drawable.map_background),
-        contentDescription = null,
-        contentScale = ContentScale.FillBounds,
-        modifier = Modifier.fillMaxSize(),
-    )
-    if (uiState.mapType == MapType.SATELLITE) {
-        Box(Modifier.fillMaxSize().background(LinkItTheme.color.semantic.label.neutral.copy(alpha = .28f)))
-    }
+    PlatformMapBackground(uiState.mapType, Modifier.fillMaxSize())
     if (uiState.selection != MapSelection.NONE) {
         Image(
             painter = painterResource(Res.drawable.map_selected_area),

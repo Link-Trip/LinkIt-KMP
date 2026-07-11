@@ -9,6 +9,10 @@ android {
 
 kotlin {
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.google.maps.compose)
+        }
+
         commonMain.dependencies {
             implementation(projects.core.common)
             implementation(projects.core.ui)
