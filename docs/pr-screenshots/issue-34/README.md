@@ -4,7 +4,7 @@ Pingo v3.0.3 기준 UI 구현의 최종 Roborazzi 렌더링 결과입니다.
 
 | 화면군 | 포함 상태 |
 | --- | --- |
-| Intro | Globe, Seoul |
+| Intro | Globe |
 | Map | Default, schedule selected, place selected |
 | MyPage | Default, reset dialog |
 | Storage | Default, add menu, search, search results, add saved item, detail |

@@ -26,18 +26,13 @@ class IntroScreenshotTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun globe() = capture(IntroUiState(IntroStage.GLOBE))
-
-    @Test
-    fun seoul() = capture(IntroUiState(IntroStage.SEOUL))
-
-    private fun capture(state: IntroUiState) {
+    fun globe() {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, 812.dp)) {
-                        IntroContent(uiState = state)
+                        IntroContent()
                     }
                 }
             }
