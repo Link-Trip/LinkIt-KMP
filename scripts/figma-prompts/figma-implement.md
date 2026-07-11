@@ -50,27 +50,21 @@
 
 ### 3. MVI 아키텍처 생성
 
-CLAUDE.md의 참고 문서 지침에 따라 `docs/ARCHITECTURE.md`, `docs/METRO_INSTRUCTION.md`를 읽고 기존 패턴(`feature/home/sample/` 참조)을 따른다.
+CLAUDE.md의 참고 문서 지침에 따라 `docs/ARCHITECTURE.md`, `docs/METRO_INSTRUCTION.md`를 읽고 기존 패턴(`feature/map/main/MapViewModel.kt` 참조)을 따른다.
 
 **3a. XxxUiState.kt 생성**
 
-Figma 상태 간 시각적 차이를 분석하여 UiState 필드를 도출한다:
-- 로딩 스피너가 있는 상태 vs 콘텐츠가 있는 상태 → `isLoading: Boolean`
-- 빈 화면 일러스트 → 리스트/콘텐츠 필드가 비어있을 때 자동 처리
-- 에러 메시지/재시도 → `errorMessage: String?`
+Figma 상태 간 시각적 차이를 분석하여 UiState 필드를 도출한다. 정확한 Figma node가 있는 상태만 추가한다:
+- 로딩 스피너가 있는 Figma frame이 확인된 경우에만 → `isLoading: Boolean`
+- 빈 화면 일러스트가 있는 Figma frame이 확인된 경우에만 → 리스트/콘텐츠 필드가 비어있을 때 표시
+- 에러 메시지/재시도 frame이 확인된 경우에만 → `errorMessage: String?`
 - 데이터가 있는 "Default" 상태에서 콘텐츠 필드의 타입을 결정
 
 ```kotlin
 data class XxxUiState(
-    val isLoading: Boolean,
-    val items: List<...>,
-    val errorMessage: String?,
+    val items: List<...> = emptyList(),
     // ... 상태 차이에서 도출된 필드
-) : UiState {
-    companion object {
-        val INITIAL_STATE = XxxUiState(...)
-    }
-}
+) : UiState
 ```
 
 **3b. XxxIntent.kt 생성**
@@ -94,52 +88,36 @@ sealed interface XxxSideEffect : SideEffect {
 
 **3d. XxxViewModel.kt 생성**
 
-`feature/home/sample/HomeViewModel.kt` 패턴을 정확히 따른다:
+기본적으로 `feature/map/main/MapViewModel.kt`의 단순 주입 패턴을 따른다. Route 인자나 상태 복원이 실제로 필요한 경우에만 `@AssistedInject`와 `SavedStateHandle`을 사용한다:
 ```kotlin
-@AssistedInject
-class XxxViewModel(
-    @Assisted val savedStateHandle: SavedStateHandle,
-) : ViewModel(),
-    PopupEffectManager by InternalPopupEffectManager() {
-
-    private val container by lazy {
-        MviContainer(
-            initialState = XxxUiState.INITIAL_STATE,
-            onIntent = { handleIntent(it) }
-        )
-    }
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(XxxViewModel::class)
+@Inject
+class XxxViewModel : ViewModel() {
+    private val container = MviContainer<XxxIntent, XxxSideEffect, XxxUiState>(
+        initialState = XxxUiState(),
+        onIntent = { handleIntent(it) },
+    )
 
     val uiState = container.uiState
-    val sideEffect = container.sideEffect
 
-    init {
-        container.intent(XxxIntent.Initialize)
-    }
-
-    fun intent(intent: XxxIntent) = container.intent(intent)
+    fun onIntent(intent: XxxIntent) = container.intent(intent)
 
     private fun MviContext<XxxUiState, XxxSideEffect>.handleIntent(intent: XxxIntent) {
         when (intent) {
-            is XxxIntent.Initialize -> {
-                // TODO: Repository/UseCase 연결
-            }
+            XxxIntent.Initialize -> Unit
             // ...
         }
     }
 
-    @AssistedFactory
-    @ViewModelAssistedFactoryKey(XxxViewModel::class)
-    @ContributesIntoMap(AppScope::class)
-    fun interface Factory : ViewModelAssistedFactory {
-        override fun create(extras: CreationExtras): XxxViewModel {
-            return create(extras.createSavedStateHandle())
-        }
-        fun create(@Assisted savedStateHandle: SavedStateHandle): XxxViewModel
+    override fun onCleared() {
+        container.close()
+        super.onCleared()
     }
 }
 ```
 
-- Metro DI 어노테이션 필수: `@AssistedInject`, `@AssistedFactory`, `@ViewModelAssistedFactoryKey`, `@ContributesIntoMap(AppScope::class)`
+- Metro DI 어노테이션 필수: `@Inject`, `@ViewModelKey`, `@ContributesIntoMap(AppScope::class)`
 - 실제 데이터 로직(Repository/UseCase 호출)은 `// TODO` 주석으로 남긴다
 - **Metro DI 설정 확인** (빠지면 런타임 크래시 발생):
   1. **feature 모듈 `build.gradle.kts`**: `commonMain`에 `libs.metrox.viewmodel`, `libs.metrox.viewmodel.compose` 의존성이 있는지 확인하고, 없으면 추가한다. `androidMain`에 `libs.metrox.android`, `libs.metrox.viewmodel` 의존성도 확인한다.
@@ -245,7 +223,7 @@ class XxxScreenScreenshotTest {
         composeRule.setContent {
             LinkItTheme {
                 XxxContent(
-                    uiState = XxxUiState(isLoading = false, items = sampleItems, errorMessage = null),
+                    uiState = XxxUiState(items = sampleItems),
                     onAction = {},
                 )
             }
@@ -253,11 +231,7 @@ class XxxScreenScreenshotTest {
         composeRule.onRoot().captureRoboImage()
     }
 
-    @Test
-    fun xxxScreen_loading() { /* Loading UiState로 렌더링 */ }
-
-    @Test
-    fun xxxScreen_empty() { /* Empty UiState로 렌더링 */ }
+    // 정확한 Figma frame이 있는 상태만 별도 테스트로 추가한다.
 
     // ... 상태 수만큼 테스트 함수 생성
 }
@@ -369,7 +343,7 @@ diff 이미지에서 차이가 큰 영역부터 먼저 수정한다:
   3. `FIGMA_TOKEN`이 없는 경우, Figma 아이콘 스크린샷과 Material Icons를 **시각적으로 비교**하여 형태가 동일한 경우 Material 아이콘으로 대체 (사용자에게 묻지 않고 직접 판단)
 - 이미지(사진, 썸네일 등)는 플레이스홀더로 대체하고 반영하지 않는다.
 - 디자인에서 인터랙션을 유추하여 구현한다. 스크롤, 스와이프, 풀다운 리프레시, 바텀시트 등 Figma 레이아웃과 컴포넌트 구조에서 암시되는 동작을 파악하고 적용한다.
-- **MVI 아키텍처**: `feature/home/sample/`의 기존 패턴을 정확히 따른다. Metro DI 어노테이션(`@AssistedInject`, `@AssistedFactory`, `@ViewModelAssistedFactoryKey`, `@ContributesIntoMap(AppScope::class)`)을 반드시 포함한다.
+- **MVI 아키텍처**: `feature/map/main/`의 기존 패턴을 따른다. Figma node가 없는 로딩·빈 화면·오류 상태를 임의로 추가하지 않는다. Metro assisted injection은 Route 인자나 상태 복원이 필요한 경우에만 사용한다.
 - **Navigation 연동**: `docs/NAVIGATION_STRUCTURE.md`의 "새 Route 추가 체크리스트"를 따른다.
 
 ## 참고 문서
