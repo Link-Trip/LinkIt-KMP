@@ -1,8 +1,8 @@
 package com.linkit.company.data.datasource
 
 import com.linkit.company.data.DataScope
-import com.linkit.company.data.datasource.sample.SampleDataSource
-import com.linkit.company.data.datasource.sample.SampleDataSourceImpl
+import com.linkit.company.data.datasource.sample.SampleRemoteDataSource
+import com.linkit.company.data.datasource.sample.SampleRemoteDataSourceImpl
 import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.ContributesTo
 
@@ -10,5 +10,5 @@ import dev.zacsweers.metro.ContributesTo
 internal interface DataSourceGraph {
 
     @Binds
-    val SampleDataSourceImpl.bind: SampleDataSource
+    val SampleRemoteDataSourceImpl.bind: SampleRemoteDataSource
 }

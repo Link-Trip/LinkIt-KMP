@@ -58,6 +58,20 @@ main          ← 최상위 (릴리스)
 - 새 모듈을 추가하거나 모듈 간 의존성을 변경할 때
 - 아키텍처 설계 판단이 필요할 때
 
+### domain/README.md
+아래 상황에서 반드시 읽고 참고할 것:
+- 도메인 모델, Repository 인터페이스, UseCase를 추가하거나 수정할 때
+- UseCase를 만들지 말지(생성·생략 기준) 판단이 필요할 때
+- ViewModel에 비즈니스 로직을 배치할지 고민될 때
+- `withContext`, `Dispatchers` 지정이 필요한지 판단할 때 (디스패처 규칙)
+
+### data/README.md
+아래 상황에서 반드시 읽고 참고할 것:
+- 새 API, DataSource, Repository를 추가하거나 수정할 때
+- DTO, Mapper를 작성할 때
+- Ktorfit, HttpClient 등 네트워크 설정 관련 작업을 할 때
+- data 모듈의 DI 그래프(DataGraph, DataSourceGraph, RepositoryGraph)를 수정할 때
+
 ### docs/NAVIGATION_STRUCTURE.md
 아래 상황에서 반드시 읽고 참고할 것:
 - Navigation 관련 코드를 수정하거나 새 Route를 추가할 때

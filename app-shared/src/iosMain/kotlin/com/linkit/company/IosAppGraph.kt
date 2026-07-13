@@ -4,8 +4,8 @@ import com.linkit.company.core.common.AppGraph
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.core.defaultJson
 import com.linkit.company.data.core.defaultKtorConfig
-import com.linkit.company.data.datasource.sample.SampleDataSource
-import com.linkit.company.data.datasource.sample.SampleDataSourceImpl
+import com.linkit.company.data.datasource.sample.SampleRemoteDataSource
+import com.linkit.company.data.datasource.sample.SampleRemoteDataSourceImpl
 import com.linkit.company.data.repository.SampleRepositoryImpl
 import com.linkit.company.domain.repository.SampleRepository
 import androidx.lifecycle.ViewModel
@@ -46,7 +46,7 @@ import kotlinx.serialization.json.Json
 interface IosAppGraph : AppGraph {
 
     @Binds
-    val SampleDataSourceImpl.bind: SampleDataSource
+    val SampleRemoteDataSourceImpl.bind: SampleRemoteDataSource
 
     @Binds
     val SampleRepositoryImpl.bind: SampleRepository
