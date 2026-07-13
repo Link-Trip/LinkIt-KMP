@@ -4,14 +4,9 @@ import com.linkit.company.core.common.AppGraph
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.core.defaultJson
 import com.linkit.company.data.core.defaultKtorConfig
-import com.linkit.company.data.datasource.sample.SampleRemoteDataSource
-import com.linkit.company.data.datasource.sample.SampleRemoteDataSourceImpl
-import com.linkit.company.data.repository.SampleRepositoryImpl
-import com.linkit.company.domain.repository.SampleRepository
 import androidx.lifecycle.ViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provider
 import dev.zacsweers.metro.Provides
@@ -44,12 +39,6 @@ import kotlinx.serialization.json.Json
     // isExtendable = true
 )
 interface IosAppGraph : AppGraph {
-
-    @Binds
-    val SampleRemoteDataSourceImpl.bind: SampleRemoteDataSource
-
-    @Binds
-    val SampleRepositoryImpl.bind: SampleRepository
 
     @Provides
     fun provideJson(): Json = defaultJson()
