@@ -1,5 +1,5 @@
 package com.linkit.company.data.datasource.sample
 
-interface SampleDataSource {
+interface SampleRemoteDataSource {
     suspend fun getSample(): String
 }
