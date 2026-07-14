@@ -1,6 +1,6 @@
 package com.linkit.company.domain.repository
 
-import com.linkit.company.domain.model.Auth
+import com.linkit.company.domain.model.auth.Auth
 
 interface AuthRepository {
 

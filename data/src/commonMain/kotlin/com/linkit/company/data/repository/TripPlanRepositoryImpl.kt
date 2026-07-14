@@ -4,10 +4,10 @@ import com.linkit.company.data.DataScope
 import com.linkit.company.data.datasource.tripplan.TripPlanItemOrderParam
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
 import com.linkit.company.data.mapper.toDomain
-import com.linkit.company.domain.model.CursorPage
-import com.linkit.company.domain.model.TripPlanDetail
-import com.linkit.company.domain.model.TripPlanItemOrder
-import com.linkit.company.domain.model.TripPlanSummary
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.tripplan.TripPlanDetail
+import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
+import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.repository.TripPlanRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject

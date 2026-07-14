@@ -27,17 +27,22 @@ RepositoryImpl과 `@Binds` 등록, DataSource, DTO, Mapper 등 데이터 계층 
 
 ```
 domain/src/commonMain/kotlin/com/linkit/company/domain/
-├── model/          # 도메인 모델 (data class, enum, sealed class)
+├── model/          # 도메인 모델 (data class, enum, sealed class) — 도메인별 하위 패키지로 그룹화
+│   ├── auth/       # 인증
+│   ├── common/     # 특정 도메인에 속하지 않는 공용 모델 (CursorPage 등)
+│   ├── place/      # 장소 — video·tripplan 양쪽에서 공유
+│   ├── tripplan/   # 여행 계획
+│   └── video/      # 영상 분석·탐색
 ├── repository/     # Repository 인터페이스 (구현체는 data 모듈)
 └── usecase/        # UseCase (생성 기준을 만족하는 경우에만)
 ```
 
 ## 도메인 모델 작성 규칙
 
-`model/` 패키지에 비즈니스 개념을 표현하는 순수 Kotlin 타입으로 작성한다.
+`model/` 아래 **도메인별 하위 패키지**(`model/link/` 등)에 비즈니스 개념을 표현하는 순수 Kotlin 타입으로 작성한다.
 
 ```kotlin
-// model/Link.kt
+// model/link/Link.kt
 data class Link(
     val id: Long,
     val title: String,
@@ -50,7 +55,8 @@ data class Link(
 
 - 파일명은 비즈니스 개념 이름 그대로 (`Link.kt`, `LinkStatus.kt`)
 - **도메인 관점의 파생 값·판단 로직은 모델의 프로퍼티/함수로 허용한다** (`hasMemo`, 상태 기반 가능 여부 판단 등). 단, UI 관점의 파생 로직(표시용 포맷팅, 라벨 문자열, 색상 결정 등)은 모델에 두지 않는다 — feature 계층의 책임
-- `enum`, `sealed class`도 비즈니스 개념이면 함께 둔다. 파일이 늘어나면 `model/enum` 등 하위 패키지로 분리 가능
+- `enum`, `sealed class`도 비즈니스 개념이면 같은 도메인 패키지에 함께 둔다
+- 여러 도메인에서 공유하는 모델은 별도 도메인 패키지(`place/`)로 분리하고, 특정 도메인에 속하지 않는 범용 타입(`CursorPage`)은 `common/`에 둔다
 - **서버 스키마가 아닌 비즈니스 개념 기준으로 설계한다** — 서버 스펙에만 존재하는 필드는 포함하지 않는다
 - nullable 정리, 기본값 처리는 data 모듈의 Mapper에서 끝내고 여기서는 깨끗한 non-null 모델을 지향한다
 - `@Serializable` 등 직렬화 어노테이션을 붙이지 않는다 — 직렬화가 필요한 건 DTO(data)의 사정이다

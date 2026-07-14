@@ -1,4 +1,8 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
+
+import com.linkit.company.domain.model.place.Place
+import com.linkit.company.domain.model.place.PlaceCategory
+import com.linkit.company.domain.model.place.PlaceStatus
 
 /** 영상 분석으로 추출된 일차별 일정 아이템 */
 data class ScheduleItem(

@@ -7,17 +7,17 @@ import com.linkit.company.data.dto.video.RecentVideoResponse
 import com.linkit.company.data.dto.video.ScheduleItemResponse
 import com.linkit.company.data.dto.video.TimelineResponse
 import com.linkit.company.data.dto.video.VideoAnalyzeResponse
-import com.linkit.company.domain.model.CostBasis
-import com.linkit.company.domain.model.CursorPage
-import com.linkit.company.domain.model.DiscoverChannel
-import com.linkit.company.domain.model.DiscoverVideo
-import com.linkit.company.domain.model.PlaceCategory
-import com.linkit.company.domain.model.PlaceStatus
-import com.linkit.company.domain.model.RecentVideo
-import com.linkit.company.domain.model.ScheduleItem
-import com.linkit.company.domain.model.VideoAnalysis
-import com.linkit.company.domain.model.VideoAnalysisStatus
-import com.linkit.company.domain.model.VideoTimeline
+import com.linkit.company.domain.model.video.CostBasis
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverVideo
+import com.linkit.company.domain.model.place.PlaceCategory
+import com.linkit.company.domain.model.place.PlaceStatus
+import com.linkit.company.domain.model.video.RecentVideo
+import com.linkit.company.domain.model.video.ScheduleItem
+import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.VideoAnalysisStatus
+import com.linkit.company.domain.model.video.VideoTimeline
 
 internal fun VideoAnalyzeResponse.toDomain(): VideoAnalysis {
     return VideoAnalysis(

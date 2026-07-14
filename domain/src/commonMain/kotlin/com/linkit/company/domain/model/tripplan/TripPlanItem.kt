@@ -1,4 +1,7 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.tripplan
+
+import com.linkit.company.domain.model.place.Place
+import com.linkit.company.domain.model.place.PlaceCategory
 
 data class TripPlanItem(
     val id: String,

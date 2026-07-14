@@ -3,10 +3,10 @@ package com.linkit.company.data.repository
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.datasource.video.VideoRemoteDataSource
 import com.linkit.company.data.mapper.toDomain
-import com.linkit.company.domain.model.CursorPage
-import com.linkit.company.domain.model.DiscoverChannel
-import com.linkit.company.domain.model.DiscoverVideo
-import com.linkit.company.domain.model.VideoAnalysis
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverVideo
+import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.repository.VideoRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject

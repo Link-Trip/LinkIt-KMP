@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 /** 탐색 화면에 노출되는 큐레이션 여행 영상 */
 data class DiscoverVideo(

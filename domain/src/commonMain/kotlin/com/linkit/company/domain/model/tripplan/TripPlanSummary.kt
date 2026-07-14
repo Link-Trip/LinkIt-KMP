@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.tripplan
 
 data class TripPlanSummary(
     val id: String,

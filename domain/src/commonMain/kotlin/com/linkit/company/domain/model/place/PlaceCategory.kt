@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.place
 
 enum class PlaceCategory {
     /** 음식점, 카페, 길거리 음식 */
