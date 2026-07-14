@@ -27,6 +27,8 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":domain"))
     implementation(project(":data"))
+    // AndroidAppGraph가 data의 DataStore 바인딩을 병합할 때 타입 해석에 필요
+    implementation(libs.androidxDataStorePreferencesCore)
     implementation(libs.metrox.viewmodel)
     implementation(libs.metrox.android)
     implementation(project(":app-shared"))
