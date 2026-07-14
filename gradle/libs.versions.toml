@@ -29,7 +29,8 @@ kotlinxDatetime = "0.7.1"
 
 metro = "0.10.4"
 ktor = "3.2.1"
-ktorfit = "2.6.2"
+ktorfit = "2.6.5"
+ksp = "2.2.20-2.0.4"
 androidxDataStore = "1.2.1"
 
 roborazzi = "1.41.0"
@@ -96,3 +97,5 @@ androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.lib
 androidLint = { id = "com.android.lint", version.ref = "agp" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
