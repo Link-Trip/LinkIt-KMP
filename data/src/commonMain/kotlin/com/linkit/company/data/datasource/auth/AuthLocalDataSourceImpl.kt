@@ -4,10 +4,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.linkit.company.data.DataScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.first
 
 @Inject
+@ContributesBinding(DataScope::class)
 class AuthLocalDataSourceImpl(
     private val dataStore: DataStore<Preferences>,
 ) : AuthLocalDataSource {

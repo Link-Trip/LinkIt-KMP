@@ -47,11 +47,12 @@ import platform.UIKit.UIDevice
  * 컴파일러 플러그인 이슈로 인해 iOS에선 수동 주입 필요
  * see: https://github.com/DroidKaigi/conference-app-2025/blob/07b46e6585ea6bdafe8a52142d1dd456fddda387/app-shared/src/iosMain/kotlin/io/github/droidkaigi/confsched/IosAppGraph.kt#L93-L97
  *
- * 동기화 필요 파일 목록:
+ * 동기화 필요 대상:
  * @see com.linkit.company.data.DataGraph
- * @see com.linkit.company.data.repository.RepositoryGraph
- * @see com.linkit.company.data.datasource.DataSourceGraph
- * @see com.linkit.company.AndroidDataGraph
+ * @see com.linkit.company.data.AndroidDataGraph
+ *
+ * 그리고 data 모듈에서 `@ContributesBinding(DataScope::class)`이 붙은 모든 Impl 클래스
+ * (Repository/DataSource 구현체) — Android는 자동 수집되지만 iOS는 여기에 @Binds 수동 등록 필요.
  */
 @DependencyGraph(
     scope = AppScope::class,

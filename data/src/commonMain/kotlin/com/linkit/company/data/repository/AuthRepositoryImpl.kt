@@ -5,10 +5,13 @@ import com.linkit.company.data.datasource.auth.AuthLocalDataSource
 import com.linkit.company.data.datasource.auth.AuthRemoteDataSource
 import com.linkit.company.data.mapper.toDomain
 import com.linkit.company.domain.model.Auth
+import com.linkit.company.data.DataScope
 import com.linkit.company.domain.repository.AuthRepository
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
 @Inject
+@ContributesBinding(DataScope::class)
 class AuthRepositoryImpl(
     private val authRemoteDataSource: AuthRemoteDataSource,
     private val authLocalDataSource: AuthLocalDataSource,
