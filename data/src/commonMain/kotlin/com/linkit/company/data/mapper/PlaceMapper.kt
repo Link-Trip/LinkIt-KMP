@@ -1,7 +1,7 @@
 package com.linkit.company.data.mapper
 
 import com.linkit.company.data.dto.tripplan.PlaceResponse
-import com.linkit.company.domain.model.Place
+import com.linkit.company.domain.model.place.Place
 
 internal fun PlaceResponse.toDomain(): Place {
     return Place(

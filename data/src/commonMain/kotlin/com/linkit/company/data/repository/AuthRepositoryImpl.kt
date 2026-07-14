@@ -4,7 +4,7 @@ import com.linkit.company.data.core.DeviceIdProvider
 import com.linkit.company.data.datasource.auth.AuthLocalDataSource
 import com.linkit.company.data.datasource.auth.AuthRemoteDataSource
 import com.linkit.company.data.mapper.toDomain
-import com.linkit.company.domain.model.Auth
+import com.linkit.company.domain.model.auth.Auth
 import com.linkit.company.data.DataScope
 import com.linkit.company.domain.repository.AuthRepository
 import dev.zacsweers.metro.ContributesBinding

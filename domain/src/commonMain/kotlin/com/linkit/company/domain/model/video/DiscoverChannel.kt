@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 /** 큐레이션된 여행 유튜브 채널 */
 data class DiscoverChannel(

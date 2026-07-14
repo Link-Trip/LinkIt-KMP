@@ -4,11 +4,11 @@ import com.linkit.company.data.dto.tripplan.TripPlanCursorResponse
 import com.linkit.company.data.dto.tripplan.TripPlanDetailResponse
 import com.linkit.company.data.dto.tripplan.TripPlanItemDetailResponse
 import com.linkit.company.data.dto.tripplan.TripPlanSummaryResponse
-import com.linkit.company.domain.model.CursorPage
-import com.linkit.company.domain.model.PlaceCategory
-import com.linkit.company.domain.model.TripPlanDetail
-import com.linkit.company.domain.model.TripPlanItem
-import com.linkit.company.domain.model.TripPlanSummary
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.place.PlaceCategory
+import com.linkit.company.domain.model.tripplan.TripPlanDetail
+import com.linkit.company.domain.model.tripplan.TripPlanItem
+import com.linkit.company.domain.model.tripplan.TripPlanSummary
 
 internal fun TripPlanCursorResponse.toDomain(): CursorPage<TripPlanSummary> {
     return CursorPage(

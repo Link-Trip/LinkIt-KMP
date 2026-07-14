@@ -1,9 +1,9 @@
 package com.linkit.company.domain.repository
 
-import com.linkit.company.domain.model.CursorPage
-import com.linkit.company.domain.model.DiscoverChannel
-import com.linkit.company.domain.model.DiscoverVideo
-import com.linkit.company.domain.model.VideoAnalysis
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverVideo
+import com.linkit.company.domain.model.video.VideoAnalysis
 
 interface VideoRepository {
 

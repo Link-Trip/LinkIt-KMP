@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.common
 
 /**
  * 커서 기반 페이지네이션의 한 페이지.

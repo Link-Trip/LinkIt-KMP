@@ -1,9 +1,9 @@
 package com.linkit.company.domain.repository
 
-import com.linkit.company.domain.model.CursorPage
-import com.linkit.company.domain.model.TripPlanDetail
-import com.linkit.company.domain.model.TripPlanItemOrder
-import com.linkit.company.domain.model.TripPlanSummary
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.tripplan.TripPlanDetail
+import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
+import com.linkit.company.domain.model.tripplan.TripPlanSummary
 
 interface TripPlanRepository {
 

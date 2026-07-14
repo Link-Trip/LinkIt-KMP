@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 /** 예상 비용 산정 기준 */
 enum class CostBasis {

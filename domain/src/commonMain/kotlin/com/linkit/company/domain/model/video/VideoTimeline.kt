@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 /** 영상 주요 장면의 타임스탬프 + YouTube 딥링크 */
 data class VideoTimeline(

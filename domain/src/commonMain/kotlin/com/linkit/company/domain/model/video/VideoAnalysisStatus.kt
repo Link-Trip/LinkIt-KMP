@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 enum class VideoAnalysisStatus {
     /** 분석 진행 중 — 폴링 필요 */

@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 data class VideoAnalysis(
     val id: String,

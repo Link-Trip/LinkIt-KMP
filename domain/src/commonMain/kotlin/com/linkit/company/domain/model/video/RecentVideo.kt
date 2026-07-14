@@ -1,4 +1,4 @@
-package com.linkit.company.domain.model
+package com.linkit.company.domain.model.video
 
 /** 채널의 최신 영상 요약 */
 data class RecentVideo(
