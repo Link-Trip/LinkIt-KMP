@@ -1,15 +1,23 @@
 package com.linkit.company
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.linkit.company.core.common.AppGraph
 import com.linkit.company.data.DataScope
+import com.linkit.company.data.core.DATA_STORE_FILE_NAME
+import com.linkit.company.data.core.createLinkItDataStore
 import com.linkit.company.data.core.defaultJson
 import com.linkit.company.data.core.defaultKtorConfig
+import com.linkit.company.data.datasource.auth.AuthLocalDataSource
+import com.linkit.company.data.datasource.auth.AuthLocalDataSourceImpl
 import androidx.lifecycle.ViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provider
 import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.createGraphFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.MetroViewModelFactory
@@ -17,7 +25,11 @@ import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import io.ktor.client.HttpClient
 import kotlin.reflect.KClass
 import io.ktor.client.engine.darwin.Darwin
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.serialization.json.Json
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSUserDomainMask
 
 /**
  * The iOS dependency graph cannot currently be resolved by the compiler plugin.
@@ -40,8 +52,27 @@ import kotlinx.serialization.json.Json
 )
 interface IosAppGraph : AppGraph {
 
+    @Binds
+    val AuthLocalDataSourceImpl.bind: AuthLocalDataSource
+
     @Provides
     fun provideJson(): Json = defaultJson()
+
+    @OptIn(ExperimentalForeignApi::class)
+    @SingleIn(DataScope::class)
+    @Provides
+    fun provideDataStore(): DataStore<Preferences> {
+        return createLinkItDataStore {
+            val documentDirectory = NSFileManager.defaultManager.URLForDirectory(
+                directory = NSDocumentDirectory,
+                inDomain = NSUserDomainMask,
+                appropriateForURL = null,
+                create = false,
+                error = null,
+            )
+            requireNotNull(documentDirectory).path + "/$DATA_STORE_FILE_NAME"
+        }
+    }
 
     @Provides
     fun provideBaseUrl(): String = ""
