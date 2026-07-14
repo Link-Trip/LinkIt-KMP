@@ -1,12 +1,15 @@
 package com.linkit.company.data.datasource.auth
 
+import com.linkit.company.data.DataScope
 import com.linkit.company.data.api.AuthApi
 import com.linkit.company.data.dto.auth.AuthRequest
 import com.linkit.company.data.dto.auth.AuthResponse
 import de.jensklingenberg.ktorfit.Ktorfit
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
 @Inject
+@ContributesBinding(DataScope::class)
 class AuthRemoteDataSourceImpl(
     ktorfit: Ktorfit,
 ) : AuthRemoteDataSource {
