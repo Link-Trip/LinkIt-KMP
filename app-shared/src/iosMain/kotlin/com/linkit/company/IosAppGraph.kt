@@ -75,12 +75,15 @@ interface IosAppGraph : AppGraph {
     }
 
     @Provides
-    fun provideBaseUrl(): String = ""
+    fun provideBaseUrl(): String = "https://linktrip.cloud/api/"
 
     @Provides
-    fun provideHttpClient(json: Json): HttpClient {
+    fun provideHttpClient(
+        json: Json,
+        authLocalDataSource: AuthLocalDataSource,
+    ): HttpClient {
         return HttpClient(Darwin) {
-            defaultKtorConfig(json)
+            defaultKtorConfig(json) { authLocalDataSource.getAccessToken() }
         }
     }
 

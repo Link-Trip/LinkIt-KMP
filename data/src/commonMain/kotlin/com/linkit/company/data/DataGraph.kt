@@ -7,12 +7,11 @@ import dev.zacsweers.metro.Provides
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 
-// Hilt - DataModule
 @ContributesTo(DataScope::class)
 interface DataGraph {
 
     @Provides
-    fun provideBaseUrl(): String = ""  // TODO : BaseUrl 수정
+    fun provideBaseUrl(): String = "https://linktrip.cloud/api/"
 
     @Provides
     fun provideJson(): Json = defaultJson()

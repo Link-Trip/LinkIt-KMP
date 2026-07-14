@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.linkit.company.data.core.DATA_STORE_FILE_NAME
 import com.linkit.company.data.core.createLinkItDataStore
 import com.linkit.company.data.core.defaultKtorConfig
+import com.linkit.company.data.datasource.auth.AuthLocalDataSource
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -16,9 +17,12 @@ import kotlinx.serialization.json.Json
 @ContributesTo(DataScope::class)
 interface AndroidDataGraph {
     @Provides
-    fun provideHttpClient(json: Json): HttpClient {
+    fun provideHttpClient(
+        json: Json,
+        authLocalDataSource: AuthLocalDataSource,
+    ): HttpClient {
         return HttpClient(engineFactory = OkHttp) {
-            defaultKtorConfig(json)
+            defaultKtorConfig(json) { authLocalDataSource.getAccessToken() }
         }
     }
 
