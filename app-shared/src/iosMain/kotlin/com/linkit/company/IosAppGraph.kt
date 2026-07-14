@@ -5,11 +5,16 @@ import androidx.datastore.preferences.core.Preferences
 import com.linkit.company.core.common.AppGraph
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.core.DATA_STORE_FILE_NAME
+import com.linkit.company.data.core.DeviceIdProvider
 import com.linkit.company.data.core.createLinkItDataStore
 import com.linkit.company.data.core.defaultJson
 import com.linkit.company.data.core.defaultKtorConfig
 import com.linkit.company.data.datasource.auth.AuthLocalDataSource
 import com.linkit.company.data.datasource.auth.AuthLocalDataSourceImpl
+import com.linkit.company.data.datasource.auth.AuthRemoteDataSource
+import com.linkit.company.data.datasource.auth.AuthRemoteDataSourceImpl
+import com.linkit.company.data.repository.AuthRepositoryImpl
+import com.linkit.company.domain.repository.AuthRepository
 import androidx.lifecycle.ViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
@@ -25,11 +30,14 @@ import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import io.ktor.client.HttpClient
 import kotlin.reflect.KClass
 import io.ktor.client.engine.darwin.Darwin
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.serialization.json.Json
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
+import platform.UIKit.UIDevice
 
 /**
  * The iOS dependency graph cannot currently be resolved by the compiler plugin.
@@ -55,8 +63,23 @@ interface IosAppGraph : AppGraph {
     @Binds
     val AuthLocalDataSourceImpl.bind: AuthLocalDataSource
 
+    @Binds
+    val AuthRemoteDataSourceImpl.bind: AuthRemoteDataSource
+
+    @Binds
+    val AuthRepositoryImpl.bind: AuthRepository
+
     @Provides
     fun provideJson(): Json = defaultJson()
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Provides
+    fun provideDeviceIdProvider(): DeviceIdProvider {
+        return DeviceIdProvider {
+            UIDevice.currentDevice.identifierForVendor?.UUIDString
+                ?: Uuid.random().toString()
+        }
+    }
 
     @OptIn(ExperimentalForeignApi::class)
     @SingleIn(DataScope::class)

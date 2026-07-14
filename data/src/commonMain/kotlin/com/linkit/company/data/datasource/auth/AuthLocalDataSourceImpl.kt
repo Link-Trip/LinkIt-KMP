@@ -28,7 +28,18 @@ class AuthLocalDataSourceImpl(
         }
     }
 
+    override suspend fun getDeviceId(): String? {
+        return dataStore.data.first()[KEY_DEVICE_ID]
+    }
+
+    override suspend fun saveDeviceId(deviceId: String) {
+        dataStore.edit { preferences ->
+            preferences[KEY_DEVICE_ID] = deviceId
+        }
+    }
+
     companion object {
         private val KEY_ACCESS_TOKEN = stringPreferencesKey("access_token")
+        private val KEY_DEVICE_ID = stringPreferencesKey("device_id")
     }
 }
