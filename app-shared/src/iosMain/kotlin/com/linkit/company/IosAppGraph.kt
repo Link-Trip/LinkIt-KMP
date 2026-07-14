@@ -13,8 +13,12 @@ import com.linkit.company.data.datasource.auth.AuthLocalDataSource
 import com.linkit.company.data.datasource.auth.AuthLocalDataSourceImpl
 import com.linkit.company.data.datasource.auth.AuthRemoteDataSource
 import com.linkit.company.data.datasource.auth.AuthRemoteDataSourceImpl
+import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
+import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSourceImpl
 import com.linkit.company.data.repository.AuthRepositoryImpl
+import com.linkit.company.data.repository.TripPlanRepositoryImpl
 import com.linkit.company.domain.repository.AuthRepository
+import com.linkit.company.domain.repository.TripPlanRepository
 import androidx.lifecycle.ViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
@@ -69,6 +73,12 @@ interface IosAppGraph : AppGraph {
 
     @Binds
     val AuthRepositoryImpl.bind: AuthRepository
+
+    @Binds
+    val TripPlanRemoteDataSourceImpl.bind: TripPlanRemoteDataSource
+
+    @Binds
+    val TripPlanRepositoryImpl.bind: TripPlanRepository
 
     @Provides
     fun provideJson(): Json = defaultJson()
