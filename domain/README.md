@@ -16,17 +16,18 @@ ViewModel (feature)
 UseCase (domain/usecase)
     ↓
 Repository 인터페이스 (domain/repository)
-    ↓ Metro @Binds
+    ↓ Metro @ContributesBinding
 RepositoryImpl (data/repository)
 ```
 
 ViewModel은 UseCase 또는 Repository 인터페이스만 알고, 구현체는 알지 못한다.
-RepositoryImpl과 `@Binds` 등록, DataSource, DTO, Mapper 등 데이터 계층 규칙은 [data/README.md](../data/README.md)가 단일 출처다.
+RepositoryImpl과 바인딩 등록(`@ContributesBinding`), DataSource, DTO, Mapper 등 데이터 계층 규칙은 [data/README.md](../data/README.md)가 단일 출처다.
 
 ## 디렉토리 구조
 
 ```
 domain/src/commonMain/kotlin/com/linkit/company/domain/
+├── exception/      # 공통 예외 (LinkTripApiException, LinkTripErrorCode)
 ├── model/          # 도메인 모델 (data class, enum, sealed class) — 도메인별 하위 패키지로 그룹화
 │   ├── auth/       # 인증
 │   ├── common/     # 특정 도메인에 속하지 않는 공용 모델 (CursorPage 등)
@@ -77,7 +78,7 @@ interface LinkRepository {
 - 이름은 `XxxRepository`
 - 반환 타입은 **도메인 모델 또는 원시값**만 — DTO/Entity가 시그니처에 나타나면 안 된다
 - 요청 데이터는 개별 파라미터로 받는다 (Request DTO 금지)
-- 구현체(`XxxRepositoryImpl`)와 `RepositoryGraph` `@Binds` 등록은 data 모듈에서 한다 — [data/README.md](../data/README.md#repository-작성-규칙) 참고
+- 구현체(`XxxRepositoryImpl`)는 data 모듈에서 작성하고 `@ContributesBinding(DataScope::class)`으로 등록한다 — [data/README.md](../data/README.md#repository-작성-규칙) 참고
 
 ### suspend vs Flow 선택 기준
 
@@ -88,7 +89,24 @@ interface LinkRepository {
 
 - `Flow`를 반환하는 함수에는 `suspend`를 붙이지 않는다 — 구독 시작 자체는 비차단이다
 - 관찰 함수는 `observeXxx` 네이밍으로 일회성 조회(`getXxx`)와 구분한다
-- 현재는 원격 API만 있으므로 `suspend`가 기본이다. 로컬 저장소(Room KMP 등) 도입 시 화면이 변화를 계속 반영해야 하는 데이터부터 `Flow`를 적용한다
+- 현재는 원격 API·로컬 저장소(DataStore) 모두 일회성 조회로만 사용하므로 `suspend`가 기본이다. 화면이 변화를 계속 반영해야 하는 데이터가 생기면 그 데이터부터 `Flow`를 적용한다 (DataStore의 `data` Flow 구독, Room KMP 도입 등)
+
+## 에러 규칙 — LinkTripApiException
+
+서버 API가 4xx/5xx로 실패하면 data 계층이 `exception/LinkTripApiException`을 던진다. 변환 규칙(에러 바디 파싱 등)은 [data/README.md](../data/README.md#실패-응답-처리--linktripapiexception)가 단일 출처다.
+
+```kotlin
+// exception/LinkTripException.kt
+class LinkTripApiException(
+    val errorCode: LinkTripErrorCode,   // 서버 에러 코드 enum. 매칭 실패 시 UNKNOWN 폴백
+    val httpStatus: Int,
+    override val message: String,
+) : Exception(message)
+```
+
+- ViewModel/UseCase는 `errorCode`로 분기해 사용자 노출 메시지·후속 동작을 결정한다 — 문자열 코드 비교나 HTTP 상태 코드 분기를 하지 않는다
+- 예외 타입이 domain에 있는 이유: ViewModel(feature)·UseCase가 data 모듈에 의존하지 않고 에러를 식별해야 하기 때문
+- 순수 Kotlin 타입이므로 [모듈 구성 원칙](#domain-모듈)(플랫폼 타입 금지)에 위배되지 않는다
 
 ## UseCase 생성·생략 기준
 
