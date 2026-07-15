@@ -70,7 +70,7 @@ main          ← 최상위 (릴리스)
 - 새 API, DataSource, Repository를 추가하거나 수정할 때
 - DTO, Mapper를 작성할 때
 - Ktorfit, HttpClient 등 네트워크 설정 관련 작업을 할 때
-- data 모듈의 DI 그래프(DataGraph, DataSourceGraph, RepositoryGraph)를 수정할 때
+- data 모듈의 DI 구성(DataGraph, DataScope, `@ContributesBinding` 바인딩)을 수정할 때
 
 ### docs/NAVIGATION_STRUCTURE.md
 아래 상황에서 반드시 읽고 참고할 것:
