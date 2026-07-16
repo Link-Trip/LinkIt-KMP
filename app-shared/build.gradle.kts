@@ -17,6 +17,11 @@ kotlin {
             implementation(projects.domain)
             implementation(projects.data)
         }
+
+        iosMain.dependencies {
+            // IosAppGraph에서 DataStore<Preferences>를 직접 provide하기 위해 필요
+            implementation(libs.androidxDataStorePreferencesCore)
+        }
     }
 }
 

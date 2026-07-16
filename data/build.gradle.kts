@@ -1,6 +1,8 @@
 plugins {
     id("kmp.library.convention")
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.ktorfit)
 }
 
 android {
@@ -17,6 +19,7 @@ kotlin {
             implementation(libs.ktorfitLib)
             implementation(libs.ktorKotlinxSerializationJson)
             implementation(libs.ktorClientContentNegotiation)
+            implementation(libs.androidxDataStorePreferencesCore)
         }
 
 
