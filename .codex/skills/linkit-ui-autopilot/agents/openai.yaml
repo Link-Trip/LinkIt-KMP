@@ -1,0 +1,4 @@
+interface:
+  display_name: "LinkIt UI 자율 구현"
+  short_description: "Pingo 전체 UI를 MVI와 Navigation3로 자율 구현"
+  default_prompt: "$linkit-ui-autopilot을 사용해 Pingo 전체 UI를 MVI, 네비게이션, 시각 검증까지 자율적으로 구현해줘."

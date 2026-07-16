@@ -1,5 +1,6 @@
 plugins {
     id("kmp.feature.convention")
+    id("kmp.screenshot.test.convention")
 }
 
 android {
@@ -14,12 +15,13 @@ kotlin {
             implementation(projects.core.designsystem)
             implementation(projects.domain)
             implementation(projects.core.navigation)
+            implementation(libs.metrox.viewmodel)
+            implementation(libs.metrox.viewmodel.compose)
             implementation(libs.bundles.jetbrainsNavigation3)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
-            implementation(libs.metrox.android)
-            implementation(libs.metrox.viewmodel)
+            compileOnly(libs.metrox.android)
         }
     }
 }

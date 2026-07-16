@@ -6,6 +6,7 @@ import com.linkit.company.core.common.AppGraph
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.core.navigation.LinkItSavedStateConfiguration
 import com.linkit.company.feature.home.navigation.HomeNavDisplay
+import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 
 @Suppress("UNUSED")
 fun HomeViewController(

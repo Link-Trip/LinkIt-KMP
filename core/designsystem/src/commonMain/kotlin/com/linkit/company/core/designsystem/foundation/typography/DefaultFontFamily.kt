@@ -5,11 +5,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import linkitcompany.core.designsystem.generated.resources.DesignRes
+import linkitcompany.core.designsystem.generated.resources.nanum_400
+import linkitcompany.core.designsystem.generated.resources.nanum_500
+import linkitcompany.core.designsystem.generated.resources.nanum_700
 import linkitcompany.core.designsystem.generated.resources.wanted_sans_400
 import linkitcompany.core.designsystem.generated.resources.wanted_sans_500
 import linkitcompany.core.designsystem.generated.resources.wanted_sans_600
 import linkitcompany.core.designsystem.generated.resources.wanted_sans_700
 import org.jetbrains.compose.resources.Font
+
+@Composable
+fun rememberNanumSquareFontFamily(): FontFamily {
+    val fontFamily = FontFamily(
+        Font(DesignRes.font.nanum_700, FontWeight.W700),
+        Font(DesignRes.font.nanum_500, FontWeight.W500),
+        Font(DesignRes.font.nanum_400, FontWeight.W400),
+    )
+    return remember { fontFamily }
+}
 
 @Composable
 internal fun rememberDefaultFontFamily(): FontFamily {

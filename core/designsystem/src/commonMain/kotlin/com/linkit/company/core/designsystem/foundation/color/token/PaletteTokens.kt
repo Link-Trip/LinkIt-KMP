@@ -37,6 +37,17 @@ object PaletteTokens {
     val Neutral95 = Color(0xFFDCDCDC)
     val Neutral99 = Color(0xFFF7F7F7)
 
+    // Pingo content palette used by map cards and feed metadata.
+    val PingoNeutral50 = Color(0xFFE6EDF8)
+    val PingoNeutral100 = Color(0xFFD7E1EE)
+    val PingoNeutral300 = Color(0xFF7B8696)
+    val PingoNeutral400 = Color(0xFF5D6470)
+    val PingoNeutral600 = Color(0xFF2A2F38)
+    val PingoNeutral700 = Color(0xFF1F2127)
+    val PingoNeutral800 = Color(0xFF17191F)
+    val PingoMapSelectionBackground = Color(0xFFF2F8FF)
+    val PingoMapSelectionBorder = Color(0xFF379BFF)
+
     val CoolNeutral5 = Color(0xFF0F0F10)
     val CoolNeutral7 = Color(0xFF141415)
     val CoolNeutral10 = Color(0xFF171719)

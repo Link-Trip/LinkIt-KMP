@@ -1,8 +1,17 @@
+import java.util.Properties
+
 plugins {
     id("android.application.convention")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("dev.zacsweers.metro")
+}
+
+val localProperties = Properties().apply {
+    rootProject.file("local.properties")
+        .takeIf { it.exists() }
+        ?.inputStream()
+        ?.use(::load)
 }
 
 android {
@@ -12,6 +21,8 @@ android {
         applicationId = "com.linkit.company"
         versionCode = libs.versions.app.versionCode.get().toInt()
         versionName = libs.versions.app.versionName.get()
+        manifestPlaceholders["MAPS_API_KEY"] =
+            localProperties.getProperty("MAPS_API_KEY", "YOUR_API_KEY")
     }
 }
 
@@ -34,6 +45,9 @@ dependencies {
     implementation(project(":app-shared"))
     implementation(project(":feature:intro"))
     implementation(project(":feature:home"))
+    implementation(project(":feature:explore"))
+    implementation(project(":feature:map"))
     implementation(project(":feature:schedule"))
+    implementation(project(":feature:storage"))
     implementation(libs.androidx.activity.compose)
 }

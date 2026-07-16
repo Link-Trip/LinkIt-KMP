@@ -158,6 +158,15 @@ graph TB
 
 ### Build and Run Android Application
 
+To load Google Maps, enable **Maps SDK for Android** in Google Cloud and add the API key to the ignored
+root `local.properties` file:
+
+```properties
+MAPS_API_KEY=YOUR_API_KEY
+```
+
+Restrict the key to the Android package `com.linkit.company` and the signing certificate SHA-1 before release.
+
 To build and run the development version of the Android app, use the run configuration from the run widget
 in your IDE's toolbar or build it directly from the terminal:
 - on macOS/Linux

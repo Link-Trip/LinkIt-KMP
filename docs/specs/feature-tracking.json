@@ -1,16 +1,16 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-06-28T01:58:09.799Z",
+  "updatedAt": "2026-07-11T05:54:40.964Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -60,7 +60,7 @@
           "createdBy": "yuhohyeon"
         }
       ],
-      "updatedAt": "2026-06-28T01:58:09.799Z",
+      "updatedAt": "2026-07-11T04:38:37.696Z",
       "updatedBy": "yuhohyeon"
     },
     "onboarding:INTRO_SKIP_POLICY": {
@@ -215,13 +215,13 @@
     },
     "onboarding:VIDEO_LINK_INPUT": {
       "featureUid": "onboarding:VIDEO_LINK_INPUT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -235,8 +235,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.737Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:VIDEO_LINK_INVALID": {
       "featureUid": "onboarding:VIDEO_LINK_INVALID",
@@ -265,13 +265,13 @@
     },
     "onboarding:ANALYSIS_LOADING": {
       "featureUid": "onboarding:ANALYSIS_LOADING",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -285,18 +285,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.773Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:ANALYSIS_COMPLETE": {
       "featureUid": "onboarding:ANALYSIS_COMPLETE",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -310,8 +310,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.810Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:SAVE_ALL": {
       "featureUid": "onboarding:SAVE_ALL",
@@ -390,13 +390,13 @@
     },
     "onboarding:TRIP_DETAIL_ENTRY": {
       "featureUid": "onboarding:TRIP_DETAIL_ENTRY",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -410,18 +410,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.856Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:TRIP_DETAIL_ITINERARY": {
       "featureUid": "onboarding:TRIP_DETAIL_ITINERARY",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -435,18 +435,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.895Z",
+      "updatedBy": "yuhohyeon"
     },
     "onboarding:TRIP_DETAIL_SUMMARY": {
       "featureUid": "onboarding:TRIP_DETAIL_SUMMARY",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -460,8 +460,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.932Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:MAP_INITIAL_FOCUS": {
       "featureUid": "main:MAP_INITIAL_FOCUS",
@@ -615,13 +615,13 @@
     },
     "main:SHEET_INITIAL_HALF": {
       "featureUid": "main:SHEET_INITIAL_HALF",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -635,8 +635,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:37.971Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SHEET_DRAG": {
       "featureUid": "main:SHEET_DRAG",
@@ -1365,13 +1365,13 @@
     },
     "explore:EXPLORE_OPEN": {
       "featureUid": "explore:EXPLORE_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1385,18 +1385,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.008Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:COUNTRY_FILTER_SELECT": {
       "featureUid": "explore:COUNTRY_FILTER_SELECT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1410,18 +1410,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.045Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:THEME_TAB_SELECT": {
       "featureUid": "explore:THEME_TAB_SELECT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1435,18 +1435,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.083Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:THEME_FILTER_SELECT": {
       "featureUid": "explore:THEME_FILTER_SELECT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1460,18 +1460,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.121Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:CREATOR_VIDEO_SECTION": {
       "featureUid": "explore:CREATOR_VIDEO_SECTION",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1485,18 +1485,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.159Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:CREATOR_MORE_OPEN": {
       "featureUid": "explore:CREATOR_MORE_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1510,8 +1510,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.197Z",
+      "updatedBy": "yuhohyeon"
     },
     "explore:VIDEO_OPEN": {
       "featureUid": "explore:VIDEO_OPEN",
@@ -1540,13 +1540,13 @@
     },
     "explore:BOTTOM_TAB_NAV": {
       "featureUid": "explore:BOTTOM_TAB_NAV",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "not_applicable",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1560,18 +1560,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.235Z",
+      "updatedBy": "yuhohyeon"
     },
     "mypage:MYPAGE_OPEN": {
       "featureUid": "mypage:MYPAGE_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1585,8 +1585,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.271Z",
+      "updatedBy": "yuhohyeon"
     },
     "mypage:MAP_TYPE_DEFAULT": {
       "featureUid": "mypage:MAP_TYPE_DEFAULT",
@@ -1715,11 +1715,11 @@
     },
     "mypage:RESET_CONFIRM_OPEN": {
       "featureUid": "mypage:RESET_CONFIRM_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
       "testStatus": "not_started",
       "screenshotStatus": "not_started",
       "blockedReason": null,
@@ -1735,8 +1735,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.307Z",
+      "updatedBy": "yuhohyeon"
     },
     "mypage:RESET_CANCEL": {
       "featureUid": "mypage:RESET_CANCEL",
@@ -1790,13 +1790,13 @@
     },
     "library:LIBRARY_OPEN": {
       "featureUid": "library:LIBRARY_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1810,18 +1810,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.345Z",
+      "updatedBy": "yuhohyeon"
     },
     "library:LIBRARY_SEARCH_INPUT": {
       "featureUid": "library:LIBRARY_SEARCH_INPUT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1835,18 +1835,18 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.381Z",
+      "updatedBy": "yuhohyeon"
     },
     "library:LIBRARY_SEARCH_RESULT": {
       "featureUid": "library:LIBRARY_SEARCH_RESULT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1860,8 +1860,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.419Z",
+      "updatedBy": "yuhohyeon"
     },
     "library:LIBRARY_FILTER_OPEN": {
       "featureUid": "library:LIBRARY_FILTER_OPEN",
@@ -1915,13 +1915,13 @@
     },
     "library:LIBRARY_ITEM_OPEN": {
       "featureUid": "library:LIBRARY_ITEM_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1935,8 +1935,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.456Z",
+      "updatedBy": "yuhohyeon"
     },
     "library:LIBRARY_ADD_MENU_OPEN": {
       "featureUid": "library:LIBRARY_ADD_MENU_OPEN",
@@ -1965,13 +1965,13 @@
     },
     "library:LIBRARY_ADD_SAVED": {
       "featureUid": "library:LIBRARY_ADD_SAVED",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "https://github.com/Link-Trip/LinkIt-KMP/pull/37",
+      "branch": "feature/#34-pingo_ui",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -1985,8 +1985,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-11T04:38:38.493Z",
+      "updatedBy": "yuhohyeon"
     },
     "library:LIBRARY_ADD_MANUAL": {
       "featureUid": "library:LIBRARY_ADD_MANUAL",

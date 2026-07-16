@@ -1,5 +1,6 @@
 plugins {
     id("kmp.feature.convention")
+    id("kmp.screenshot.test.convention")
 }
 
 android {
@@ -17,8 +18,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
-            implementation(libs.metrox.android)
-            implementation(libs.metrox.viewmodel)
+            compileOnly(libs.metrox.android)
         }
     }
 }
