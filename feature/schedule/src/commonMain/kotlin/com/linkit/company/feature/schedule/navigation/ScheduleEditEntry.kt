@@ -11,7 +11,10 @@ import com.linkit.company.feature.schedule.ScheduleTripDetailScreen
 fun EntryProviderScope<NavKey>.scheduleEditEntry(
     onCreateSchedule: () -> Unit,
     onOpenExistingSchedule: (tripPlanId: String, title: String) -> Unit,
-    onAnalysisComplete: () -> Unit,
+    onReturnHome: () -> Unit,
+    showNotificationPermissionSheet: Boolean,
+    onAllowNotifications: () -> Unit,
+    onDismissNotificationPrompt: () -> Unit,
     onConfirmAnalysis: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -26,7 +29,10 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
     entry<LinkItNavKey.ScheduleAnalysisLoading> {
         ScheduleAnalysisLoadingScreen(
             onBack = onBack,
-            onAnalysisComplete = onAnalysisComplete,
+            onReturnHome = onReturnHome,
+            showNotificationPermissionSheet = showNotificationPermissionSheet,
+            onAllowNotifications = onAllowNotifications,
+            onDismissNotificationPrompt = onDismissNotificationPrompt,
         )
     }
 

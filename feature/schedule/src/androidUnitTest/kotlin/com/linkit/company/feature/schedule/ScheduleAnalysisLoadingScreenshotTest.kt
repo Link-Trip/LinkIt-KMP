@@ -26,13 +26,20 @@ class ScheduleAnalysisLoadingScreenshotTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun loading() {
+    fun loading() = capture(showNotificationPermissionSheet = false)
+
+    @Test
+    fun notificationPermissionSheet() = capture(showNotificationPermissionSheet = true)
+
+    private fun capture(showNotificationPermissionSheet: Boolean) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, 812.dp)) {
-                        ScheduleAnalysisLoadingScreen()
+                        ScheduleAnalysisLoadingScreen(
+                            showNotificationPermissionSheet = showNotificationPermissionSheet,
+                        )
                     }
                 }
             }
