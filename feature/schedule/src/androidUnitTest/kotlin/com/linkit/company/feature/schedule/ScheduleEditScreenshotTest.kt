@@ -5,8 +5,15 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.linkit.company.core.designsystem.theme.LinkItTheme
@@ -55,7 +62,26 @@ class ScheduleEditScreenshotTest {
         ),
     )
 
+    @Test
+    fun recommendedVideosSwipeLeft() {
+        setScheduleContent(ScheduleUiState())
+
+        composeRule
+            .onNodeWithTag(RecommendedVideoListTestTag)
+            .assert(hasScrollAction())
+            .performTouchInput { swipeLeft() }
+
+        composeRule
+            .onNodeWithText("유명 신혼 여행지에 혼자 당당히 여행가는 사람【몰디브】")
+            .assertIsDisplayed()
+    }
+
     private fun capture(state: ScheduleUiState) {
+        setScheduleContent(state)
+        composeRule.onRoot().captureRoboImage()
+    }
+
+    private fun setScheduleContent(state: ScheduleUiState) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
@@ -66,6 +92,5 @@ class ScheduleEditScreenshotTest {
                 }
             }
         }
-        composeRule.onRoot().captureRoboImage()
     }
 }
