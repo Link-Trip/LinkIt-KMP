@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-11T05:54:40.964Z",
+  "updatedAt": "2026-07-25T05:46:22.353Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -765,28 +765,50 @@
     },
     "main:SCHEDULE_MARKER_SHOW": {
       "featureUid": "main:SCHEDULE_MARKER_SHOW",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
-      "issue": null,
+      "workStatus": "implemented",
+      "developer": "fbghgus123",
+      "issue": "#42",
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
-        "status": "empty",
-        "summary": "",
-        "tasks": [],
-        "affectedFiles": [],
-        "testPlan": [],
-        "risks": [],
-        "updatedAt": null,
-        "updatedBy": null
+        "status": "in_progress",
+        "summary": "실제 서버 일정과 장소 좌표를 메인 지도·바텀시트·마커 상태에 연결한다",
+        "tasks": [
+          "인증 부트스트랩 연결",
+          "일정 목록·상세 조합 UseCase 구현",
+          "MapUiState와 Intent를 실제 ID 기반으로 확장",
+          "Android Google Maps SDK 마커와 카메라 연결",
+          "로딩·빈 상태·오류·재시도 처리"
+        ],
+        "affectedFiles": [
+          "domain/src/commonMain/kotlin/com/linkit/company/domain/usecase",
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main",
+          "feature/map/src/androidMain/kotlin/com/linkit/company/feature/map/main",
+          "feature/home",
+          "app-android/src/main/AndroidManifest.xml"
+        ],
+        "testPlan": [
+          "UseCase와 MapViewModel 단위 테스트",
+          ":feature:map:verifyRoborazziDebug",
+          "Medium_Phone 에뮬레이터 정상·빈·오류 검증",
+          "서버 일정 수와 지도 마커 수 대조"
+        ],
+        "risks": [
+          "서버 TLS 인증서 만료",
+          "목록 뒤 상세 N+1 호출",
+          "지역·사진 필드 부족",
+          "iOS 지도는 정적 구현"
+        ],
+        "updatedAt": "2026-07-22T10:50:15.589Z",
+        "updatedBy": "yuhohyeon"
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-07-25T05:46:17.705Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SCHEDULE_MARKER_CENTER_RULE": {
       "featureUid": "main:SCHEDULE_MARKER_CENTER_RULE",
