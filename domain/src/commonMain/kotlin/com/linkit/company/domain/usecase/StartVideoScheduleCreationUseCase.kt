@@ -2,9 +2,11 @@ package com.linkit.company.domain.usecase
 
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import dev.zacsweers.metro.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 sealed interface StartVideoScheduleCreationResult {
     data object InvalidFormat : StartVideoScheduleCreationResult
@@ -16,6 +18,7 @@ sealed interface StartVideoScheduleCreationResult {
 
     data class AnalysisStarted(
         val analysis: VideoAnalysis,
+        val metadata: YouTubeVideoMetadata?,
     ) : StartVideoScheduleCreationResult
 }
 
@@ -45,9 +48,16 @@ class StartVideoScheduleCreationUseCase(
             }
         }
 
-        return StartVideoScheduleCreationResult.AnalysisStarted(
-            analysis = videoRepository.analyzeVideo(normalizedUrl),
-        )
+        val analysis = videoRepository.analyzeVideo(normalizedUrl)
+        val metadata = try {
+            videoRepository.getYouTubeVideoMetadata(normalizedUrl)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Throwable) {
+            null
+        }
+
+        return StartVideoScheduleCreationResult.AnalysisStarted(analysis, metadata)
     }
 
     private suspend fun findExistingSchedule(videoId: String): TripPlanSummary? {

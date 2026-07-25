@@ -9,7 +9,7 @@ import com.linkit.company.feature.schedule.ScheduleEditScreen
 import com.linkit.company.feature.schedule.ScheduleTripDetailScreen
 
 fun EntryProviderScope<NavKey>.scheduleEditEntry(
-    onCreateSchedule: () -> Unit,
+    onCreateSchedule: (videoTitle: String?, thumbnailUrl: String?) -> Unit,
     onOpenExistingSchedule: (tripPlanId: String, title: String) -> Unit,
     onReturnHome: () -> Unit,
     showNotificationPermissionSheet: Boolean,
@@ -26,8 +26,10 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
         )
     }
 
-    entry<LinkItNavKey.ScheduleAnalysisLoading> {
+    entry<LinkItNavKey.ScheduleAnalysisLoading> { route ->
         ScheduleAnalysisLoadingScreen(
+            videoTitle = route.videoTitle,
+            thumbnailUrl = route.thumbnailUrl,
             onBack = onBack,
             onReturnHome = onReturnHome,
             showNotificationPermissionSheet = showNotificationPermissionSheet,

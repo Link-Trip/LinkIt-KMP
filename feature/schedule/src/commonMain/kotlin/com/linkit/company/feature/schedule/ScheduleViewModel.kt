@@ -111,7 +111,12 @@ class ScheduleViewModel(
                             result.analysis.status != VideoAnalysisStatus.FAILED
                         ) {
                             container.mviContext.reduce { copy(isSubmittingVideoLink = false) }
-                            container.mviContext.postSideEffect(ScheduleSideEffect.NavigateToAnalysis)
+                            container.mviContext.postSideEffect(
+                                ScheduleSideEffect.NavigateToAnalysis(
+                                    videoTitle = result.metadata?.title,
+                                    thumbnailUrl = result.metadata?.thumbnailUrl,
+                                ),
+                            )
                         } else {
                             showVideoLinkError(VideoLinkError.INVALID_LINK)
                         }

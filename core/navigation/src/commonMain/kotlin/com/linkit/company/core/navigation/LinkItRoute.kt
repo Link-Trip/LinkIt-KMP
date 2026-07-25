@@ -58,7 +58,10 @@ interface LinkItNavKey : NavKey {
     data object ScheduleEdit : LinkItNavKey
 
     @Serializable
-    data object ScheduleAnalysisLoading : LinkItNavKey
+    data class ScheduleAnalysisLoading(
+        val videoTitle: String? = null,
+        val thumbnailUrl: String? = null,
+    ) : LinkItNavKey
 
     @Serializable
     data object ScheduleAnalysisComplete : LinkItNavKey

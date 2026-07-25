@@ -91,8 +91,15 @@ class StartVideoScheduleCreationUseCaseTest {
 
         val result = useCase(" https://youtube.com/shorts/new-video ")
 
-        assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result)
+        assertEquals(
+            YouTubeVideoMetadata(
+                title = "영상 제목",
+                thumbnailUrl = "https://i.ytimg.com/vi/video/hqdefault.jpg",
+            ),
+            assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result).metadata,
+        )
         assertEquals(listOf("https://youtube.com/shorts/new-video"), videoRepository.analyzedUrls)
+        assertEquals(listOf("https://youtube.com/shorts/new-video"), videoRepository.metadataUrls)
     }
 
     @Test
@@ -113,6 +120,26 @@ class StartVideoScheduleCreationUseCaseTest {
         assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result)
         assertEquals(emptyList(), tripPlanRepository.requestedCursors)
         assertEquals(listOf("https://youtu.be/same-video"), videoRepository.analyzedUrls)
+    }
+
+    @Test
+    fun startsAnalysisWithoutMetadataWhenYouTubeLookupFails() = runImmediateSuspend {
+        val videoRepository = VideoRepositoryFake(metadataError = IllegalStateException("unavailable"))
+        val useCase = createUseCase(
+            authRepository = VideoAuthRepositoryFake(),
+            tripPlanRepository = VideoTripPlanRepositoryFake(emptyMap()),
+            videoRepository = videoRepository,
+        )
+
+        val result = useCase(
+            youtubeUrl = "https://youtu.be/new-video",
+            allowDuplicate = true,
+        )
+
+        assertEquals(
+            null,
+            assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result).metadata,
+        )
     }
 
     private fun createUseCase(
@@ -166,8 +193,11 @@ private class VideoTripPlanRepositoryFake(
     override suspend fun deleteTripPlan(tripPlanId: String) = error("Not used in this test")
 }
 
-private class VideoRepositoryFake : VideoRepository {
+private class VideoRepositoryFake(
+    private val metadataError: Throwable? = null,
+) : VideoRepository {
     val analyzedUrls = mutableListOf<String>()
+    val metadataUrls = mutableListOf<String>()
 
     override suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis {
         analyzedUrls += youtubeUrl
@@ -189,8 +219,14 @@ private class VideoRepositoryFake : VideoRepository {
     override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis =
         error("Not used in this test")
 
-    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata =
-        error("Not used in this test")
+    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata {
+        metadataUrls += youtubeUrl
+        metadataError?.let { throw it }
+        return YouTubeVideoMetadata(
+            title = "영상 제목",
+            thumbnailUrl = "https://i.ytimg.com/vi/video/hqdefault.jpg",
+        )
+    }
 
     override suspend fun getDiscoverVideosByTheme(
         theme: String,

@@ -57,7 +57,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ScheduleEditScreen(
-    onCreateSchedule: () -> Unit = {},
+    onCreateSchedule: (videoTitle: String?, thumbnailUrl: String?) -> Unit = { _, _ -> },
     onOpenExistingSchedule: (tripPlanId: String, title: String) -> Unit = { _, _ -> },
     onBack: () -> Unit = {},
     viewModel: ScheduleViewModel = metroViewModel(),
@@ -67,7 +67,9 @@ fun ScheduleEditScreen(
     LaunchedEffect(viewModel) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
-                ScheduleSideEffect.NavigateToAnalysis -> onCreateSchedule()
+                is ScheduleSideEffect.NavigateToAnalysis -> {
+                    onCreateSchedule(effect.videoTitle, effect.thumbnailUrl)
+                }
                 is ScheduleSideEffect.OpenExistingSchedule -> {
                     onOpenExistingSchedule(effect.tripPlanId, effect.title)
                 }

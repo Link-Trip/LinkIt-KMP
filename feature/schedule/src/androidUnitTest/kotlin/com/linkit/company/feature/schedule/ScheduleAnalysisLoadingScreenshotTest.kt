@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
@@ -31,19 +33,39 @@ class ScheduleAnalysisLoadingScreenshotTest {
     @Test
     fun notificationPermissionSheet() = capture(showNotificationPermissionSheet = true)
 
+    @Test
+    fun displaysYouTubeVideoTitle() {
+        setScheduleContent(
+            videoTitle = "유부남과 함께 오사카 좋은 놀이공원 가보기 【오사카上】",
+            showNotificationPermissionSheet = false,
+        )
+
+        composeRule
+            .onNodeWithText("유부남과 함께 오사카 좋은 놀이공원 가보기 【오사카上】")
+            .assertIsDisplayed()
+    }
+
     private fun capture(showNotificationPermissionSheet: Boolean) {
+        setScheduleContent(showNotificationPermissionSheet = showNotificationPermissionSheet)
+        composeRule.onRoot().captureRoboImage()
+    }
+
+    private fun setScheduleContent(
+        videoTitle: String? = null,
+        showNotificationPermissionSheet: Boolean,
+    ) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, 812.dp)) {
                         ScheduleAnalysisLoadingScreen(
+                            videoTitle = videoTitle,
                             showNotificationPermissionSheet = showNotificationPermissionSheet,
                         )
                     }
                 }
             }
         }
-        composeRule.onRoot().captureRoboImage()
     }
 }

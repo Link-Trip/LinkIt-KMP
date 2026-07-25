@@ -1,6 +1,5 @@
 package com.linkit.company.feature.schedule
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.linkit.company.core.designsystem.component.action.LinkItActionArea
 import com.linkit.company.core.designsystem.component.button.ButtonSize
 import com.linkit.company.core.designsystem.component.button.ButtonVariant
@@ -41,6 +41,8 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ScheduleAnalysisLoadingScreen(
+    videoTitle: String? = null,
+    thumbnailUrl: String? = null,
     onBack: () -> Unit = {},
     onReturnHome: () -> Unit = {},
     showNotificationPermissionSheet: Boolean = false,
@@ -68,7 +70,11 @@ fun ScheduleAnalysisLoadingScreen(
                     .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                AttachedVideoCard(Modifier.padding(top = 20.dp))
+                AttachedVideoCard(
+                    videoTitle = videoTitle,
+                    thumbnailUrl = thumbnailUrl,
+                    modifier = Modifier.padding(top = 20.dp),
+                )
 
                 Text(
                     text = "영상 첨부 완료",
@@ -127,7 +133,14 @@ fun ScheduleAnalysisLoadingScreen(
 }
 
 @Composable
-private fun AttachedVideoCard(modifier: Modifier = Modifier) {
+private fun AttachedVideoCard(
+    videoTitle: String?,
+    thumbnailUrl: String?,
+    modifier: Modifier = Modifier,
+) {
+    val fallbackPainter = painterResource(Res.drawable.schedule_analysis_video)
+    val displayTitle = videoTitle?.takeIf(String::isNotBlank) ?: DefaultVideoTitle
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -137,9 +150,12 @@ private fun AttachedVideoCard(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Image(
-            painter = painterResource(Res.drawable.schedule_analysis_video),
-            contentDescription = null,
+        AsyncImage(
+            model = thumbnailUrl?.takeIf(String::isNotBlank),
+            contentDescription = displayTitle,
+            placeholder = fallbackPainter,
+            error = fallbackPainter,
+            fallback = fallbackPainter,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,7 +163,7 @@ private fun AttachedVideoCard(modifier: Modifier = Modifier) {
                 .clip(RoundedCornerShape(12.dp)),
         )
         Text(
-            text = "[알파메일 독신남 정혁이랑 결혼하실 분? | 독신의 삶 ep.06]",
+            text = displayTitle,
             style = LinkItTheme.typography.label1NormalMedium,
             color = LinkItTheme.color.semantic.label.strong,
             textAlign = TextAlign.Center,
@@ -157,6 +173,8 @@ private fun AttachedVideoCard(modifier: Modifier = Modifier) {
         )
     }
 }
+
+private const val DefaultVideoTitle = "[알파메일 독신남 정혁이랑 결혼하실 분? | 독신의 삶 ep.06]"
 
 @Composable
 private fun NotificationPermissionSheet(

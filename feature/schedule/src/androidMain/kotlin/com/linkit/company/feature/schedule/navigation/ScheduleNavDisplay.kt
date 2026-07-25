@@ -75,7 +75,14 @@ fun ScheduleNavDisplay(
 
     val entryProvider = entryProvider {
         scheduleEditEntry(
-            onCreateSchedule = { navigator.navigate(LinkItNavKey.ScheduleAnalysisLoading) },
+            onCreateSchedule = { videoTitle, thumbnailUrl ->
+                navigator.navigate(
+                    LinkItNavKey.ScheduleAnalysisLoading(
+                        videoTitle = videoTitle,
+                        thumbnailUrl = thumbnailUrl,
+                    ),
+                )
+            },
             onOpenExistingSchedule = { tripPlanId, title ->
                 navigator.navigate(
                     LinkItNavKey.ScheduleTripDetail(
