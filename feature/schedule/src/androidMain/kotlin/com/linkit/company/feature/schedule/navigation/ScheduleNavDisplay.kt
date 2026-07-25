@@ -15,12 +15,13 @@ import com.linkit.company.core.navigation.rememberNavigationState
 @Composable
 fun ScheduleNavDisplay(
     onFinishActivity: () -> Unit,
+    startRoute: LinkItNavKey = LinkItNavKey.ScheduleEdit,
     modifier: Modifier = Modifier,
 ) {
     val navigationState = rememberNavigationState(
         savedStateConfiguration = LinkItSavedStateConfiguration,
-        startRoute = LinkItNavKey.ScheduleEdit,
-        topLevelRoutes = setOf(LinkItNavKey.ScheduleEdit),
+        startRoute = startRoute,
+        topLevelRoutes = setOf(startRoute),
     )
     val navigator = remember(navigationState) { LinkItNavigator(navigationState) }
 
@@ -28,7 +29,7 @@ fun ScheduleNavDisplay(
         scheduleEditEntry(
             onCreateSchedule = { navigator.navigate(LinkItNavKey.ScheduleAnalysisLoading) },
             onAnalysisComplete = { navigator.navigate(LinkItNavKey.ScheduleAnalysisComplete) },
-            onConfirmAnalysis = { navigator.navigate(LinkItNavKey.ScheduleTripDetail) },
+            onConfirmAnalysis = { navigator.navigate(LinkItNavKey.ScheduleTripDetail()) },
             onBack = navigator::navigateBack,
         )
     }
@@ -39,7 +40,7 @@ fun ScheduleNavDisplay(
             .systemBarsPadding(),
         backStack = navigationState.currentTopLevelBackStack,
         onBack = {
-            if (navigationState.currentRoute == LinkItNavKey.ScheduleEdit) {
+            if (navigationState.currentRoute == startRoute) {
                 onFinishActivity()
             } else {
                 navigator.navigateBack()

@@ -32,7 +32,12 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
         ScheduleAnalysisCompleteScreen(onConfirm = onConfirmAnalysis)
     }
 
-    entry<LinkItNavKey.ScheduleTripDetail> {
-        ScheduleTripDetailScreen(onBack = onBack)
+    entry<LinkItNavKey.ScheduleTripDetail> { route ->
+        ScheduleTripDetailScreen(
+            tripPlanId = route.tripPlanId,
+            title = route.title,
+            focusedPlaceId = route.focusedPlaceId,
+            onBack = onBack,
+        )
     }
 }

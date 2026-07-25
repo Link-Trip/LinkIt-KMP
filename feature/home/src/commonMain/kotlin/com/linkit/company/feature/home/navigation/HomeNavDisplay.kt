@@ -53,6 +53,9 @@ fun LinkItNavigationBar(
 fun HomeNavDisplay(
     savedStateConfiguration: SavedStateConfiguration,
     navigateToScheduleEdit: () -> Unit = {},
+    navigateToSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit = { _, _, _ ->
+        navigateToScheduleEdit()
+    },
     modifier: Modifier = Modifier,
 ) {
     val navigationState =
@@ -66,14 +69,8 @@ fun HomeNavDisplay(
 
     val entryProvider = entryProvider {
         mapEntry(
-            onOpenSchedule = {
-//                navigator.navigate(LinkItNavKey.ScheduleEdit)
-                navigateToScheduleEdit()
-            },
-            navigateToScheduleEdit = {
-//                navigator.navigate(LinkItNavKey.ScheduleEdit)
-                navigateToScheduleEdit()
-            },
+            onOpenSchedule = navigateToSchedule,
+            navigateToScheduleEdit = navigateToScheduleEdit,
         )
         storageEntry()
         exploreEntry(navigator)

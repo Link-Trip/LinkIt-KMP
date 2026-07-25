@@ -55,14 +55,20 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ScheduleTripDetailScreen(
+    tripPlanId: String? = null,
+    title: String? = null,
+    focusedPlaceId: String? = null,
     onBack: () -> Unit = {},
     viewModel: ScheduleViewModel = metroViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isServerTripPlan = tripPlanId != null
     ScheduleTripDetailContent(
-        uiState = uiState,
+        uiState = if (isServerTripPlan) uiState.copy(showTripMapPreview = false) else uiState,
+        title = title?.takeIf(String::isNotBlank) ?: if (isServerTripPlan) "일정 상세" else "도쿄 신주쿠 여행",
         onIntent = viewModel::onIntent,
         onBack = onBack,
+        focusedPlaceId = focusedPlaceId,
     )
 }
 
@@ -70,6 +76,8 @@ fun ScheduleTripDetailScreen(
 fun ScheduleTripDetailContent(
     uiState: ScheduleUiState,
     onIntent: (ScheduleIntent) -> Unit,
+    title: String = "도쿄 신주쿠 여행",
+    focusedPlaceId: String? = null,
     onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
@@ -83,7 +91,7 @@ fun ScheduleTripDetailContent(
             .background(LinkItTheme.color.semantic.background.normal.normal),
     ) {
         TripDetailTopBar(
-            title = "도쿄 신주쿠 여행",
+            title = title,
             onBack = onBack,
             showMore = uiState.tripDetailTab == TripDetailTab.SUMMARY,
         )
@@ -99,7 +107,7 @@ fun ScheduleTripDetailContent(
                 onSelect = { onIntent(ScheduleIntent.SelectTripDetailTab(it)) },
             )
             when (uiState.tripDetailTab) {
-                TripDetailTab.ITINERARY -> ItineraryContent()
+                TripDetailTab.ITINERARY -> ItineraryContent(focusedPlaceId = focusedPlaceId)
                 TripDetailTab.SUMMARY -> SummaryContent()
             }
         }
@@ -310,7 +318,7 @@ private fun TripTab(text: String, selected: Boolean, modifier: Modifier, onClick
 }
 
 @Composable
-private fun ItineraryContent() {
+private fun ItineraryContent(focusedPlaceId: String? = null) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Text(
             text = "3박4일 일정",

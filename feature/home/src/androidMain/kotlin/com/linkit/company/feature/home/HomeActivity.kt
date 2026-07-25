@@ -42,9 +42,23 @@ class HomeActivity(
                         navigateToScheduleEdit = {
                             scheduleNavigator.navigate(this@HomeActivity)
                         },
+                        navigateToSchedule = { tripPlanId, title, focusedPlaceId ->
+                            scheduleNavigator.navigate(this@HomeActivity) {
+                                putExtra(ExtraTripPlanId, tripPlanId)
+                                putExtra(ExtraTripPlanTitle, title)
+                                focusedPlaceId?.let { putExtra(ExtraFocusedPlaceId, it) }
+                                this
+                            }
+                        },
                     )
                 }
             }
         }
+    }
+
+    private companion object {
+        const val ExtraTripPlanId = "trip_plan_id"
+        const val ExtraTripPlanTitle = "trip_plan_title"
+        const val ExtraFocusedPlaceId = "focused_place_id"
     }
 }
