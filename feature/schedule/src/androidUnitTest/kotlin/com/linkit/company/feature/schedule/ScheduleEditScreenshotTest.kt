@@ -31,7 +31,7 @@ class ScheduleEditScreenshotTest {
     @Test
     fun filledVideoLink() = capture(
         ScheduleUiState(
-            videoLink = "https://www.youtube.com/watch?v=Qj1JXqY4-0I",
+            videoLink = "https://www.youtube.com/watch?v=OrGmEVTD04I",
             copiedRecommendedIndex = 0,
         ),
     )
@@ -47,7 +47,7 @@ class ScheduleEditScreenshotTest {
     @Test
     fun existingSchedulePopup() = capture(
         ScheduleUiState(
-            videoLink = "https://youtu.be/Qj1JXqY4-0I",
+            videoLink = "https://youtu.be/OrGmEVTD04I",
             existingSchedule = ExistingScheduleUiModel(
                 tripPlanId = "trip-plan-id",
                 title = "오사카 여행",

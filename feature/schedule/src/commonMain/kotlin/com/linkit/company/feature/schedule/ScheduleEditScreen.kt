@@ -389,19 +389,19 @@ private val RecommendedVideoItems = listOf(
     RecommendedVideo(
         title = "유부남과 함께 오사카 좋은 놀이공원 가보기 【오사카上】",
         viewCount = "조회수 113만회",
-        youtubeUrl = "https://youtu.be/Qj1JXqY4-0I",
+        youtubeUrl = "https://youtu.be/OrGmEVTD04I",
         thumbnail = Res.drawable.schedule_video_1,
     ),
     RecommendedVideo(
-        title = "'가루들이 안 보이네요..?' 맛있는 여행 이야기",
+        title = "\"갸루들이 안 보이네요..?\" 24년 만의 도쿄 방문기",
         viewCount = "조회수 93만회",
-        youtubeUrl = "https://youtu.be/0e3GPea1Tyg",
+        youtubeUrl = "https://youtu.be/zt1UffHle7o",
         thumbnail = Res.drawable.schedule_video_2,
     ),
     RecommendedVideo(
-        title = "'가족 여행' 오키나와 브이로그",
+        title = "유명 신혼 여행지에 혼자 당당히 여행가는 사람【몰디브】",
         viewCount = "조회수 81만회",
-        youtubeUrl = "https://youtu.be/s6JQUr5Ypw0",
+        youtubeUrl = "https://youtu.be/X4JVeFd19fU",
         thumbnail = Res.drawable.schedule_video_3,
     ),
 )
