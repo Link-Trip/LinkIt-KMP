@@ -45,12 +45,6 @@ class ScheduleViewModel(
                     )
                 }
             }
-            is ScheduleIntent.CopyRecommendedLink -> reduce {
-                copy(
-                    copiedRecommendedIndex = intent.index,
-                    videoLinkError = null,
-                )
-            }
             ScheduleIntent.SubmitVideoLink -> submitVideoLink(allowDuplicate = false)
             ScheduleIntent.CreateDuplicateVideoSchedule -> {
                 reduce { copy(existingSchedule = null) }

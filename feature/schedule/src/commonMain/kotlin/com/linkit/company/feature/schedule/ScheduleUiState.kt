@@ -19,7 +19,6 @@ data class ExistingScheduleUiModel(
 
 data class ScheduleUiState(
     val videoLink: String = "",
-    val copiedRecommendedIndex: Int? = null,
     val videoLinkError: VideoLinkError? = null,
     val isSubmittingVideoLink: Boolean = false,
     val existingSchedule: ExistingScheduleUiModel? = null,

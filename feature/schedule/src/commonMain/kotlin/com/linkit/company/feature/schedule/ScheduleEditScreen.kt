@@ -15,11 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -111,10 +111,8 @@ fun ScheduleEditContent(
             ) {
                 VideoLinkHero()
                 RecommendedVideos(
-                    selectedIndex = uiState.copiedRecommendedIndex,
-                    onCopy = { index, youtubeUrl ->
+                    onCopy = { youtubeUrl ->
                         clipboardManager.setText(AnnotatedString(youtubeUrl))
-                        onIntent(ScheduleIntent.CopyRecommendedLink(index))
                     },
                 )
                 VideoLinkInput(
@@ -174,8 +172,7 @@ private fun VideoLinkHero() {
 
 @Composable
 private fun RecommendedVideos(
-    selectedIndex: Int?,
-    onCopy: (index: Int, youtubeUrl: String) -> Unit,
+    onCopy: (youtubeUrl: String) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -204,14 +201,13 @@ private fun RecommendedVideos(
         contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        itemsIndexed(
+        items(
             items = RecommendedVideoItems,
-            key = { _, video -> video.youtubeUrl },
-        ) { index, video ->
+            key = { video -> video.youtubeUrl },
+        ) { video ->
             RecommendedVideoCard(
                 video = video,
-                selected = selectedIndex == index,
-                onCopy = { onCopy(index, video.youtubeUrl) },
+                onCopy = { onCopy(video.youtubeUrl) },
             )
         }
     }
@@ -220,7 +216,6 @@ private fun RecommendedVideos(
 @Composable
 private fun RecommendedVideoCard(
     video: RecommendedVideo,
-    selected: Boolean,
     onCopy: () -> Unit,
 ) {
     Column(Modifier.width(160.dp)) {
@@ -254,7 +249,7 @@ private fun RecommendedVideoCard(
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
-                    text = if (selected) "복사완료" else "링크복사",
+                    text = "링크복사",
                     style = LinkItTheme.typography.caption2Medium,
                     color = LinkItTheme.color.semantic.static.white,
                 )
