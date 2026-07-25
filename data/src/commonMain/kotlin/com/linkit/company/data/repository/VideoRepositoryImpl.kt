@@ -7,6 +7,7 @@ import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 import com.linkit.company.domain.repository.VideoRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -23,6 +24,10 @@ class VideoRepositoryImpl(
 
     override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis {
         return videoRemoteDataSource.getVideoAnalysis(videoAnalysisTaskId).toDomain()
+    }
+
+    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata {
+        return videoRemoteDataSource.getYouTubeVideoMetadata(youtubeUrl).toDomain()
     }
 
     override suspend fun getDiscoverVideosByTheme(

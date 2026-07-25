@@ -4,6 +4,7 @@ import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 
 interface VideoRepository {
 
@@ -16,6 +17,8 @@ interface VideoRepository {
     suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis
 
     suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis
+
+    suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata
 
     suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo>
 

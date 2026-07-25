@@ -53,6 +53,9 @@ fun HttpClientConfig<*>.defaultKtorConfig(
 private fun linkTripHeadersPlugin(accessTokenProvider: suspend () -> String?) =
     createClientPlugin("LinkTripHeaders") {
         onRequest { request, _ ->
+            if (!request.url.host.equals(LinkTripHost, ignoreCase = true)) {
+                return@onRequest
+            }
             if (request.method != HttpMethod.Get) {
                 request.headers.append("Idempotency-Key", Uuid.random().toString())
             }
@@ -61,6 +64,8 @@ private fun linkTripHeadersPlugin(accessTokenProvider: suspend () -> String?) =
             }
         }
     }
+
+private const val LinkTripHost = "linktrip.cloud"
 
 fun defaultJson(): Json {
     return Json {

@@ -9,6 +9,7 @@ import com.linkit.company.domain.model.video.DiscoverChannel
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
@@ -186,6 +187,9 @@ private class VideoRepositoryFake : VideoRepository {
     }
 
     override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis =
+        error("Not used in this test")
+
+    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata =
         error("Not used in this test")
 
     override suspend fun getDiscoverVideosByTheme(

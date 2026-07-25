@@ -22,6 +22,9 @@ kotlin {
             implementation(libs.androidxDataStorePreferencesCore)
         }
 
+        commonTest.dependencies {
+            implementation(libs.ktorClientMock)
+        }
 
         androidMain.dependencies {
             implementation(libs.ktorClientOkhttp)
