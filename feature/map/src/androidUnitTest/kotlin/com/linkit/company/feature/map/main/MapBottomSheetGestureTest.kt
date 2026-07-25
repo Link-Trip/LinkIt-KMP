@@ -13,7 +13,9 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertValueEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -105,6 +107,70 @@ class MapBottomSheetGestureTest {
         fastSwipeBy(deltaY = 80f)
         sheet().assertValueEquals("Collapsed")
         fastSwipeBy(deltaY = -80f)
+        sheet().assertValueEquals("Resting")
+    }
+
+    @Test
+    fun createControlVariantMatchesVisibleSheetHeightAtAnchors() {
+        setMapContent()
+
+        assertTrue(sheetSurfaceVisibleHeight() >= CreateControlThresholdPx)
+        assertCreateControlIconOnly()
+
+        fastSwipeBy(deltaY = 80f)
+        sheet().assertValueEquals("Collapsed")
+        assertTrue(sheetSurfaceVisibleHeight() < CreateControlThresholdPx)
+        assertCreateControlLabelled()
+
+        fastSwipeBy(deltaY = -80f)
+        sheet().assertValueEquals("Resting")
+        fastSwipeBy(deltaY = -80f)
+        sheet().assertValueEquals("Expanded")
+        assertTrue(sheetSurfaceVisibleHeight() >= CreateControlThresholdPx)
+        assertCreateControlIconOnly()
+    }
+
+    @Test
+    fun createControlVariantUpdatesWhileDraggingAcrossThresholdInBothDirections() {
+        setMapContent()
+        val initialSurfaceVisibleHeight = sheetSurfaceVisibleHeight()
+        val handleCenter = handleCenterInRoot()
+        val downwardDistance =
+            initialSurfaceVisibleHeight - CreateControlThresholdPx + ThresholdCrossingMarginPx
+
+        assertTrue(initialSurfaceVisibleHeight >= CreateControlThresholdPx)
+        assertCreateControlIconOnly()
+
+        composeRule.onRoot().performTouchInput {
+            down(handleCenter)
+        }
+        composeRule.onRoot().performTouchInput {
+            moveTo(
+                position = handleCenter + Offset(x = 0f, y = downwardDistance),
+                delayMillis = 300,
+            )
+        }
+        composeRule.waitForIdle()
+
+        assertTrue(sheetSurfaceVisibleHeight() < CreateControlThresholdPx)
+        assertCreateControlLabelled()
+
+        composeRule.onRoot().performTouchInput {
+            moveTo(
+                position = handleCenter + Offset(x = 0f, y = -ThresholdCrossingMarginPx),
+                delayMillis = 300,
+            )
+        }
+        composeRule.waitForIdle()
+
+        assertTrue(sheetSurfaceVisibleHeight() >= CreateControlThresholdPx)
+        assertCreateControlIconOnly()
+
+        composeRule.onRoot().performTouchInput {
+            advanceEventTime(1_000)
+            up()
+        }
+        composeRule.waitForIdle()
         sheet().assertValueEquals("Resting")
     }
 
@@ -244,11 +310,46 @@ class MapBottomSheetGestureTest {
 
     private fun sheetTop(): Float = sheet().fetchSemanticsNode().boundsInRoot.top
 
+    private fun sheetSurfaceVisibleHeight(): Float =
+        composeRule.onRoot().fetchSemanticsNode().boundsInRoot.bottom -
+            sheetTop() -
+            MapLocationPillHeightPx
+
     private fun handleCenterInRoot(): Offset =
         composeRule.onNodeWithTag(HandleTag).fetchSemanticsNode().boundsInRoot.center
+
+    private fun assertCreateControlLabelled() {
+        composeRule
+            .onNodeWithTag(CreateControlTag)
+            .assertValueEquals("Labelled")
+        composeRule
+            .onNodeWithText(CreateScheduleLabel, useUnmergedTree = true)
+            .assertIsDisplayed()
+    }
+
+    private fun assertCreateControlIconOnly() {
+        composeRule
+            .onNodeWithTag(CreateControlTag)
+            .assertValueEquals("IconOnly")
+        assertEquals(
+            0,
+            composeRule
+                .onAllNodesWithText(CreateScheduleLabel, useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .size,
+        )
+    }
 
     private companion object {
         const val SheetTag = "map-bottom-sheet"
         const val HandleTag = "map-bottom-sheet-handle"
+        const val CreateControlTag = "map-create-schedule-control"
+        const val CreateScheduleLabel = "일정 생성"
+
+        // Figma's 380.dp ruler includes the 76.dp bottom navigation outside MapContent.
+        // The mdpi MapContent test therefore uses a 304px visible-surface threshold.
+        const val MapLocationPillHeightPx = 57f
+        const val CreateControlThresholdPx = 304f
+        const val ThresholdCrossingMarginPx = 16f
     }
 }

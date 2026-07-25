@@ -1,5 +1,10 @@
 package com.linkit.company.feature.map.main
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,12 +52,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -146,6 +155,9 @@ fun MapContent(
                 uiState = uiState,
                 onIntent = onIntent,
                 onOpenSchedule = onOpenSchedule,
+                onCreateFromVideo = onCreateFromVideo,
+                onCreateFromStorage = onCreateFromStorage,
+                onCreateManually = onCreateManually,
             )
         } else {
             val schedule = uiState.selectedSchedule
@@ -166,21 +178,6 @@ fun MapContent(
             }
         }
 
-        if (uiState.selection == MapSelection.NONE) {
-            CreateScheduleControl(
-                expanded = uiState.isCreateMenuExpanded,
-                onToggle = { onIntent(MapIntent.ToggleCreateMenu) },
-                onCreateFromVideo = {
-                    onIntent(MapIntent.ToggleCreateMenu)
-                    onCreateFromVideo()
-                },
-                onCreateFromStorage = {
-                    onIntent(MapIntent.ToggleCreateMenu)
-                    onCreateFromStorage()
-                },
-                onCreateManually = onCreateManually,
-            )
-        }
     }
 }
 
@@ -364,6 +361,9 @@ private fun BoxScope.MapBottomSheetHost(
     uiState: MapUiState,
     onIntent: (MapIntent) -> Unit,
     onOpenSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit,
+    onCreateFromVideo: () -> Unit,
+    onCreateFromStorage: () -> Unit,
+    onCreateManually: () -> Unit,
 ) {
     val selectedSchedule = uiState.selectedSchedule
     val content = if (uiState.selection == MapSelection.SCHEDULE && selectedSchedule != null) {
@@ -504,6 +504,45 @@ private fun BoxScope.MapBottomSheetHost(
                     .then(dragModifier),
             )
         }
+
+        if (uiState.selection == MapSelection.NONE) {
+            val createControlThresholdPx = with(density) {
+                MapCreateControlIconThreshold.toPx()
+            }
+            val createControlMode by remember(
+                containerHeightPx,
+                locationPillHeightPx,
+                restingOffset,
+                createControlThresholdPx,
+            ) {
+                derivedStateOf {
+                    val currentOffset = draggableState.offset
+                        .takeUnless(Float::isNaN)
+                        ?: restingOffset
+                    val visibleSurfaceHeightPx = containerHeightPx -
+                        (currentOffset + locationPillHeightPx).coerceAtLeast(0f)
+                    if (visibleSurfaceHeightPx >= createControlThresholdPx) {
+                        MapCreateControlMode.IconOnly
+                    } else {
+                        MapCreateControlMode.Labelled
+                    }
+                }
+            }
+            CreateScheduleControl(
+                expanded = uiState.isCreateMenuExpanded,
+                mode = createControlMode,
+                onToggle = { onIntent(MapIntent.ToggleCreateMenu) },
+                onCreateFromVideo = {
+                    onIntent(MapIntent.ToggleCreateMenu)
+                    onCreateFromVideo()
+                },
+                onCreateFromStorage = {
+                    onIntent(MapIntent.ToggleCreateMenu)
+                    onCreateFromStorage()
+                },
+                onCreateManually = onCreateManually,
+            )
+        }
     }
 }
 
@@ -618,10 +657,20 @@ private enum class MapSheetContent {
     TravelPreview,
 }
 
+private enum class MapCreateControlMode {
+    Labelled,
+    IconOnly,
+}
+
 private val MapLocationPillHeight = 57.dp
 private val MapSheetCollapsedSurfaceHeight = 21.dp
 private val MapSheetTravelRestingSurfaceHeight = 189.dp
+// Figma's 380dp ruler includes the 76dp app bottom navigation that sits below MapContent.
+private val MapCreateControlIconThreshold = 380.dp - 76.dp
+private val MapCreateControlLabelledWidth = 97.dp
+private val MapCreateControlIconOnlyWidth = 40.dp
 private const val MapSheetSavedRestingFraction = .53f
+private const val MapCreateControlAnimationDurationMillis = 180
 
 @Composable
 private fun MapFilters(
@@ -968,12 +1017,28 @@ private fun CircleArrow(icon: ImageVector, enabled: Boolean, onClick: () -> Unit
 @Composable
 private fun BoxScope.CreateScheduleControl(
     expanded: Boolean,
+    mode: MapCreateControlMode,
     onToggle: () -> Unit,
     onCreateFromVideo: () -> Unit,
     onCreateFromStorage: () -> Unit,
     onCreateManually: () -> Unit,
 ) {
     val nanumSquare = rememberNanumSquareFontFamily()
+    val iconOnly = mode == MapCreateControlMode.IconOnly
+    val controlWidth by animateDpAsState(
+        targetValue = if (iconOnly) {
+            MapCreateControlIconOnlyWidth
+        } else {
+            MapCreateControlLabelledWidth
+        },
+        animationSpec = tween(MapCreateControlAnimationDurationMillis),
+        label = "map-create-control-width",
+    )
+    val iconSize by animateDpAsState(
+        targetValue = if (iconOnly) 24.dp else 20.dp,
+        animationSpec = tween(MapCreateControlAnimationDurationMillis),
+        label = "map-create-control-icon-size",
+    )
     Column(
         modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.End,
@@ -984,28 +1049,73 @@ private fun BoxScope.CreateScheduleControl(
             CreateOption("보관함에서 가져오기", onClick = onCreateFromStorage)
             CreateOption("직접 만들기", enabled = false, onClick = onCreateManually)
         }
-        Row(
+        Box(
             modifier = Modifier
+                .width(controlWidth)
                 .height(40.dp)
                 .clip(RoundedCornerShape(999.dp))
-                .background(PaletteTokens.PingoNeutral600)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            PaletteTokens.PingoNeutral600,
+                            PaletteTokens.PingoNeutral300,
+                        ),
+                    ),
+                )
                 .clickable(onClick = onToggle)
-                .padding(start = 8.dp, end = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .testTag("map-create-schedule-control")
+                .semantics {
+                    contentDescription = if (expanded) {
+                        "일정 생성 메뉴 닫기"
+                    } else {
+                        "일정 생성 메뉴 열기"
+                    }
+                    stateDescription = mode.name
+                },
         ) {
             Icon(
                 imageVector = if (expanded) LinkItIcon.Utility.Close else LinkItIcon.Utility.Ai,
                 contentDescription = null,
                 tint = LinkItTheme.color.semantic.inverse.label,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .offset(x = 8.dp)
+                    .size(iconSize),
             )
-            Text(
-                text = if (expanded) "닫기" else "일정 생성",
-                style = LinkItTheme.typography.label1NormalMedium.copy(fontFamily = nanumSquare),
-                color = PaletteTokens.PingoNeutral50,
-                modifier = Modifier.padding(start = 4.dp),
+            CreateScheduleControlLabel(
+                visible = !iconOnly,
+                expanded = expanded,
+                nanumSquare = nanumSquare,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 32.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun CreateScheduleControlLabel(
+    visible: Boolean,
+    expanded: Boolean,
+    nanumSquare: FontFamily,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(MapCreateControlAnimationDurationMillis)),
+        exit = fadeOut(tween(MapCreateControlAnimationDurationMillis)),
+        modifier = modifier,
+    ) {
+        Text(
+            text = if (expanded) "닫기" else "일정 생성",
+            style = LinkItTheme.typography.label1NormalMedium.copy(
+                fontFamily = nanumSquare,
+            ),
+            color = PaletteTokens.PingoNeutral50,
+            maxLines = 1,
+            softWrap = false,
+        )
     }
 }
 

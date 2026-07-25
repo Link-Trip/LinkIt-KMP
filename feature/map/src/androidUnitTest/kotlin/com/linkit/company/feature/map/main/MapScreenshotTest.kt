@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertValueEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
@@ -33,23 +34,31 @@ class MapScreenshotTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun defaultMap() = capture(MapTestFixtures.contentState())
+    fun defaultMap() = capture(
+        state = MapTestFixtures.contentState(),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
 
     @Test
     fun defaultMapExpanded() = capture(
         state = MapTestFixtures.contentState(),
         sheetGesture = SheetGesture.EXPAND,
+        createControlExpectation = CreateControlExpectation.IconOnly,
     )
 
     @Test
     fun defaultMapCollapsed() = capture(
         state = MapTestFixtures.contentState(),
         sheetGesture = SheetGesture.COLLAPSE,
+        createControlExpectation = CreateControlExpectation.Labelled,
     )
 
     @Test
     fun scheduleSelected() = capture(
-        MapTestFixtures.contentState(selectedScheduleId = MapTestFixtures.SeoulScheduleId),
+        state = MapTestFixtures.contentState(
+            selectedScheduleId = MapTestFixtures.SeoulScheduleId,
+        ),
+        createControlExpectation = CreateControlExpectation.Absent,
     )
 
     @Test
@@ -93,6 +102,7 @@ class MapScreenshotTest {
     private fun capture(
         state: MapUiState,
         sheetGesture: SheetGesture? = null,
+        createControlExpectation: CreateControlExpectation? = null,
     ) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
@@ -106,7 +116,26 @@ class MapScreenshotTest {
         }
 
         sheetGesture?.let(::settleSheet)
+        assertCreateControl(createControlExpectation)
         composeRule.onRoot().captureRoboImage()
+    }
+
+    private fun assertCreateControl(expectation: CreateControlExpectation?) {
+        when (expectation) {
+            CreateControlExpectation.Labelled ->
+                composeRule.onNodeWithTag(CreateControlTag).assertValueEquals("Labelled")
+            CreateControlExpectation.IconOnly ->
+                composeRule.onNodeWithTag(CreateControlTag).assertValueEquals("IconOnly")
+            CreateControlExpectation.Absent ->
+                assertEquals(
+                    0,
+                    composeRule
+                        .onAllNodesWithTag(CreateControlTag)
+                        .fetchSemanticsNodes()
+                        .size,
+                )
+            null -> Unit
+        }
     }
 
     private fun settleSheet(gesture: SheetGesture) {
@@ -128,5 +157,15 @@ class MapScreenshotTest {
     private enum class SheetGesture(val expectedState: String) {
         EXPAND("Expanded"),
         COLLAPSE("Collapsed"),
+    }
+
+    private enum class CreateControlExpectation {
+        Labelled,
+        IconOnly,
+        Absent,
+    }
+
+    private companion object {
+        const val CreateControlTag = "map-create-schedule-control"
     }
 }
