@@ -28,6 +28,14 @@ fun ScheduleNavDisplay(
     val entryProvider = entryProvider {
         scheduleEditEntry(
             onCreateSchedule = { navigator.navigate(LinkItNavKey.ScheduleAnalysisLoading) },
+            onOpenExistingSchedule = { tripPlanId, title ->
+                navigator.navigate(
+                    LinkItNavKey.ScheduleTripDetail(
+                        tripPlanId = tripPlanId,
+                        title = title,
+                    ),
+                )
+            },
             onAnalysisComplete = { navigator.navigate(LinkItNavKey.ScheduleAnalysisComplete) },
             onConfirmAnalysis = { navigator.navigate(LinkItNavKey.ScheduleTripDetail()) },
             onBack = navigator::navigateBack,

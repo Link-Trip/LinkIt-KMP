@@ -10,6 +10,7 @@ import com.linkit.company.feature.schedule.ScheduleTripDetailScreen
 
 fun EntryProviderScope<NavKey>.scheduleEditEntry(
     onCreateSchedule: () -> Unit,
+    onOpenExistingSchedule: (tripPlanId: String, title: String) -> Unit,
     onAnalysisComplete: () -> Unit,
     onConfirmAnalysis: () -> Unit,
     onBack: () -> Unit,
@@ -17,6 +18,7 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
     entry<LinkItNavKey.ScheduleEdit> {
         ScheduleEditScreen(
             onCreateSchedule = onCreateSchedule,
+            onOpenExistingSchedule = onOpenExistingSchedule,
             onBack = onBack,
         )
     }

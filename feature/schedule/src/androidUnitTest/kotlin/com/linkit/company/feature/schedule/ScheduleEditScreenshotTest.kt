@@ -28,6 +28,33 @@ class ScheduleEditScreenshotTest {
     @Test
     fun emptyVideoLink() = capture(ScheduleUiState())
 
+    @Test
+    fun filledVideoLink() = capture(
+        ScheduleUiState(
+            videoLink = "https://www.youtube.com/watch?v=Qj1JXqY4-0I",
+            copiedRecommendedIndex = 0,
+        ),
+    )
+
+    @Test
+    fun invalidVideoLink() = capture(
+        ScheduleUiState(
+            videoLink = "https://example.com/video",
+            videoLinkError = VideoLinkError.WRONG_FORMAT,
+        ),
+    )
+
+    @Test
+    fun existingSchedulePopup() = capture(
+        ScheduleUiState(
+            videoLink = "https://youtu.be/Qj1JXqY4-0I",
+            existingSchedule = ExistingScheduleUiModel(
+                tripPlanId = "trip-plan-id",
+                title = "오사카 여행",
+            ),
+        ),
+    )
+
     private fun capture(state: ScheduleUiState) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
