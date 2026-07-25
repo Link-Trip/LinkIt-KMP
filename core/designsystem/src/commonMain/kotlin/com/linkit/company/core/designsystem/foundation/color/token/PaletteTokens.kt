@@ -42,6 +42,7 @@ object PaletteTokens {
     val PingoNeutral100 = Color(0xFFD7E1EE)
     val PingoNeutral300 = Color(0xFF7B8696)
     val PingoNeutral400 = Color(0xFF5D6470)
+    val PingoNeutral500 = Color(0xFF3D424B)
     val PingoNeutral600 = Color(0xFF2A2F38)
     val PingoNeutral700 = Color(0xFF1F2127)
     val PingoNeutral800 = Color(0xFF17191F)

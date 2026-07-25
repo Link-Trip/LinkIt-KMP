@@ -10,14 +10,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertValueEquals
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.dp
@@ -175,6 +183,129 @@ class MapBottomSheetGestureTest {
     }
 
     @Test
+    fun createMenuExpandsAsIconOnlyCloseAndRestoresSheetBasedMode() {
+        setMapContent(
+            stateReducer = { state, intent ->
+                when (intent) {
+                    MapIntent.ToggleCreateMenu ->
+                        state.copy(isCreateMenuExpanded = !state.isCreateMenuExpanded)
+                    else -> state
+                }
+            },
+        )
+
+        sheet().assertValueEquals("Resting")
+        assertCreateControlIconOnly()
+
+        composeRule.onNodeWithTag(CreateControlTag).performClick()
+        composeRule.waitForIdle()
+
+        sheet().assertValueEquals("Resting")
+        assertCreateControlIconOnly(CreateMenuCloseDescription)
+        composeRule
+            .onNodeWithText(CreateFromVideoLabel)
+            .assertIsDisplayed()
+            .assertIsEnabled()
+            .assertHasClickAction()
+        assertDisabledCreateOption(CreateFromStorageLabel)
+        assertDisabledCreateOption(CreateManuallyLabel)
+
+        composeRule.onNodeWithTag(CreateControlTag).performClick()
+        composeRule.waitForIdle()
+
+        assertCreateOptionDoesNotExist(CreateFromVideoLabel)
+        assertCreateOptionDoesNotExist(CreateFromStorageLabel)
+        assertCreateOptionDoesNotExist(CreateManuallyLabel)
+        sheet().assertValueEquals("Resting")
+        assertCreateControlIconOnly()
+    }
+
+    @Test
+    fun createMenuEnterAndExitAnimationsHaveIntermediateFramesAndSettle() {
+        setMapContent(
+            stateReducer = { state, intent ->
+                when (intent) {
+                    MapIntent.ToggleCreateMenu ->
+                        state.copy(isCreateMenuExpanded = !state.isCreateMenuExpanded)
+                    else -> state
+                }
+            },
+        )
+        composeRule.mainClock.autoAdvance = false
+
+        try {
+            toggleCreateMenuWithSemantics()
+            advanceAnimationToStart()
+            // A zero-height AnimatedVisibility is not exposed in the semantics tree.
+            assertMenuDoesNotExist()
+            val enterStartHeight = 0f
+
+            composeRule.mainClock.advanceTimeBy(AnimationMidpointMillis)
+            composeRule.waitForIdle()
+            val enterMidHeight = menuHeight()
+            assertTrue(
+                "Enter midpoint should have a visible partial height " +
+                    "(start=$enterStartHeight, mid=$enterMidHeight)",
+                enterMidHeight > enterStartHeight + AnimationHeightTolerancePx,
+            )
+
+            composeRule.mainClock.advanceTimeBy(AnimationCompletionMillis)
+            composeRule.waitForIdle()
+            val enterFinalHeight = menuHeight()
+            assertTrue(
+                "Enter animation should grow beyond its midpoint " +
+                    "(mid=$enterMidHeight, final=$enterFinalHeight)",
+                enterFinalHeight > enterMidHeight + AnimationHeightTolerancePx,
+            )
+            assertCreateControlIconOnly(CreateMenuCloseDescription)
+            composeRule
+                .onNodeWithText(CreateFromVideoLabel)
+                .assertIsEnabled()
+                .assertHasClickAction()
+            assertDisabledCreateOption(CreateFromStorageLabel)
+            assertDisabledCreateOption(CreateManuallyLabel)
+
+            composeRule.mainClock.advanceTimeBy(AnimationSettleProbeMillis)
+            composeRule.waitForIdle()
+            assertEquals(
+                enterFinalHeight.toDouble(),
+                menuHeight().toDouble(),
+                AnimationHeightTolerancePx.toDouble(),
+            )
+
+            toggleCreateMenuWithSemantics()
+            advanceAnimationToStart()
+            val exitStartHeight = menuHeight()
+            assertEquals(
+                enterFinalHeight.toDouble(),
+                exitStartHeight.toDouble(),
+                AnimationHeightTolerancePx.toDouble(),
+            )
+
+            composeRule.mainClock.advanceTimeBy(AnimationMidpointMillis)
+            composeRule.waitForIdle()
+            val exitMidHeight = menuHeight()
+            assertTrue(
+                "Exit midpoint should shrink but remain visible " +
+                    "(start=$exitStartHeight, mid=$exitMidHeight)",
+                exitMidHeight > AnimationHeightTolerancePx &&
+                    exitMidHeight < exitStartHeight - AnimationHeightTolerancePx,
+            )
+
+            composeRule.mainClock.advanceTimeBy(AnimationCompletionMillis)
+            composeRule.waitForIdle()
+            assertMenuDoesNotExist()
+            assertCreateOptionDoesNotExist(CreateFromVideoLabel)
+            assertCreateOptionDoesNotExist(CreateFromStorageLabel)
+            assertCreateOptionDoesNotExist(CreateManuallyLabel)
+            assertCreateControlIconOnly()
+        } finally {
+            composeRule.mainClock.autoAdvance = true
+            composeRule.waitForIdle()
+        }
+    }
+
+    @Test
     fun reverseDragInterruptsSettlingAnimationWithoutPositionJump() {
         setMapContent()
         composeRule.mainClock.autoAdvance = false
@@ -318,23 +449,65 @@ class MapBottomSheetGestureTest {
     private fun handleCenterInRoot(): Offset =
         composeRule.onNodeWithTag(HandleTag).fetchSemanticsNode().boundsInRoot.center
 
+    private fun toggleCreateMenuWithSemantics() {
+        composeRule
+            .onNodeWithTag(CreateControlTag)
+            .performSemanticsAction(SemanticsActions.OnClick)
+    }
+
+    private fun advanceAnimationToStart() {
+        composeRule.mainClock.advanceTimeBy(AnimationStartFramesMillis)
+        composeRule.waitForIdle()
+    }
+
+    private fun menuHeight(): Float =
+        composeRule.onNodeWithTag(CreateMenuTag).fetchSemanticsNode().boundsInRoot.height
+
+    private fun assertMenuDoesNotExist() {
+        assertEquals(
+            0,
+            composeRule.onAllNodesWithTag(CreateMenuTag).fetchSemanticsNodes().size,
+        )
+    }
+
     private fun assertCreateControlLabelled() {
         composeRule
             .onNodeWithTag(CreateControlTag)
             .assertValueEquals("Labelled")
+            .assertContentDescriptionEquals(CreateMenuOpenDescription)
         composeRule
             .onNodeWithText(CreateScheduleLabel, useUnmergedTree = true)
             .assertIsDisplayed()
     }
 
-    private fun assertCreateControlIconOnly() {
+    private fun assertCreateControlIconOnly(
+        expectedContentDescription: String = CreateMenuOpenDescription,
+    ) {
         composeRule
             .onNodeWithTag(CreateControlTag)
             .assertValueEquals("IconOnly")
+            .assertContentDescriptionEquals(expectedContentDescription)
+        val hiddenLabel = if (expectedContentDescription == CreateMenuCloseDescription) {
+            CloseLabel
+        } else {
+            CreateScheduleLabel
+        }
+        assertCreateOptionDoesNotExist(hiddenLabel)
+    }
+
+    private fun assertDisabledCreateOption(label: String) {
+        composeRule
+            .onNodeWithText(label)
+            .assertIsDisplayed()
+            .assertIsNotEnabled()
+            .assertHasNoClickAction()
+    }
+
+    private fun assertCreateOptionDoesNotExist(label: String) {
         assertEquals(
             0,
             composeRule
-                .onAllNodesWithText(CreateScheduleLabel, useUnmergedTree = true)
+                .onAllNodesWithText(label, useUnmergedTree = true)
                 .fetchSemanticsNodes()
                 .size,
         )
@@ -344,12 +517,25 @@ class MapBottomSheetGestureTest {
         const val SheetTag = "map-bottom-sheet"
         const val HandleTag = "map-bottom-sheet-handle"
         const val CreateControlTag = "map-create-schedule-control"
+        const val CreateMenuTag = "map-create-schedule-menu"
         const val CreateScheduleLabel = "일정 생성"
+        const val CloseLabel = "닫기"
+        const val CreateMenuOpenDescription = "일정 생성 메뉴 열기"
+        const val CreateMenuCloseDescription = "일정 생성 메뉴 닫기"
+        const val CreateFromVideoLabel = "영상 링크로 만들기"
+        const val CreateFromStorageLabel = "보관함에서 가져오기"
+        const val CreateManuallyLabel = "직접 만들기"
 
         // Figma's 380.dp ruler includes the 76.dp bottom navigation outside MapContent.
         // The mdpi MapContent test therefore uses a 304px visible-surface threshold.
         const val MapLocationPillHeightPx = 57f
         const val CreateControlThresholdPx = 304f
         const val ThresholdCrossingMarginPx = 16f
+
+        const val AnimationStartFramesMillis = 32L
+        const val AnimationMidpointMillis = 96L
+        const val AnimationCompletionMillis = 160L
+        const val AnimationSettleProbeMillis = 240L
+        const val AnimationHeightTolerancePx = 1f
     }
 }

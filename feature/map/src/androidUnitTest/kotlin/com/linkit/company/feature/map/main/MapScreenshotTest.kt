@@ -6,6 +6,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertValueEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -59,6 +60,12 @@ class MapScreenshotTest {
             selectedScheduleId = MapTestFixtures.SeoulScheduleId,
         ),
         createControlExpectation = CreateControlExpectation.Absent,
+    )
+
+    @Test
+    fun createMenuExpanded() = capture(
+        state = MapTestFixtures.contentState().copy(isCreateMenuExpanded = true),
+        createControlExpectation = CreateControlExpectation.IconOnlyClose,
     )
 
     @Test
@@ -123,9 +130,20 @@ class MapScreenshotTest {
     private fun assertCreateControl(expectation: CreateControlExpectation?) {
         when (expectation) {
             CreateControlExpectation.Labelled ->
-                composeRule.onNodeWithTag(CreateControlTag).assertValueEquals("Labelled")
+                composeRule
+                    .onNodeWithTag(CreateControlTag)
+                    .assertValueEquals("Labelled")
+                    .assertContentDescriptionEquals(CreateMenuOpenDescription)
             CreateControlExpectation.IconOnly ->
-                composeRule.onNodeWithTag(CreateControlTag).assertValueEquals("IconOnly")
+                composeRule
+                    .onNodeWithTag(CreateControlTag)
+                    .assertValueEquals("IconOnly")
+                    .assertContentDescriptionEquals(CreateMenuOpenDescription)
+            CreateControlExpectation.IconOnlyClose ->
+                composeRule
+                    .onNodeWithTag(CreateControlTag)
+                    .assertValueEquals("IconOnly")
+                    .assertContentDescriptionEquals(CreateMenuCloseDescription)
             CreateControlExpectation.Absent ->
                 assertEquals(
                     0,
@@ -162,10 +180,13 @@ class MapScreenshotTest {
     private enum class CreateControlExpectation {
         Labelled,
         IconOnly,
+        IconOnlyClose,
         Absent,
     }
 
     private companion object {
         const val CreateControlTag = "map-create-schedule-control"
+        const val CreateMenuOpenDescription = "일정 생성 메뉴 열기"
+        const val CreateMenuCloseDescription = "일정 생성 메뉴 닫기"
     }
 }

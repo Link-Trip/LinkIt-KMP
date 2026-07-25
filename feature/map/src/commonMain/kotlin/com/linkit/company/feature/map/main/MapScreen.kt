@@ -1,10 +1,16 @@
 package com.linkit.company.feature.map.main
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +52,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,10 +61,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
@@ -669,8 +680,13 @@ private val MapSheetTravelRestingSurfaceHeight = 189.dp
 private val MapCreateControlIconThreshold = 380.dp - 76.dp
 private val MapCreateControlLabelledWidth = 97.dp
 private val MapCreateControlIconOnlyWidth = 40.dp
+private val MapCreateMenuWidth = 171.dp
 private const val MapSheetSavedRestingFraction = .53f
 private const val MapCreateControlAnimationDurationMillis = 180
+private const val MapCreateMenuEnterDurationMillis = 210
+private const val MapCreateMenuExitDurationMillis = 180
+private const val MapCreateIconTransitionDurationMillis = 160
+private const val MapCreateIconTransitionScale = .9f
 
 @Composable
 private fun MapFilters(
@@ -1024,7 +1040,8 @@ private fun BoxScope.CreateScheduleControl(
     onCreateManually: () -> Unit,
 ) {
     val nanumSquare = rememberNanumSquareFontFamily()
-    val iconOnly = mode == MapCreateControlMode.IconOnly
+    val visualMode = if (expanded) MapCreateControlMode.IconOnly else mode
+    val iconOnly = visualMode == MapCreateControlMode.IconOnly
     val controlWidth by animateDpAsState(
         targetValue = if (iconOnly) {
             MapCreateControlIconOnlyWidth
@@ -1039,29 +1056,73 @@ private fun BoxScope.CreateScheduleControl(
         animationSpec = tween(MapCreateControlAnimationDurationMillis),
         label = "map-create-control-icon-size",
     )
+    val controlBackground = if (expanded) {
+        Modifier.background(PaletteTokens.PingoNeutral600)
+    } else {
+        Modifier.background(
+            Brush.verticalGradient(
+                colors = listOf(
+                    PaletteTokens.PingoNeutral600,
+                    PaletteTokens.PingoNeutral300,
+                ),
+            ),
+        )
+    }
+    val latestExpanded = rememberUpdatedState(expanded)
+    val exitingInteractionGuard = if (expanded) {
+        Modifier
+    } else {
+        Modifier
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        awaitPointerEvent(PointerEventPass.Initial).changes.forEach {
+                            it.consume()
+                        }
+                    }
+                }
+            }
+            .clearAndSetSemantics {}
+    }
     Column(
         modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (expanded) {
-            CreateOption("영상 링크로 만들기", onClick = onCreateFromVideo)
-            CreateOption("보관함에서 가져오기", onClick = onCreateFromStorage)
-            CreateOption("직접 만들기", enabled = false, onClick = onCreateManually)
+        AnimatedVisibility(
+            visible = expanded,
+            modifier = Modifier.testTag("map-create-schedule-menu"),
+            enter = fadeIn(
+                tween(MapCreateControlAnimationDurationMillis),
+            ) + expandVertically(
+                animationSpec = tween(MapCreateMenuEnterDurationMillis),
+                expandFrom = Alignment.Bottom,
+            ),
+            exit = fadeOut(
+                tween(MapCreateMenuExitDurationMillis),
+            ) + shrinkVertically(
+                animationSpec = tween(MapCreateMenuExitDurationMillis),
+                shrinkTowards = Alignment.Bottom,
+            ),
+        ) {
+            Box(modifier = exitingInteractionGuard) {
+                CreateScheduleMenu(
+                    onCreateFromVideo = {
+                        if (latestExpanded.value) {
+                            onCreateFromVideo()
+                        }
+                    },
+                    onCreateFromStorage = onCreateFromStorage,
+                    onCreateManually = onCreateManually,
+                )
+            }
         }
         Box(
             modifier = Modifier
                 .width(controlWidth)
                 .height(40.dp)
                 .clip(RoundedCornerShape(999.dp))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            PaletteTokens.PingoNeutral600,
-                            PaletteTokens.PingoNeutral300,
-                        ),
-                    ),
-                )
+                .then(controlBackground)
                 .clickable(onClick = onToggle)
                 .testTag("map-create-schedule-control")
                 .semantics {
@@ -1070,21 +1131,60 @@ private fun BoxScope.CreateScheduleControl(
                     } else {
                         "일정 생성 메뉴 열기"
                     }
-                    stateDescription = mode.name
+                    stateDescription = visualMode.name
                 },
         ) {
-            Icon(
-                imageVector = if (expanded) LinkItIcon.Utility.Close else LinkItIcon.Utility.Ai,
-                contentDescription = null,
-                tint = LinkItTheme.color.semantic.inverse.label,
+            Box(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .offset(x = 8.dp)
                     .size(iconSize),
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                AnimatedContent(
+                    targetState = expanded,
+                    transitionSpec = {
+                        (
+                            fadeIn(
+                                tween(MapCreateIconTransitionDurationMillis),
+                            ) + scaleIn(
+                                animationSpec = tween(
+                                    MapCreateIconTransitionDurationMillis,
+                                ),
+                                initialScale = MapCreateIconTransitionScale,
+                            )
+                        ).togetherWith(
+                            fadeOut(
+                                tween(MapCreateIconTransitionDurationMillis),
+                            ) + scaleOut(
+                                animationSpec = tween(
+                                    MapCreateIconTransitionDurationMillis,
+                                ),
+                                targetScale = MapCreateIconTransitionScale,
+                            ),
+                        )
+                    },
+                    contentAlignment = Alignment.Center,
+                    label = "map-create-control-icon",
+                ) { isExpanded ->
+                    Icon(
+                        imageVector = if (isExpanded) {
+                            LinkItIcon.Utility.Close
+                        } else {
+                            LinkItIcon.Utility.Ai
+                        },
+                        contentDescription = null,
+                        tint = if (isExpanded) {
+                            PaletteTokens.CoolNeutral98
+                        } else {
+                            LinkItTheme.color.semantic.inverse.label
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
             CreateScheduleControlLabel(
                 visible = !iconOnly,
-                expanded = expanded,
                 nanumSquare = nanumSquare,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -1097,7 +1197,6 @@ private fun BoxScope.CreateScheduleControl(
 @Composable
 private fun CreateScheduleControlLabel(
     visible: Boolean,
-    expanded: Boolean,
     nanumSquare: FontFamily,
     modifier: Modifier = Modifier,
 ) {
@@ -1108,7 +1207,7 @@ private fun CreateScheduleControlLabel(
         modifier = modifier,
     ) {
         Text(
-            text = if (expanded) "닫기" else "일정 생성",
+            text = "일정 생성",
             style = LinkItTheme.typography.label1NormalMedium.copy(
                 fontFamily = nanumSquare,
             ),
@@ -1120,25 +1219,91 @@ private fun CreateScheduleControlLabel(
 }
 
 @Composable
-private fun CreateOption(
+private fun CreateScheduleMenu(
+    onCreateFromVideo: () -> Unit,
+    onCreateFromStorage: () -> Unit,
+    onCreateManually: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .width(MapCreateMenuWidth)
+            .clip(RoundedCornerShape(12.dp))
+            .background(PaletteTokens.PingoNeutral600)
+            .padding(vertical = 8.dp),
+    ) {
+        CreateScheduleMenuOption(
+            icon = LinkItIcon.Control.Link,
+            text = "영상 링크로 만들기",
+            enabled = true,
+            onClick = onCreateFromVideo,
+        )
+        CreateScheduleMenuDivider()
+        CreateScheduleMenuOption(
+            icon = LinkItIcon.Control.Upload,
+            text = "보관함에서 가져오기",
+            enabled = false,
+            onClick = onCreateFromStorage,
+        )
+        CreateScheduleMenuDivider()
+        CreateScheduleMenuOption(
+            icon = LinkItIcon.Control.Customize,
+            text = "직접 만들기",
+            enabled = false,
+            onClick = onCreateManually,
+        )
+    }
+}
+
+@Composable
+private fun CreateScheduleMenuOption(
+    icon: ImageVector,
     text: String,
-    enabled: Boolean = true,
+    enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    Text(
-        text = text,
-        style = LinkItTheme.typography.label1NormalSemibold,
-        color = if (enabled) {
-            LinkItTheme.color.semantic.label.strong
-        } else {
-            LinkItTheme.color.semantic.label.disable
-        },
+    val contentColor = if (enabled) {
+        PaletteTokens.PingoNeutral50
+    } else {
+        PaletteTokens.PingoNeutral400
+    }
+    val interactionModifier = if (enabled) {
+        Modifier.clickable(onClick = onClick)
+    } else {
+        Modifier.semantics(mergeDescendants = true) {
+            disabled()
+        }
+    }
+    Row(
         modifier = Modifier
-            .shadow(4.dp, RoundedCornerShape(999.dp))
-            .clip(RoundedCornerShape(999.dp))
-            .background(LinkItTheme.color.semantic.background.elevated.normal)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 18.dp, vertical = 12.dp),
+            .fillMaxWidth()
+            .then(interactionModifier)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = text,
+            style = LinkItTheme.typography.label2Medium,
+            color = contentColor,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
+}
+
+@Composable
+private fun CreateScheduleMenuDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(PaletteTokens.PingoNeutral500),
     )
 }
 
