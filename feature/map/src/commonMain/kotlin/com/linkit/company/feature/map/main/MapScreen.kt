@@ -46,6 +46,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -60,15 +61,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
@@ -77,6 +82,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.linkit.company.core.designsystem.component.button.ButtonSize
+import com.linkit.company.core.designsystem.component.button.LinkItButton
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.typography.rememberNanumSquareFontFamily
@@ -84,10 +91,18 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.map_calendar
+import linkitcompany.feature.map.generated.resources.map_empty_schedule_bubble
+import linkitcompany.feature.map.generated.resources.map_empty_schedule_character
 import linkitcompany.feature.map.generated.resources.map_filter_category
 import linkitcompany.feature.map.generated.resources.map_filter_globe
+import linkitcompany.feature.map.generated.resources.map_filter_money
 import linkitcompany.feature.map.generated.resources.map_place_photo
 import linkitcompany.feature.map.generated.resources.map_schedule_thumbnail
+import linkitcompany.feature.map.generated.resources.map_selected_thumb_1
+import linkitcompany.feature.map.generated.resources.map_selected_thumb_2
+import linkitcompany.feature.map.generated.resources.map_selected_thumb_3
+import linkitcompany.feature.map.generated.resources.map_selected_thumb_4
+import linkitcompany.feature.map.generated.resources.map_selected_thumb_5
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.roundToInt
@@ -102,6 +117,10 @@ fun MapScreen(
     onOpenMyPage: () -> Unit = {},
     viewModel: MapViewModel = metroViewModel(),
 ) {
+    val debugMapData = rememberMapDebugData()
+    LaunchedEffect(viewModel, debugMapData) {
+        debugMapData?.let(viewModel::useDebugMapData)
+    }
     val uiState by viewModel.uiState.collectAsState()
     MapContent(
         uiState = uiState,
@@ -271,7 +290,7 @@ private fun MapUiState.toMapMarkers(): List<MapMarkerUiModel> = buildList {
         }
     }
 
-    selectedSchedule?.places?.forEach { place ->
+    selectedSchedule?.places?.forEachIndexed { index, place ->
         add(
             MapMarkerUiModel(
                 id = place.markerId,
@@ -280,9 +299,18 @@ private fun MapUiState.toMapMarkers(): List<MapMarkerUiModel> = buildList {
                 label = place.name,
                 type = MapMarkerType.PLACE,
                 selected = selectedPlaceMarkerId == place.markerId,
+                thumbnail = placeMarkerThumbnail(index),
             ),
         )
     }
+}
+
+private fun placeMarkerThumbnail(index: Int): DrawableResource = when (index % 5) {
+    0 -> Res.drawable.map_selected_thumb_1
+    1 -> Res.drawable.map_selected_thumb_2
+    2 -> Res.drawable.map_selected_thumb_3
+    3 -> Res.drawable.map_selected_thumb_4
+    else -> Res.drawable.map_selected_thumb_5
 }
 
 @Composable
@@ -593,12 +621,28 @@ private fun ColumnScope.SavedScheduleSheetContent(
         color = LinkItTheme.color.semantic.label.normal,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, top = 12.dp, end = 20.dp)
+            .padding(
+                start = 20.dp,
+                top = if (uiState.loadState == MapLoadState.EMPTY) 16.dp else 12.dp,
+                end = 20.dp,
+            )
             .height(24.dp),
     )
 
-    if (uiState.loadState == MapLoadState.CONTENT) {
-        MapFilters(uiState = uiState, onIntent = onIntent)
+    when (uiState.loadState) {
+        MapLoadState.CONTENT -> MapFilters(
+            uiState = uiState,
+            onIntent = onIntent,
+        )
+        MapLoadState.EMPTY -> {
+            MapFilters(
+                uiState = uiState,
+                durationIcon = Res.drawable.map_filter_money,
+                onIntent = onIntent,
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+        else -> Unit
     }
 
     when (uiState.loadState) {
@@ -606,15 +650,13 @@ private fun ColumnScope.SavedScheduleSheetContent(
             title = "저장한 일정을 불러오는 중이에요",
             showProgress = true,
         )
-        MapLoadState.EMPTY -> MapSheetStatus(
-            title = "아직 저장한 일정이 없어요",
-            description = "일정 생성으로 첫 일정을 만들어 보세요.",
+        MapLoadState.EMPTY -> EmptyScheduleSheetContent(
+            onCreateSchedule = { onIntent(MapIntent.ToggleCreateMenu) },
         )
-        MapLoadState.ERROR -> MapSheetStatus(
-            title = "일정을 불러오지 못했어요",
-            description = uiState.errorMessage,
-            actionLabel = "다시 시도",
-            onAction = { onIntent(MapIntent.RetryLoad) },
+        MapLoadState.ERROR -> ScheduleLoadErrorContent(
+            description = uiState.errorMessage
+                ?: "네트워크 연결을 확인한 뒤 다시 시도해 주세요.",
+            onRetry = { onIntent(MapIntent.RetryLoad) },
         )
         MapLoadState.CONTENT -> ScheduleList(
             schedules = uiState.filteredSchedules,
@@ -676,6 +718,8 @@ private enum class MapCreateControlMode {
 private val MapLocationPillHeight = 57.dp
 private val MapSheetCollapsedSurfaceHeight = 21.dp
 private val MapSheetTravelRestingSurfaceHeight = 189.dp
+// 744dp reference viewport: resting sheet surface 337dp - 15dp handle - 36dp title.
+private val MapSheetRestingStatusHeight = 286.dp
 // Figma's 380dp ruler includes the 76dp app bottom navigation that sits below MapContent.
 private val MapCreateControlIconThreshold = 380.dp - 76.dp
 private val MapCreateControlLabelledWidth = 97.dp
@@ -691,6 +735,7 @@ private const val MapCreateIconTransitionScale = .9f
 @Composable
 private fun MapFilters(
     uiState: MapUiState,
+    durationIcon: DrawableResource = Res.drawable.map_calendar,
     onIntent: (MapIntent) -> Unit,
 ) {
     Row(
@@ -710,7 +755,7 @@ private fun MapFilters(
             onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.STYLE)) },
         )
         FilterPill(
-            icon = Res.drawable.map_calendar,
+            icon = durationIcon,
             text = uiState.durationFilter.takeUnless { it == MapDurationFilter.ALL }?.label ?: "기간",
             active = uiState.durationFilter != MapDurationFilter.ALL,
             onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.DURATION)) },
@@ -775,15 +820,184 @@ private fun <T> FilterOptions(
 }
 
 @Composable
-private fun ColumnScope.MapSheetStatus(
+private fun EmptyScheduleSheetContent(
+    onCreateSchedule: () -> Unit,
+) {
+    ScheduleSummaryRow(scheduleCount = 0)
+    Spacer(Modifier.height(4.dp))
+    ScheduleStateContent(
+        title = "아직 등록된 일정이 없습니다.",
+        actionLabel = "일정 생성하기",
+        onAction = onCreateSchedule,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 24.dp),
+        visual = { EmptyScheduleIllustration() },
+    )
+}
+
+@Composable
+private fun ScheduleLoadErrorContent(
+    description: String,
+    onRetry: () -> Unit,
+) {
+    ScheduleStateContent(
+        title = "일정을 불러오지 못했어요",
+        description = description,
+        actionLabel = "다시 시도",
+        onAction = onRetry,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 32.dp, top = 16.dp, end = 32.dp, bottom = 24.dp)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        visual = {
+            Box(
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(LinkItTheme.color.semantic.status.negative.copy(alpha = .1f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = LinkItIcon.Utility.CircleExclamationFill,
+                    contentDescription = null,
+                    tint = LinkItTheme.color.semantic.status.negative,
+                    modifier = Modifier.size(36.dp),
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun ScheduleStateContent(
+    title: String,
+    actionLabel: String,
+    onAction: () -> Unit,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    visual: @Composable () -> Unit,
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        visual()
+        Text(
+            text = title,
+            style = LinkItTheme.typography.body1NormalSemibold,
+            color = LinkItTheme.color.semantic.label.normal,
+            textAlign = TextAlign.Center,
+        )
+        description?.let {
+            Text(
+                text = it,
+                style = LinkItTheme.typography.label2Medium,
+                color = LinkItTheme.color.semantic.label.alternative,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 6.dp),
+            )
+        }
+        LinkItButton(
+            onClick = onAction,
+            text = actionLabel,
+            size = ButtonSize.Medium,
+            modifier = Modifier.padding(top = if (description == null) 8.dp else 16.dp),
+        )
+    }
+}
+
+@Composable
+private fun EmptyScheduleIllustration() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(144.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(x = (-0.45).dp, y = 10.dp)
+                .width(188.21.dp)
+                .height(124.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clipToBounds(),
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.map_empty_schedule_character),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleY = 1.1384f
+                            transformOrigin = TransformOrigin(0f, 0f)
+                        },
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .offset(x = 133.18.dp, y = 26.21.dp)
+                    .width(43.62.dp)
+                    .height(42.49.dp)
+                    .clipToBounds(),
+            ) {
+                Image(
+                    painter = painterResource(Res.drawable.map_empty_schedule_bubble),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .offset(y = (-18.36).dp)
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = 2.2254f
+                            scaleY = 1.4319f
+                            transformOrigin = TransformOrigin(0f, 0f)
+                        },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleSummaryRow(scheduleCount: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(29.dp)
+            .padding(horizontal = 20.dp, vertical = 5.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = "총 ${scheduleCount}개 일정",
+            style = LinkItTheme.typography.label2Medium,
+            color = LinkItTheme.color.semantic.label.alternative,
+        )
+        Text(
+            text = "최신순",
+            style = LinkItTheme.typography.label2Medium,
+            color = PaletteTokens.PingoNeutral400,
+        )
+    }
+}
+
+@Composable
+private fun MapSheetStatus(
     title: String,
     description: String? = null,
     showProgress: Boolean = false,
-    actionLabel: String? = null,
-    onAction: () -> Unit = {},
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 32.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(MapSheetRestingStatusHeight)
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -807,19 +1021,6 @@ private fun ColumnScope.MapSheetStatus(
                 color = LinkItTheme.color.semantic.label.alternative,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 6.dp),
-            )
-        }
-        actionLabel?.let {
-            Text(
-                text = it,
-                style = LinkItTheme.typography.label1NormalSemibold,
-                color = LinkItTheme.color.semantic.static.white,
-                modifier = Modifier
-                    .padding(top = 16.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(LinkItTheme.color.semantic.primary.normal)
-                    .clickable(onClick = onAction)
-                    .padding(horizontal = 20.dp, vertical = 10.dp),
             )
         }
     }

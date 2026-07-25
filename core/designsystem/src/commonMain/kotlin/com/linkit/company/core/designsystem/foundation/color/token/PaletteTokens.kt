@@ -48,6 +48,8 @@ object PaletteTokens {
     val PingoNeutral800 = Color(0xFF17191F)
     val PingoMapSelectionBackground = Color(0xFFF2F8FF)
     val PingoMapSelectionBorder = Color(0xFF379BFF)
+    val PingoMapMarkerOutline = Color(0xFF2D2F33)
+    val PingoMapMarkerSelected = Color(0xFF3B82F6)
 
     val CoolNeutral5 = Color(0xFF0F0F10)
     val CoolNeutral7 = Color(0xFF141415)

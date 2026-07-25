@@ -13,6 +13,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -28,6 +29,7 @@ class MapViewModel(
         onIntent = { handleIntent(it) },
     )
     private var loadJob: Job? = null
+    private var debugMapData: List<TripPlanMapData>? = null
 
     val uiState = container.uiState
 
@@ -36,6 +38,12 @@ class MapViewModel(
     }
 
     fun onIntent(intent: MapIntent) = container.intent(intent)
+
+    internal fun useDebugMapData(mapData: List<TripPlanMapData>) {
+        debugMapData = mapData
+        loadJob?.cancel()
+        showSchedules(mapData)
+    }
 
     private fun MviContext<MapUiState, MapSideEffect>.handleIntent(intent: MapIntent) {
         when (intent) {
@@ -141,13 +149,21 @@ class MapViewModel(
 
     private fun loadSchedules() {
         if (loadJob?.isActive == true) return
+        debugMapData?.let { mapData ->
+            showSchedules(mapData)
+            return
+        }
         loadJob = viewModelScope.launch {
             container.mviContext.reduce {
                 copy(loadState = MapLoadState.LOADING, errorMessage = null)
             }
-            runCatching { loadWithAuthRetry() }
-                .onSuccess { mapData -> showSchedules(mapData) }
-                .onFailure { error -> showLoadError(error) }
+            val result = runCatching { loadWithAuthRetry() }
+            if (result.exceptionOrNull() is CancellationException || debugMapData != null) {
+                return@launch
+            }
+            result
+                .onSuccess(::showSchedules)
+                .onFailure(::showLoadError)
         }
     }
 

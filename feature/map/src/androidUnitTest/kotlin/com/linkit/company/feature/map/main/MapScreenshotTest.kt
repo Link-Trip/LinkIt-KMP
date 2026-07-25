@@ -77,17 +77,41 @@ class MapScreenshotTest {
     )
 
     @Test
-    fun loadingMap() = capture(MapUiState(loadState = MapLoadState.LOADING))
+    fun loadingMap() = capture(
+        state = MapUiState(loadState = MapLoadState.LOADING),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
 
     @Test
-    fun emptyMap() = capture(MapUiState(loadState = MapLoadState.EMPTY))
+    fun emptyMap() = capture(
+        state = MapUiState(loadState = MapLoadState.EMPTY),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun emptyMapExpanded() = capture(
+        state = MapUiState(loadState = MapLoadState.EMPTY),
+        sheetGesture = SheetGesture.EXPAND,
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
 
     @Test
     fun errorMap() = capture(
-        MapUiState(
+        state = MapUiState(
             loadState = MapLoadState.ERROR,
             errorMessage = "네트워크 연결을 확인하고 다시 시도해 주세요.",
         ),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun errorMapExpanded() = capture(
+        state = MapUiState(
+            loadState = MapLoadState.ERROR,
+            errorMessage = "네트워크 연결을 확인하고 다시 시도해 주세요.",
+        ),
+        sheetGesture = SheetGesture.EXPAND,
+        createControlExpectation = CreateControlExpectation.IconOnly,
     )
 
     @Test

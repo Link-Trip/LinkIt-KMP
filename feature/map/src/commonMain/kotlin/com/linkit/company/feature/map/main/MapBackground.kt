@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,10 +29,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
-import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.map_background
+import linkitcompany.feature.map.generated.resources.map_place_photo
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.PI
 import kotlin.math.cos
@@ -68,6 +69,7 @@ internal data class MapMarkerUiModel(
     val label: String,
     val type: MapMarkerType,
     val selected: Boolean = false,
+    val thumbnail: DrawableResource? = null,
 )
 
 internal val DefaultMapCamera = MapCameraUiModel(
@@ -205,43 +207,48 @@ internal fun MapMarkerVisual(marker: MapMarkerUiModel, modifier: Modifier = Modi
 
 @Composable
 private fun ScheduleMapMarkerVisual(marker: MapMarkerUiModel, modifier: Modifier) {
-    val shape = if (marker.selected) LinkItTheme.shape.xl else LinkItTheme.shape.lg
+    val shape = if (marker.selected) LinkItTheme.shape.xl else RoundedCornerShape(10.dp)
     Text(
         text = marker.label,
-        style = LinkItTheme.typography.label2Medium,
+        style = if (marker.selected) {
+            LinkItTheme.typography.body2NormalSemibold
+        } else {
+            LinkItTheme.typography.label2Medium
+        },
         color = PaletteTokens.PingoNeutral700,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = modifier
-            .widthIn(max = if (marker.selected) 132.dp else 120.dp)
-            .shadow(if (marker.selected) 5.dp else 3.dp, shape)
+            .widthIn(max = 120.dp)
+            .shadow(5.dp, shape)
             .clip(shape)
             .background(
-                if (marker.selected) PaletteTokens.PingoMapSelectionBackground
+                if (marker.selected) PaletteTokens.PaleBlue95
                 else LinkItTheme.color.semantic.background.elevated.normal,
             )
             .border(
                 width = 1.dp,
                 color = if (marker.selected) {
-                    PaletteTokens.PingoMapSelectionBorder
+                    PaletteTokens.PaleBlue70
                 } else {
                     PaletteTokens.PingoNeutral100
                 },
                 shape = shape,
             )
-            .padding(horizontal = 11.dp, vertical = 8.dp),
+            .padding(horizontal = 10.dp, vertical = 8.dp),
     )
 }
 
 @Composable
 private fun PlaceMapMarkerVisual(marker: MapMarkerUiModel, modifier: Modifier) {
     val markerColor = if (marker.selected) {
-        LinkItTheme.color.semantic.primary.normal
+        PaletteTokens.PingoMapMarkerSelected
     } else {
-        PaletteTokens.PingoNeutral600
+        PaletteTokens.PingoMapMarkerOutline
     }
-    val markerSize = if (marker.selected) 42.dp else 36.dp
-    val shape = if (marker.selected) LinkItTheme.shape.lg else LinkItTheme.shape.md
+    val markerSize = if (marker.selected) 44.dp else 32.dp
+    val pointerSize = if (marker.selected) 12.dp else 10.dp
+    val shape = RoundedCornerShape(if (marker.selected) 6.dp else 4.dp)
     Column(
         modifier = modifier.width(markerSize),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -249,23 +256,23 @@ private fun PlaceMapMarkerVisual(marker: MapMarkerUiModel, modifier: Modifier) {
         Box(
             modifier = Modifier
                 .size(markerSize)
-                .shadow(if (marker.selected) 3.dp else 1.dp, shape)
+                .shadow(3.dp, shape)
                 .clip(shape)
-                .background(LinkItTheme.color.semantic.static.white)
-                .border(2.dp, markerColor, shape),
-            contentAlignment = Alignment.Center,
+                .background(markerColor)
+                .padding(2.dp),
         ) {
-            Icon(
-                imageVector = LinkItIcon.Location.LocationFill,
+            Image(
+                painter = painterResource(marker.thumbnail ?: Res.drawable.map_place_photo),
                 contentDescription = null,
-                tint = markerColor,
-                modifier = Modifier.size(if (marker.selected) 24.dp else 20.dp),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(if (marker.selected) 4.dp else 2.dp)),
             )
         }
         Canvas(
             Modifier
-                .width(if (marker.selected) 20.dp else 12.dp)
-                .height(if (marker.selected) 7.dp else 8.dp),
+                .size(pointerSize),
         ) {
             val pointer = Path().apply {
                 moveTo(0f, 0f)

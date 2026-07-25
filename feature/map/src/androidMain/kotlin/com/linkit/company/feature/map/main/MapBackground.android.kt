@@ -142,6 +142,7 @@ internal actual fun PlatformMapBackground(
                         marker.label,
                         marker.type,
                         marker.selected,
+                        marker.thumbnail ?: Unit,
                         state = rememberUpdatedMarkerState(LatLng(marker.lat, marker.lng)),
                         contentDescription = marker.label,
                         tag = marker.id,

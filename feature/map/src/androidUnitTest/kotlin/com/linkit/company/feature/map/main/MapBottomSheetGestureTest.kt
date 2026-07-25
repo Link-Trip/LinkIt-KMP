@@ -221,6 +221,82 @@ class MapBottomSheetGestureTest {
     }
 
     @Test
+    fun expandedEmptyStateCreateActionEmitsToggleCreateMenuOnce() {
+        var toggleCreateMenuCount = 0
+        setMapContent(
+            initialState = MapUiState(loadState = MapLoadState.EMPTY),
+            stateReducer = { state, intent ->
+                if (intent == MapIntent.ToggleCreateMenu) {
+                    toggleCreateMenuCount++
+                }
+                state
+            },
+        )
+
+        fastSwipeBy(deltaY = -80f)
+        sheet().assertValueEquals("Expanded")
+        listOf(
+            RegionFilterLabel,
+            StyleFilterLabel,
+            DurationFilterLabel,
+            EmptySummaryLabel,
+            LatestSortLabel,
+            EmptyStateTitle,
+        ).forEach { label ->
+            composeRule
+                .onNodeWithText(label)
+                .assertIsDisplayed()
+        }
+        composeRule
+            .onNodeWithText(EmptyCreateScheduleLabel)
+            .assertIsDisplayed()
+            .assertIsEnabled()
+            .assertHasClickAction()
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, toggleCreateMenuCount)
+        }
+    }
+
+    @Test
+    fun errorStateRetryEmitsRetryLoadOnce() {
+        var retryLoadCount = 0
+        val errorDescription = "네트워크 연결을 확인하고 다시 시도해 주세요."
+        setMapContent(
+            initialState = MapUiState(
+                loadState = MapLoadState.ERROR,
+                errorMessage = errorDescription,
+            ),
+            stateReducer = { state, intent ->
+                if (intent == MapIntent.RetryLoad) {
+                    retryLoadCount++
+                }
+                state
+            },
+        )
+
+        fastSwipeBy(deltaY = -80f)
+        sheet().assertValueEquals("Expanded")
+        composeRule
+            .onNodeWithText(ErrorStateTitle)
+            .assertIsDisplayed()
+        composeRule
+            .onNodeWithText(errorDescription)
+            .assertIsDisplayed()
+        composeRule
+            .onNodeWithText(RetryLabel)
+            .assertIsDisplayed()
+            .assertIsEnabled()
+            .assertHasClickAction()
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(1, retryLoadCount)
+        }
+    }
+
+    @Test
     fun createMenuEnterAndExitAnimationsHaveIntermediateFramesAndSettle() {
         setMapContent(
             stateReducer = { state, intent ->
@@ -525,6 +601,15 @@ class MapBottomSheetGestureTest {
         const val CreateFromVideoLabel = "영상 링크로 만들기"
         const val CreateFromStorageLabel = "보관함에서 가져오기"
         const val CreateManuallyLabel = "직접 만들기"
+        const val EmptyCreateScheduleLabel = "일정 생성하기"
+        const val RetryLabel = "다시 시도"
+        const val RegionFilterLabel = "지역"
+        const val StyleFilterLabel = "여행 스타일"
+        const val DurationFilterLabel = "기간"
+        const val EmptySummaryLabel = "총 0개 일정"
+        const val LatestSortLabel = "최신순"
+        const val EmptyStateTitle = "아직 등록된 일정이 없습니다."
+        const val ErrorStateTitle = "일정을 불러오지 못했어요"
 
         // Figma's 380.dp ruler includes the 76.dp bottom navigation outside MapContent.
         // The mdpi MapContent test therefore uses a 304px visible-surface threshold.
