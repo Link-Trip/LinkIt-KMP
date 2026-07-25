@@ -4,15 +4,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,16 +35,27 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
@@ -54,6 +70,7 @@ import linkitcompany.feature.map.generated.resources.map_place_photo
 import linkitcompany.feature.map.generated.resources.map_schedule_thumbnail
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import kotlin.math.roundToInt
 
 @Composable
 fun MapScreen(
@@ -124,38 +141,28 @@ fun MapContent(
             )
         }
 
-        when (uiState.selection) {
-            MapSelection.NONE -> SavedScheduleSheet(
+        if (uiState.selection != MapSelection.PLACE) {
+            MapBottomSheetHost(
                 uiState = uiState,
                 onIntent = onIntent,
-                onScheduleClick = { schedule ->
-                    onOpenSchedule(schedule.id, schedule.title, null)
-                },
+                onOpenSchedule = onOpenSchedule,
             )
-            MapSelection.SCHEDULE -> uiState.selectedSchedule?.let { schedule ->
-                SelectedScheduleSheet(
-                    schedule = schedule,
-                    onBack = { onIntent(MapIntent.ClearSelection) },
-                    onOpenSchedule = { onOpenSchedule(schedule.id, schedule.title, null) },
+        } else {
+            val schedule = uiState.selectedSchedule
+            val place = uiState.selectedPlace
+            if (schedule != null && place != null) {
+                PlaceInformationCard(
+                    place = place,
+                    placeIndex = uiState.selectedPlaceIndex,
+                    placeCount = schedule.places.size,
+                    onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
+                    onNext = { onIntent(MapIntent.ShowNextPlace) },
+                    onClose = { onIntent(MapIntent.ClosePlace) },
+                    onViewInSchedule = {
+                        onOpenSchedule(schedule.id, schedule.title, place.placeId)
+                    },
+                    onOpenPlaceDetail = { onOpenPlaceDetail(place) },
                 )
-            }
-            MapSelection.PLACE -> {
-                val schedule = uiState.selectedSchedule
-                val place = uiState.selectedPlace
-                if (schedule != null && place != null) {
-                    PlaceInformationCard(
-                        place = place,
-                        placeIndex = uiState.selectedPlaceIndex,
-                        placeCount = schedule.places.size,
-                        onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
-                        onNext = { onIntent(MapIntent.ShowNextPlace) },
-                        onClose = { onIntent(MapIntent.ClosePlace) },
-                        onViewInSchedule = {
-                            onOpenSchedule(schedule.id, schedule.title, place.placeId)
-                        },
-                        onOpenPlaceDetail = { onOpenPlaceDetail(place) },
-                    )
-                }
             }
         }
 
@@ -353,66 +360,268 @@ private fun BoxScope.SelectedScheduleMapMarker(schedule: MapScheduleUiModel) {
 }
 
 @Composable
-private fun BoxScope.SavedScheduleSheet(
+private fun BoxScope.MapBottomSheetHost(
+    uiState: MapUiState,
+    onIntent: (MapIntent) -> Unit,
+    onOpenSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit,
+) {
+    val selectedSchedule = uiState.selectedSchedule
+    val content = if (uiState.selection == MapSelection.SCHEDULE && selectedSchedule != null) {
+        MapSheetContent.TravelPreview
+    } else {
+        MapSheetContent.SavedSchedules
+    }
+    val draggableState = remember { AnchoredDraggableState(MapSheetAnchor.Resting) }
+    var lastSavedAnchor by remember { mutableStateOf(MapSheetAnchor.Resting) }
+    var previousContent by remember { mutableStateOf<MapSheetContent?>(null) }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxSize()
+            .clipToBounds(),
+    ) {
+        val density = LocalDensity.current
+        val containerHeightPx = constraints.maxHeight.toFloat()
+        val locationPillHeightPx = with(density) { MapLocationPillHeight.toPx() }
+        val collapsedSurfaceHeightPx = with(density) { MapSheetCollapsedSurfaceHeight.toPx() }
+        val restingVisibleHeightPx = with(density) {
+            when (content) {
+                MapSheetContent.SavedSchedules -> containerHeightPx * MapSheetSavedRestingFraction
+                MapSheetContent.TravelPreview ->
+                    MapLocationPillHeight.toPx() + MapSheetTravelRestingSurfaceHeight.toPx()
+            }
+        }
+        val expandedOffset = -locationPillHeightPx
+        val collapsedOffset =
+            containerHeightPx - locationPillHeightPx - collapsedSurfaceHeightPx
+        val restingOffset =
+            (containerHeightPx - restingVisibleHeightPx).coerceIn(expandedOffset, collapsedOffset)
+        val anchors = remember(containerHeightPx, content, density) {
+            DraggableAnchors {
+                if (content == MapSheetContent.SavedSchedules) {
+                    MapSheetAnchor.Expanded at expandedOffset
+                }
+                MapSheetAnchor.Resting at restingOffset
+                MapSheetAnchor.Collapsed at collapsedOffset
+            }
+        }
+        SideEffect {
+            val contentChanged = previousContent != content
+            if (contentChanged && previousContent == MapSheetContent.SavedSchedules) {
+                lastSavedAnchor = draggableState.settledValue
+            }
+            val targetAfterAnchorUpdate = when {
+                previousContent == null -> MapSheetAnchor.Resting
+                contentChanged && content == MapSheetContent.TravelPreview ->
+                    MapSheetAnchor.Resting
+                contentChanged && content == MapSheetContent.SavedSchedules -> lastSavedAnchor
+                else -> draggableState.targetValue
+            }
+            draggableState.updateAnchors(
+                newAnchors = anchors,
+                newTarget = targetAfterAnchorUpdate,
+            )
+            previousContent = content
+        }
+
+        val flingBehavior = AnchoredDraggableDefaults.flingBehavior(
+            state = draggableState,
+            positionalThreshold = { distance -> distance * .5f },
+        )
+        @Suppress("DEPRECATION")
+        val dragModifier = Modifier.anchoredDraggable(
+            state = draggableState,
+            orientation = Orientation.Vertical,
+            startDragImmediately = true,
+            flingBehavior = flingBehavior,
+        )
+        val isExpanded = content == MapSheetContent.SavedSchedules &&
+            draggableState.settledValue == MapSheetAnchor.Expanded
+        val isCollapsed = draggableState.settledValue == MapSheetAnchor.Collapsed
+        val surfaceShape = when {
+            isExpanded -> RoundedCornerShape(0.dp)
+            content == MapSheetContent.TravelPreview ->
+                RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+            else -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        }
+        val locationLabel = when (content) {
+            MapSheetContent.SavedSchedules ->
+                uiState.filteredSchedules.firstOrNull()?.regionLabel ?: "저장한 일정"
+            MapSheetContent.TravelPreview -> selectedSchedule?.regionLabel.orEmpty()
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset {
+                    IntOffset(
+                        x = 0,
+                        y = draggableState.requireOffset().roundToInt(),
+                    )
+                }
+                .testTag("map-bottom-sheet")
+                .semantics {
+                    stateDescription = draggableState.settledValue.name
+                },
+        ) {
+            MapLocationPill(locationLabel)
+            MapSheetSurface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = MapLocationPillHeight),
+                shape = surfaceShape,
+                shadowElevation = if (content == MapSheetContent.SavedSchedules) 10.dp else 0.dp,
+            ) {
+                when (content) {
+                    MapSheetContent.SavedSchedules -> SavedScheduleSheetContent(
+                        uiState = uiState,
+                        onIntent = onIntent,
+                        onScheduleClick = { schedule ->
+                            onIntent(MapIntent.SelectSchedule(schedule.id))
+                        },
+                    )
+                    MapSheetContent.TravelPreview -> selectedSchedule?.let { schedule ->
+                        SelectedScheduleSheetContent(
+                            schedule = schedule,
+                            onBack = { onIntent(MapIntent.ClearSelection) },
+                            onOpenSchedule = {
+                                onOpenSchedule(schedule.id, schedule.title, null)
+                            },
+                        )
+                    }
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(
+                        y = MapLocationPillHeight +
+                            if (isCollapsed) (-27).dp else 0.dp,
+                    )
+                    .size(48.dp)
+                    .testTag("map-bottom-sheet-handle")
+                    .then(dragModifier),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MapSheetSurface(
+    modifier: Modifier,
+    shape: RoundedCornerShape,
+    shadowElevation: Dp,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .shadow(shadowElevation, shape),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(shape)
+                .background(LinkItTheme.color.semantic.background.elevated.normal),
+        ) {
+            SheetHandle()
+            content()
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.SavedScheduleSheetContent(
     uiState: MapUiState,
     onIntent: (MapIntent) -> Unit,
     onScheduleClick: (MapScheduleUiModel) -> Unit,
 ) {
     val nanumSquare = rememberNanumSquareFontFamily()
-    val locationLabel = uiState.filteredSchedules.firstOrNull()?.regionLabel ?: "저장한 일정"
-    Column(
+    Text(
+        text = "저장한 일정",
+        style = LinkItTheme.typography.body2NormalBold.copy(fontFamily = nanumSquare),
+        color = LinkItTheme.color.semantic.label.normal,
         modifier = Modifier
-            .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .fillMaxHeight(.53f),
-    ) {
-        MapLocationPill(locationLabel)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .shadow(10.dp, RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                .background(LinkItTheme.color.semantic.background.elevated.normal),
-        ) {
-            SheetHandle()
-            Text(
-                text = "저장한 일정",
-                style = LinkItTheme.typography.body2NormalBold.copy(fontFamily = nanumSquare),
-                color = LinkItTheme.color.semantic.label.normal,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, top = 12.dp, end = 20.dp)
-                    .height(24.dp),
-            )
+            .padding(start = 20.dp, top = 12.dp, end = 20.dp)
+            .height(24.dp),
+    )
 
-            if (uiState.loadState == MapLoadState.CONTENT) {
-                MapFilters(uiState = uiState, onIntent = onIntent)
-            }
+    if (uiState.loadState == MapLoadState.CONTENT) {
+        MapFilters(uiState = uiState, onIntent = onIntent)
+    }
 
-            when (uiState.loadState) {
-                MapLoadState.LOADING -> MapSheetStatus(
-                    title = "저장한 일정을 불러오는 중이에요",
-                    showProgress = true,
-                )
-                MapLoadState.EMPTY -> MapSheetStatus(
-                    title = "아직 저장한 일정이 없어요",
-                    description = "일정 생성으로 첫 일정을 만들어 보세요.",
-                )
-                MapLoadState.ERROR -> MapSheetStatus(
-                    title = "일정을 불러오지 못했어요",
-                    description = uiState.errorMessage,
-                    actionLabel = "다시 시도",
-                    onAction = { onIntent(MapIntent.RetryLoad) },
-                )
-                MapLoadState.CONTENT -> ScheduleList(
-                    schedules = uiState.filteredSchedules,
-                    onScheduleClick = onScheduleClick,
-                )
-            }
-        }
+    when (uiState.loadState) {
+        MapLoadState.LOADING -> MapSheetStatus(
+            title = "저장한 일정을 불러오는 중이에요",
+            showProgress = true,
+        )
+        MapLoadState.EMPTY -> MapSheetStatus(
+            title = "아직 저장한 일정이 없어요",
+            description = "일정 생성으로 첫 일정을 만들어 보세요.",
+        )
+        MapLoadState.ERROR -> MapSheetStatus(
+            title = "일정을 불러오지 못했어요",
+            description = uiState.errorMessage,
+            actionLabel = "다시 시도",
+            onAction = { onIntent(MapIntent.RetryLoad) },
+        )
+        MapLoadState.CONTENT -> ScheduleList(
+            schedules = uiState.filteredSchedules,
+            onScheduleClick = onScheduleClick,
+        )
     }
 }
+
+@Composable
+private fun ColumnScope.SelectedScheduleSheetContent(
+    schedule: MapScheduleUiModel,
+    onBack: () -> Unit,
+    onOpenSchedule: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = LinkItIcon.Arrow.ChevronLeft,
+            contentDescription = "저장한 일정으로 돌아가기",
+            tint = LinkItTheme.color.semantic.label.strong,
+            modifier = Modifier.size(24.dp).clickable(onClick = onBack),
+        )
+        Text(
+            text = schedule.title,
+            style = LinkItTheme.typography.heading2Bold,
+            color = LinkItTheme.color.semantic.label.strong,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 4.dp).weight(1f),
+        )
+    }
+    ScheduleListRow(
+        schedule = schedule,
+        modifier = Modifier
+            .testTag("map-selected-schedule-${schedule.id}")
+            .clickable(onClick = onOpenSchedule),
+        compact = true,
+    )
+}
+
+private enum class MapSheetAnchor {
+    Collapsed,
+    Resting,
+    Expanded,
+}
+
+private enum class MapSheetContent {
+    SavedSchedules,
+    TravelPreview,
+}
+
+private val MapLocationPillHeight = 57.dp
+private val MapSheetCollapsedSurfaceHeight = 21.dp
+private val MapSheetTravelRestingSurfaceHeight = 189.dp
+private const val MapSheetSavedRestingFraction = .53f
 
 @Composable
 private fun MapFilters(
@@ -586,7 +795,9 @@ private fun ColumnScope.ScheduleList(
                 items(schedules, key = MapScheduleUiModel::id) { schedule ->
                     ScheduleListRow(
                         schedule = schedule,
-                        modifier = Modifier.clickable { onScheduleClick(schedule) },
+                        modifier = Modifier
+                            .testTag("map-schedule-${schedule.id}")
+                            .clickable { onScheduleClick(schedule) },
                     )
                 }
             }
@@ -595,60 +806,10 @@ private fun ColumnScope.ScheduleList(
 }
 
 @Composable
-private fun BoxScope.SelectedScheduleSheet(
-    schedule: MapScheduleUiModel,
-    onBack: () -> Unit,
-    onOpenSchedule: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .offset(y = 30.dp)
-            .fillMaxWidth()
-            .height(246.dp),
-    ) {
-        MapLocationPill(schedule.regionLabel)
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(189.dp)
-                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                .background(LinkItTheme.color.semantic.background.elevated.normal),
-        ) {
-            SheetHandle()
-            Row(
-                modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = LinkItIcon.Arrow.ChevronLeft,
-                    contentDescription = "저장한 일정으로 돌아가기",
-                    tint = LinkItTheme.color.semantic.label.strong,
-                    modifier = Modifier.size(24.dp).clickable(onClick = onBack),
-                )
-                Text(
-                    text = schedule.title,
-                    style = LinkItTheme.typography.heading2Bold,
-                    color = LinkItTheme.color.semantic.label.strong,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 4.dp).weight(1f),
-                )
-            }
-            ScheduleListRow(
-                schedule = schedule,
-                modifier = Modifier.clickable(onClick = onOpenSchedule),
-                compact = true,
-            )
-        }
-    }
-}
-
-@Composable
 private fun MapLocationPill(text: String) {
     val nanumSquare = rememberNanumSquareFontFamily()
     Box(
-        modifier = Modifier.fillMaxWidth().height(57.dp),
+        modifier = Modifier.fillMaxWidth().height(MapLocationPillHeight),
         contentAlignment = Alignment.TopCenter,
     ) {
         Text(
