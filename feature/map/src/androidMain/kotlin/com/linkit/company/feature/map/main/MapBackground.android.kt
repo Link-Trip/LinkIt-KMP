@@ -1,31 +1,35 @@
 package com.linkit.company.feature.map.main
 
-import android.content.Context
-import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType as GoogleMapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlin.math.abs
 
 private const val MinZoom = 3f
 private const val MaxZoom = 21f
@@ -35,6 +39,7 @@ internal actual fun PlatformMapBackground(
     mapType: MapType,
     modifier: Modifier,
     markers: List<MapMarkerUiModel>,
+    selectedArea: MapAreaUiModel?,
     initialCamera: MapCameraUiModel,
     contentPaddingBottom: Dp,
     currentLocation: MapCoordinateUiModel?,
@@ -42,17 +47,8 @@ internal actual fun PlatformMapBackground(
     onMarkerClick: (MapMarkerUiModel) -> Unit,
     onCameraChanged: (MapCameraUiModel) -> Unit,
 ) {
-    val context = LocalContext.current
-    val hasApiKey = remember(context) { context.hasMapsApiKey() }
-    if (LocalInspectionMode.current || !hasApiKey) {
-        StaticMapBackground(
-            mapType = mapType,
-            modifier = modifier,
-            markers = markers,
-            initialCamera = initialCamera,
-            contentPaddingBottom = contentPaddingBottom,
-            onMarkerClick = onMarkerClick,
-        )
+    if (LocalInspectionMode.current) {
+        MapInspectionPlaceholder(modifier)
         return
     }
 
@@ -63,12 +59,67 @@ internal actual fun PlatformMapBackground(
             safeInitialCamera.zoom.coerceIn(MinZoom, MaxZoom),
         )
     }
-    val selectedMarker = markers.firstOrNull { it.selected && it.type == MapMarkerType.PLACE }
-        ?: markers.firstOrNull(MapMarkerUiModel::selected)
+    val selectedPlaceMarker = markers.firstOrNull {
+        it.selected && it.type == MapMarkerType.PLACE
+    }
+    val selectedScheduleBounds = markers.selectedScheduleCameraBounds()
+    val areaStrokeWidth = with(LocalDensity.current) { 1.dp.toPx() }
+    val cameraBoundsPadding = with(LocalDensity.current) { 48.dp.roundToPx() }
     val currentOnCameraChanged by rememberUpdatedState(onCameraChanged)
+    var isMapLoaded by remember { mutableStateOf(false) }
+    var hasAppliedCamera by remember { mutableStateOf(false) }
 
-    LaunchedEffect(selectedMarker?.id, selectedMarker?.lat, selectedMarker?.lng) {
-        selectedMarker?.takeIf(MapMarkerUiModel::hasValidCoordinate)?.let { marker ->
+    LaunchedEffect(
+        isMapLoaded,
+        safeInitialCamera.center.lat,
+        safeInitialCamera.center.lng,
+        safeInitialCamera.zoom,
+    ) {
+        if (!isMapLoaded) return@LaunchedEffect
+        val currentCamera = cameraPositionState.position
+        if (
+            abs(currentCamera.target.latitude - safeInitialCamera.center.lat) > 0.000_001 ||
+            abs(currentCamera.target.longitude - safeInitialCamera.center.lng) > 0.000_001 ||
+            abs(currentCamera.zoom - safeInitialCamera.zoom) > 0.01f
+        ) {
+            cameraPositionState.move(
+                CameraUpdateFactory.newCameraPosition(
+                    CameraPosition.fromLatLngZoom(
+                        safeInitialCamera.center.toLatLng(),
+                        safeInitialCamera.zoom.coerceIn(MinZoom, MaxZoom),
+                    ),
+                ),
+            )
+        }
+        hasAppliedCamera = true
+    }
+    LaunchedEffect(
+        isMapLoaded,
+        selectedScheduleBounds,
+        cameraBoundsPadding,
+    ) {
+        if (!isMapLoaded) return@LaunchedEffect
+        val points = selectedScheduleBounds?.points.orEmpty()
+        when {
+            points.size == 1 -> cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(points.first().toLatLng(), 15f),
+            )
+            points.size > 1 -> {
+                val bounds = LatLngBounds.builder().apply {
+                    points.forEach { point -> include(point.toLatLng()) }
+                }.build()
+                cameraPositionState.animate(
+                    CameraUpdateFactory.newLatLngBounds(bounds, cameraBoundsPadding),
+                )
+            }
+        }
+    }
+    LaunchedEffect(
+        selectedPlaceMarker?.id,
+        selectedPlaceMarker?.lat,
+        selectedPlaceMarker?.lng,
+    ) {
+        selectedPlaceMarker?.takeIf(MapMarkerUiModel::hasValidCoordinate)?.let { marker ->
             cameraPositionState.animate(
                 CameraUpdateFactory.newLatLngZoom(
                     LatLng(marker.lat, marker.lng),
@@ -93,7 +144,7 @@ internal actual fun PlatformMapBackground(
     LaunchedEffect(cameraPositionState) {
         snapshotFlow { cameraPositionState.isMoving }
             .distinctUntilChanged()
-            .filter { isMoving -> !isMoving }
+            .filter { isMoving -> !isMoving && hasAppliedCamera }
             .collect {
                 val camera = cameraPositionState.position
                 currentOnCameraChanged(
@@ -132,7 +183,21 @@ internal actual fun PlatformMapBackground(
             zoomControlsEnabled = false,
             zoomGesturesEnabled = true,
         ),
+        onMapLoaded = { isMapLoaded = true },
     ) {
+        selectedArea
+            ?.points
+            ?.filter(MapCoordinateUiModel::hasValidCoordinate)
+            ?.takeIf { it.size >= 3 }
+            ?.let { points ->
+                Polygon(
+                    points = points.map(MapCoordinateUiModel::toLatLng),
+                    fillColor = MapAreaFillColor,
+                    strokeColor = MapAreaStrokeColor,
+                    strokeWidth = areaStrokeWidth,
+                    tag = selectedArea.id,
+                )
+            }
         markers
             .filter(MapMarkerUiModel::hasValidCoordinate)
             .forEach { marker ->
@@ -160,13 +225,3 @@ internal actual fun PlatformMapBackground(
 }
 
 private fun MapCoordinateUiModel.toLatLng(): LatLng = LatLng(lat, lng)
-
-@Suppress("DEPRECATION")
-private fun Context.hasMapsApiKey(): Boolean = runCatching {
-    packageManager
-        .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-        .metaData
-        ?.getString("com.google.android.geo.API_KEY")
-        ?.let { it.isNotBlank() && it != "YOUR_API_KEY" }
-        ?: false
-}.getOrDefault(false)

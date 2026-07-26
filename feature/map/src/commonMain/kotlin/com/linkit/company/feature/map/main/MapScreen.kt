@@ -217,6 +217,7 @@ private fun BoxScope.MapCanvas(
     onIntent: (MapIntent) -> Unit,
 ) {
     val markers = uiState.toMapMarkers()
+    val selectedArea = uiState.selectedSchedule?.toMapAreaUiModel()
     val camera = MapCameraUiModel(
         center = MapCoordinateUiModel(uiState.cameraLatitude, uiState.cameraLongitude),
         zoom = uiState.cameraZoom,
@@ -229,45 +230,78 @@ private fun BoxScope.MapCanvas(
         null
     }
 
-    if (uiState.loadState == MapLoadState.LOADING) {
-        StaticMapBackground(uiState.mapType, Modifier.fillMaxSize())
-    } else {
-        PlatformMapBackground(
-            mapType = uiState.mapType,
-            modifier = Modifier.fillMaxSize(),
-            markers = markers,
-            initialCamera = camera,
-            contentPaddingBottom = when (uiState.selection) {
-                MapSelection.NONE -> 337.dp
-                MapSelection.SCHEDULE -> 189.dp
-                MapSelection.PLACE -> 233.dp
-            },
-            currentLocation = currentLocation,
-            focusCurrentLocationRequest = uiState.focusCurrentLocationRequest,
-            onMarkerClick = { marker ->
-                when (marker.type) {
-                    MapMarkerType.SCHEDULE -> onIntent(MapIntent.SelectSchedule(marker.id))
-                    MapMarkerType.PLACE -> uiState.schedules
-                        .firstOrNull { schedule ->
-                            schedule.places.any { it.markerId == marker.id }
-                        }
-                        ?.let { schedule ->
-                            onIntent(MapIntent.SelectPlace(schedule.id, marker.id))
-                        }
-                }
-            },
-            onCameraChanged = { changedCamera ->
-                onIntent(
-                    MapIntent.CameraChanged(
-                        latitude = changedCamera.center.lat,
-                        longitude = changedCamera.center.lng,
-                        zoom = changedCamera.zoom,
-                    ),
-                )
-            },
-        )
-    }
+    PlatformMapBackground(
+        mapType = uiState.mapType,
+        modifier = Modifier.fillMaxSize(),
+        markers = markers,
+        selectedArea = selectedArea,
+        initialCamera = camera,
+        contentPaddingBottom = when (uiState.selection) {
+            MapSelection.NONE -> 337.dp
+            MapSelection.SCHEDULE -> 189.dp
+            MapSelection.PLACE -> 233.dp
+        },
+        currentLocation = currentLocation,
+        focusCurrentLocationRequest = uiState.focusCurrentLocationRequest,
+        onMarkerClick = { marker ->
+            when (marker.type) {
+                MapMarkerType.SCHEDULE -> onIntent(MapIntent.SelectSchedule(marker.id))
+                MapMarkerType.PLACE -> uiState.schedules
+                    .firstOrNull { schedule ->
+                        schedule.places.any { it.markerId == marker.id }
+                    }
+                    ?.let { schedule ->
+                        onIntent(MapIntent.SelectPlace(schedule.id, marker.id))
+                    }
+            }
+        },
+        onCameraChanged = { changedCamera ->
+            onIntent(
+                MapIntent.CameraChanged(
+                    latitude = changedCamera.center.lat,
+                    longitude = changedCamera.center.lng,
+                    zoom = changedCamera.zoom,
+                ),
+            )
+        },
+    )
+}
 
+internal fun MapScheduleUiModel.toMapAreaUiModel(): MapAreaUiModel? {
+    val areaPoints = places
+        .map { place -> MapCoordinateUiModel(place.latitude, place.longitude) }
+        .convexHull()
+    return areaPoints
+        .takeIf { it.size >= 3 }
+        ?.let { points -> MapAreaUiModel(id = id, points = points) }
+}
+
+internal fun Iterable<MapCoordinateUiModel>.convexHull(): List<MapCoordinateUiModel> {
+    val sortedPoints = filter(MapCoordinateUiModel::hasValidCoordinate)
+        .distinct()
+        .sortedWith(compareBy(MapCoordinateUiModel::lng).thenBy(MapCoordinateUiModel::lat))
+    if (sortedPoints.size <= 2) return sortedPoints
+
+    fun cross(
+        origin: MapCoordinateUiModel,
+        first: MapCoordinateUiModel,
+        second: MapCoordinateUiModel,
+    ): Double = (first.lng - origin.lng) * (second.lat - origin.lat) -
+        (first.lat - origin.lat) * (second.lng - origin.lng)
+
+    fun buildHalf(points: Iterable<MapCoordinateUiModel>): List<MapCoordinateUiModel> =
+        buildList {
+            points.forEach { point ->
+                while (size >= 2 && cross(this[size - 2], this[size - 1], point) <= 0.0) {
+                    removeAt(lastIndex)
+                }
+                add(point)
+            }
+        }
+
+    val lower = buildHalf(sortedPoints)
+    val upper = buildHalf(sortedPoints.asReversed())
+    return lower.dropLast(1) + upper.dropLast(1)
 }
 
 private fun MapUiState.toMapMarkers(): List<MapMarkerUiModel> = buildList {

@@ -124,7 +124,7 @@ fun MapPlaceDetailScreen(
                         .height(210.dp)
                         .clip(RoundedCornerShape(14.dp)),
                 ) {
-                    StaticMapBackground(
+                    PlatformMapBackground(
                         mapType = MapType.DEFAULT,
                         modifier = Modifier.fillMaxSize(),
                         markers = listOf(

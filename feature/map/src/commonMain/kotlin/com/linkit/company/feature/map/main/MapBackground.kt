@@ -4,13 +4,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
@@ -31,21 +27,9 @@ import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.map.generated.resources.Res
-import linkitcompany.feature.map.generated.resources.map_background
 import linkitcompany.feature.map.generated.resources.map_place_photo
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.ln
-import kotlin.math.pow
-import kotlin.math.tan
-
-private const val StaticMapTileSize = 256.0
-private const val StaticMapMinZoom = 0f
-private const val StaticMapMaxZoom = 22f
-private const val WebMercatorMaxLatitude = 85.05112878
-private val StaticMarkerVisibilityMargin = 72.dp
 
 internal enum class MapMarkerType {
     SCHEDULE,
@@ -72,6 +56,19 @@ internal data class MapMarkerUiModel(
     val thumbnail: DrawableResource? = null,
 )
 
+internal data class MapAreaUiModel(
+    val id: String,
+    val points: List<MapCoordinateUiModel>,
+)
+
+internal data class MapCameraBoundsUiModel(
+    val id: String,
+    val points: List<MapCoordinateUiModel>,
+)
+
+internal val MapAreaFillColor = PaletteTokens.PingoMapAreaFill.copy(alpha = 0.24f)
+internal val MapAreaStrokeColor = PaletteTokens.PingoMapAreaStroke.copy(alpha = 0.6f)
+
 internal val DefaultMapCamera = MapCameraUiModel(
     center = MapCoordinateUiModel(lat = 37.5665, lng = 126.9780),
     zoom = 12f,
@@ -82,6 +79,7 @@ internal expect fun PlatformMapBackground(
     mapType: MapType,
     modifier: Modifier,
     markers: List<MapMarkerUiModel> = emptyList(),
+    selectedArea: MapAreaUiModel? = null,
     initialCamera: MapCameraUiModel = DefaultMapCamera,
     contentPaddingBottom: Dp = 337.dp,
     currentLocation: MapCoordinateUiModel? = null,
@@ -91,110 +89,12 @@ internal expect fun PlatformMapBackground(
 )
 
 @Composable
-internal fun StaticMapBackground(
-    mapType: MapType,
-    modifier: Modifier,
-    markers: List<MapMarkerUiModel> = emptyList(),
-    initialCamera: MapCameraUiModel = DefaultMapCamera,
-    contentPaddingBottom: Dp = 337.dp,
-    onMarkerClick: (MapMarkerUiModel) -> Unit = {},
-) {
-    BoxWithConstraints(modifier.clipToBounds()) {
-        Image(
-            painter = painterResource(Res.drawable.map_background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize(),
-        )
-        if (mapType == MapType.SATELLITE) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(LinkItTheme.color.semantic.label.neutral.copy(alpha = .28f)),
-            )
-        }
-        StaticMapMarkers(
-            markers = markers,
-            initialCamera = initialCamera,
-            contentPaddingBottom = contentPaddingBottom,
-            onMarkerClick = onMarkerClick,
-        )
-    }
-}
-
-@Composable
-private fun androidx.compose.foundation.layout.BoxWithConstraintsScope.StaticMapMarkers(
-    markers: List<MapMarkerUiModel>,
-    initialCamera: MapCameraUiModel,
-    contentPaddingBottom: Dp,
-    onMarkerClick: (MapMarkerUiModel) -> Unit,
-) {
-    val validMarkers = markers
-        .filter(MapMarkerUiModel::hasValidCoordinate)
-        .sortedBy(MapMarkerUiModel::selected)
-    if (validMarkers.isEmpty()) return
-
-    val safeCamera = initialCamera.takeIf { it.center.hasValidCoordinate() } ?: DefaultMapCamera
-    val zoom = safeCamera.zoom.coerceIn(StaticMapMinZoom, StaticMapMaxZoom)
-    val worldSize = StaticMapTileSize * 2.0.pow(zoom.toDouble())
-    val cameraWorldPoint = safeCamera.center.toWebMercatorWorldPoint()
-    val safeBottomPadding = contentPaddingBottom.coerceIn(0.dp, maxHeight)
-    val availableHeight = maxHeight - safeBottomPadding
-
-    validMarkers.forEach { marker ->
-        val markerWorldPoint = MapCoordinateUiModel(marker.lat, marker.lng).toWebMercatorWorldPoint()
-        val xOffset = (wrappedWorldDelta(markerWorldPoint.x, cameraWorldPoint.x) * worldSize)
-            .toFloat()
-            .dp
-        val yOffset = ((markerWorldPoint.y - cameraWorldPoint.y) * worldSize)
-            .toFloat()
-            .dp
-        val projectedX = maxWidth / 2 + xOffset
-        val projectedY = availableHeight / 2 + yOffset
-        val isVisible = projectedX >= -StaticMarkerVisibilityMargin &&
-            projectedX <= maxWidth + StaticMarkerVisibilityMargin &&
-            projectedY >= -StaticMarkerVisibilityMargin &&
-            projectedY <= availableHeight + StaticMarkerVisibilityMargin
-        if (!isVisible) return@forEach
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .offset(
-                    x = xOffset,
-                    y = yOffset - safeBottomPadding / 2,
-                )
-                .clickable(
-                    onClickLabel = marker.label,
-                    onClick = { onMarkerClick(marker) },
-                ),
-        ) {
-            MapMarkerVisual(marker)
-        }
-    }
-}
-
-private data class WebMercatorWorldPoint(
-    val x: Double,
-    val y: Double,
-)
-
-private fun MapCoordinateUiModel.toWebMercatorWorldPoint(): WebMercatorWorldPoint {
-    val clampedLatitude = lat.coerceIn(-WebMercatorMaxLatitude, WebMercatorMaxLatitude)
-    val latitudeRadians = clampedLatitude * PI / 180.0
-    return WebMercatorWorldPoint(
-        x = (lng + 180.0) / 360.0,
-        y = (1.0 - ln(tan(latitudeRadians) + 1.0 / cos(latitudeRadians)) / PI) / 2.0,
+internal fun MapInspectionPlaceholder(modifier: Modifier) {
+    Box(
+        modifier = modifier.background(
+            LinkItTheme.color.semantic.background.normal.alternative,
+        ),
     )
-}
-
-private fun wrappedWorldDelta(value: Double, center: Double): Double {
-    val delta = value - center
-    return when {
-        delta > .5 -> delta - 1.0
-        delta < -.5 -> delta + 1.0
-        else -> delta
-    }
 }
 
 @Composable
@@ -290,3 +190,17 @@ internal fun MapCoordinateUiModel.hasValidCoordinate(): Boolean =
 
 internal fun MapMarkerUiModel.hasValidCoordinate(): Boolean =
     MapCoordinateUiModel(lat, lng).hasValidCoordinate()
+
+internal fun List<MapMarkerUiModel>.selectedScheduleCameraBounds(): MapCameraBoundsUiModel? {
+    val selectedScheduleId = firstOrNull { marker ->
+        marker.selected && marker.type == MapMarkerType.SCHEDULE
+    }?.id ?: return null
+    val placeCoordinates = asSequence()
+        .filter { marker -> marker.type == MapMarkerType.PLACE && marker.hasValidCoordinate() }
+        .map { marker -> MapCoordinateUiModel(marker.lat, marker.lng) }
+        .distinct()
+        .toList()
+    return placeCoordinates
+        .takeIf(List<MapCoordinateUiModel>::isNotEmpty)
+        ?.let { points -> MapCameraBoundsUiModel(selectedScheduleId, points) }
+}
