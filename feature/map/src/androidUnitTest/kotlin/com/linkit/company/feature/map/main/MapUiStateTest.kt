@@ -138,6 +138,39 @@ class MapUiStateTest {
         assertEquals("제주시", "대한민국, 제주특별자치도 제주시 구좌읍".toCityRegionLabelOrNull())
     }
 
+    @Test
+    fun mapCenterLocationLabelIncludesCountryAndRegion() {
+        assertEquals(
+            "일본, 도쿄",
+            formatMapCenterLocationLabel("일본", "도쿄도", "신주쿠구"),
+        )
+        assertEquals(
+            "일본, 도쿄",
+            formatMapCenterLocationLabel("Japan", "Tokyo", "Shinjuku City"),
+        )
+        assertEquals(
+            "일본, 오사카",
+            formatMapCenterLocationLabel("Japan", "Osaka Prefecture", "Osaka"),
+        )
+        assertEquals(
+            "대한민국, 서울특별시",
+            formatMapCenterLocationLabel("대한민국", "서울특별시", "종로구"),
+        )
+        assertEquals(
+            "대한민국, 서울특별시",
+            formatMapCenterLocationLabel("South Korea", "Seoul", "Jongno District"),
+        )
+        assertEquals(
+            "대한민국, 경기도",
+            formatMapCenterLocationLabel("Korea", "Gyeonggi-do", "Suwon"),
+        )
+        assertEquals(
+            "프랑스, 파리",
+            formatMapCenterLocationLabel("프랑스", null, "파리"),
+        )
+        assertNull(formatMapCenterLocationLabel("일본", null, null))
+    }
+
     private fun mapPlace(
         itemId: String,
         day: Int,

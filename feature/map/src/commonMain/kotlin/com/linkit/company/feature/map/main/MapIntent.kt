@@ -32,4 +32,9 @@ sealed interface MapIntent : Intent {
         val longitude: Double,
         val zoom: Float,
     ) : MapIntent
+    data class MapCenterLocationResolved(
+        val latitude: Double,
+        val longitude: Double,
+        val label: String,
+    ) : MapIntent
 }

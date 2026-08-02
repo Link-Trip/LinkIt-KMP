@@ -91,5 +91,6 @@ internal object MapTestFixtures {
         schedules = schedules,
         selectedScheduleId = selectedScheduleId,
         selectedPlaceMarkerId = selectedPlaceMarkerId,
+        mapCenterLocationLabel = "대한민국, 서울특별시",
     )
 }

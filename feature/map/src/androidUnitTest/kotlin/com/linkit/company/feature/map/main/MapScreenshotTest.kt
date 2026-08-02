@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertValueEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -105,19 +106,28 @@ class MapScreenshotTest {
 
     @Test
     fun loadingMap() = capture(
-        state = MapUiState(loadState = MapLoadState.LOADING),
+        state = MapUiState(
+            loadState = MapLoadState.LOADING,
+            mapCenterLocationLabel = DefaultMapCenterLabel,
+        ),
         createControlExpectation = CreateControlExpectation.IconOnly,
     )
 
     @Test
     fun emptyMap() = capture(
-        state = MapUiState(loadState = MapLoadState.EMPTY),
+        state = MapUiState(
+            loadState = MapLoadState.EMPTY,
+            mapCenterLocationLabel = DefaultMapCenterLabel,
+        ),
         createControlExpectation = CreateControlExpectation.IconOnly,
     )
 
     @Test
     fun emptyMapExpanded() = capture(
-        state = MapUiState(loadState = MapLoadState.EMPTY),
+        state = MapUiState(
+            loadState = MapLoadState.EMPTY,
+            mapCenterLocationLabel = DefaultMapCenterLabel,
+        ),
         sheetGesture = SheetGesture.EXPAND,
         createControlExpectation = CreateControlExpectation.IconOnly,
     )
@@ -127,6 +137,7 @@ class MapScreenshotTest {
         state = MapUiState(
             loadState = MapLoadState.ERROR,
             errorMessage = "네트워크 연결을 확인하고 다시 시도해 주세요.",
+            mapCenterLocationLabel = DefaultMapCenterLabel,
         ),
         createControlExpectation = CreateControlExpectation.IconOnly,
     )
@@ -136,6 +147,7 @@ class MapScreenshotTest {
         state = MapUiState(
             loadState = MapLoadState.ERROR,
             errorMessage = "네트워크 연결을 확인하고 다시 시도해 주세요.",
+            mapCenterLocationLabel = DefaultMapCenterLabel,
         ),
         sheetGesture = SheetGesture.EXPAND,
         createControlExpectation = CreateControlExpectation.IconOnly,
@@ -155,6 +167,22 @@ class MapScreenshotTest {
         assertEquals(1, composeRule.onAllNodesWithContentDescription("마이페이지").fetchSemanticsNodes().size)
         assertEquals(1, composeRule.onAllNodesWithContentDescription("지도 종류 변경").fetchSemanticsNodes().size)
         assertEquals(0, composeRule.onAllNodesWithContentDescription("현재 위치로 이동").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun mapCenterLocationShowsCountryAndRegion() {
+        composeRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                PreviewContextConfigurationEffect()
+                LinkItTheme {
+                    MapContent(uiState = MapTestFixtures.contentState(), onIntent = {})
+                }
+            }
+        }
+
+        composeRule
+            .onNodeWithTag("map-center-location-label")
+            .assertTextEquals("대한민국, 서울특별시")
     }
 
     private fun capture(
@@ -236,6 +264,7 @@ class MapScreenshotTest {
     }
 
     private companion object {
+        const val DefaultMapCenterLabel = "대한민국, 서울특별시"
         const val CreateControlTag = "map-create-schedule-control"
         const val CreateMenuOpenDescription = "일정 생성 메뉴 열기"
         const val CreateMenuCloseDescription = "일정 생성 메뉴 닫기"

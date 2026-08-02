@@ -152,6 +152,7 @@ fun MapContent(
     onOpenMyPage: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    val mapCenter = MapCoordinateUiModel(uiState.cameraLatitude, uiState.cameraLongitude)
     CurrentLocationEffect(
         requestToken = uiState.locationRequestToken,
         onLocationAvailable = { location ->
@@ -159,6 +160,18 @@ fun MapContent(
         },
         onLocationUnavailable = {
             onIntent(MapIntent.CurrentLocationUnavailable("위치 권한 또는 위치 서비스를 확인해 주세요."))
+        },
+    )
+    MapCenterLocationEffect(
+        coordinate = mapCenter,
+        onLocationResolved = { coordinate, label ->
+            onIntent(
+                MapIntent.MapCenterLocationResolved(
+                    latitude = coordinate.lat,
+                    longitude = coordinate.lng,
+                    label = label,
+                ),
+            )
         },
     )
 
@@ -534,11 +547,7 @@ private fun BoxScope.MapBottomSheetHost(
                 RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
             else -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
         }
-        val locationLabel = when (content) {
-            MapSheetContent.SavedSchedules ->
-                uiState.filteredSchedules.firstOrNull()?.regionLabel ?: "저장한 일정"
-            MapSheetContent.TravelPreview -> selectedSchedule?.regionLabel.orEmpty()
-        }
+        val locationLabel = uiState.mapCenterLocationLabel ?: "위치 확인 중"
 
         Box(
             modifier = Modifier
@@ -1175,6 +1184,7 @@ private fun MapLocationPill(text: String) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
+                .testTag("map-center-location-label")
                 .padding(top = 12.dp)
                 .widthIn(max = 220.dp)
                 .shadow(1.dp, RoundedCornerShape(100.dp))

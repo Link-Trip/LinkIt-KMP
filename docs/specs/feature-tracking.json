@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-08-02T07:22:07.210Z",
+  "updatedAt": "2026-08-02T07:56:53.797Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",

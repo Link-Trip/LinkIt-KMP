@@ -16,6 +16,7 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @ContributesIntoMap(AppScope::class)
 @ViewModelKey(MapViewModel::class)
@@ -112,6 +113,13 @@ class MapViewModel(
                     }
                 }
             }
+            is MapIntent.MapCenterLocationResolved -> reduce {
+                if (matchesMapCenter(intent.latitude, intent.longitude)) {
+                    copy(mapCenterLocationLabel = intent.label)
+                } else {
+                    this
+                }
+            }
         }
     }
 
@@ -190,6 +198,8 @@ class MapViewModel(
             it.centerLatitude != null && it.centerLongitude != null
         }
         container.mviContext.reduce {
+            val nextLatitude = firstCenter?.centerLatitude ?: cameraLatitude
+            val nextLongitude = firstCenter?.centerLongitude ?: cameraLongitude
             copy(
                 loadState = if (schedules.isEmpty()) MapLoadState.EMPTY else MapLoadState.CONTENT,
                 schedules = schedules,
@@ -198,8 +208,8 @@ class MapViewModel(
                     schedules.any { it.id == selectedId }
                 },
                 selectedPlaceMarkerId = null,
-                cameraLatitude = firstCenter?.centerLatitude ?: cameraLatitude,
-                cameraLongitude = firstCenter?.centerLongitude ?: cameraLongitude,
+                cameraLatitude = nextLatitude,
+                cameraLongitude = nextLongitude,
             )
         }
     }
@@ -233,6 +243,12 @@ class MapViewModel(
         const val MaxZoom = 21f
     }
 }
+
+private const val MapCenterCoordinateTolerance = 0.000_001
+
+private fun MapUiState.matchesMapCenter(latitude: Double, longitude: Double): Boolean =
+    abs(cameraLatitude - latitude) <= MapCenterCoordinateTolerance &&
+        abs(cameraLongitude - longitude) <= MapCenterCoordinateTolerance
 
 private fun Int.nextRequestToken(): Int = if (this == Int.MAX_VALUE) 1 else this + 1
 

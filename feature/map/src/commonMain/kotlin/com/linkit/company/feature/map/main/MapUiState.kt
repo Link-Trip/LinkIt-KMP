@@ -109,6 +109,7 @@ data class MapUiState(
     val cameraLatitude: Double = DefaultLatitude,
     val cameraLongitude: Double = DefaultLongitude,
     val cameraZoom: Float = DefaultZoom,
+    val mapCenterLocationLabel: String? = null,
     val locationRequestToken: Int = 0,
     val currentLocationLatitude: Double? = null,
     val currentLocationLongitude: Double? = null,
