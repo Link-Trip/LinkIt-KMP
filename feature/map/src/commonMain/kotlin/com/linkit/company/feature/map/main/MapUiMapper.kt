@@ -23,6 +23,9 @@ internal fun TripPlanMapData.toMapScheduleUiModel(): MapScheduleUiModel {
                 longitude = mapPlace.coordinate.longitude,
             )
         }
+    val regions = placeModels
+        .mapNotNull { place -> place.address.toCityRegionLabelOrNull() }
+        .distinct()
 
     return MapScheduleUiModel(
         id = summary.id,
@@ -32,35 +35,38 @@ internal fun TripPlanMapData.toMapScheduleUiModel(): MapScheduleUiModel {
         nights = summary.nights,
         days = summary.days,
         hashtags = summary.hashtags,
-        regionLabel = placeModels
-            .firstOrNull()
-            ?.address
-            ?.toRegionLabelOrNull()
-            ?: "위치 미등록",
+        regionLabel = regions.firstOrNull() ?: "위치 미등록",
+        regions = regions,
         centerLatitude = center?.latitude,
         centerLongitude = center?.longitude,
         places = placeModels,
     )
 }
 
-private fun String.toRegionLabelOrNull(): String? {
-    KoreanAdministrativeArea.find(this)?.value?.let { return it }
+internal fun String.toCityRegionLabelOrNull(): String? {
+    KoreanProvinceCity.find(this)?.groupValues?.get(1)?.let { return it }
+    KoreanMetropolitanCity.find(this)?.value?.let { return it }
 
     return split(',')
-        .asReversed()
         .asSequence()
         .map(String::trim)
+        .drop(1)
         .firstOrNull { segment ->
             segment.isNotBlank() &&
                 segment.length <= 30 &&
-                segment.none(Char::isDigit)
+                segment.none(Char::isDigit) &&
+                !segment.endsWith("구")
         }
 }
 
-private val KoreanAdministrativeArea = Regex(
+private val KoreanProvinceCity = Regex(
+    "(?:경기도|강원특별자치도|충청북도|충청남도|전북특별자치도|전라북도|" +
+        "전라남도|경상북도|경상남도|제주특별자치도)\\s+([가-힣]+(?:시|군))",
+)
+
+private val KoreanMetropolitanCity = Regex(
     "서울특별시|부산광역시|대구광역시|인천광역시|광주광역시|대전광역시|" +
-        "울산광역시|세종특별자치시|경기도|강원특별자치도|충청북도|충청남도|" +
-        "전북특별자치도|전라북도|전라남도|경상북도|경상남도|제주특별자치도",
+        "울산광역시|세종특별자치시",
 )
 
 private fun PlaceCategory.toDisplayLabel(): String = when (this) {

@@ -13,14 +13,15 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertValueEquals
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -207,8 +208,8 @@ class MapBottomSheetGestureTest {
             .assertIsDisplayed()
             .assertIsEnabled()
             .assertHasClickAction()
-        assertDisabledCreateOption(CreateFromStorageLabel)
-        assertDisabledCreateOption(CreateManuallyLabel)
+        assertComingSoonCreateOption(CreateFromStorageLabel)
+        assertComingSoonCreateOption(CreateManuallyLabel)
 
         composeRule.onNodeWithTag(CreateControlTag).performClick()
         composeRule.waitForIdle()
@@ -218,6 +219,83 @@ class MapBottomSheetGestureTest {
         assertCreateOptionDoesNotExist(CreateManuallyLabel)
         sheet().assertValueEquals("Resting")
         assertCreateControlIconOnly()
+    }
+
+    @Test
+    fun comingSoonCreateOptionsShowAndDismissModalDialog() {
+        var backgroundSelectionCount = 0
+        setMapContent(
+            stateReducer = { state, intent ->
+                if (intent is MapIntent.SelectSchedule) {
+                    backgroundSelectionCount++
+                }
+                reduceCreateState(state, intent)
+            },
+        )
+
+        composeRule.onNodeWithTag(CreateControlTag).performClick()
+        composeRule.onNodeWithText(CreateFromStorageLabel).performTouchInput { click() }
+
+        composeRule.onNodeWithText(ComingSoonTitle).assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(0, backgroundSelectionCount) }
+        composeRule.onNodeWithText(ComingSoonDescription).assertIsDisplayed()
+        composeRule.onNodeWithText(DialogConfirmLabel).assertIsDisplayed().performClick()
+        assertCreateOptionDoesNotExist(ComingSoonTitle)
+
+        composeRule.onNodeWithText(CreateManuallyLabel).performClick()
+
+        composeRule.onNodeWithText(ComingSoonTitle).assertIsDisplayed()
+        composeRule
+            .onNodeWithContentDescription(DialogCloseLabel)
+            .assertIsDisplayed()
+            .performClick()
+        assertCreateOptionDoesNotExist(ComingSoonTitle)
+    }
+
+    @Test
+    fun filterPillsOpenAnchoredPopupsAndApplySelections() {
+        setMapContent(stateReducer = ::reduceFilterState)
+
+        composeRule.onNodeWithText(RegionFilterLabel).performClick()
+        composeRule.onNodeWithTag(RegionFilterPopupTag).assertIsDisplayed()
+        composeRule.onNodeWithText("부산광역시").performClick()
+        assertPopupDoesNotExist(RegionFilterPopupTag)
+
+        composeRule.onNodeWithText(StyleFilterLabel).performClick()
+        composeRule.onNodeWithTag(StyleFilterPopupTag).assertIsDisplayed()
+        listOf(
+            "전체 스타일",
+            "맛집 중심",
+            "쇼핑 중심",
+            "명소 탐방 중심",
+            "자연·풍경 위주",
+            "문화·역사 탐방",
+            "액티비티",
+            "힐링",
+        ).forEach { label ->
+            assertTrue(composeRule.onAllNodesWithText(label).fetchSemanticsNodes().isNotEmpty())
+        }
+        composeRule.onNodeWithText("전체 스타일").performClick()
+        assertPopupDoesNotExist(StyleFilterPopupTag)
+
+        composeRule.onNodeWithText(DurationFilterLabel).performClick()
+        composeRule.onNodeWithTag(DurationFilterPopupTag).assertIsDisplayed()
+        composeRule.onNodeWithText("1박 2일").performClick()
+        assertPopupDoesNotExist(DurationFilterPopupTag)
+        composeRule.onNodeWithText("1박 2일").assertIsDisplayed()
+    }
+
+    @Test
+    fun emptyRegionPopupShowsDisabledGeneratedRegionMessage() {
+        setMapContent(
+            initialState = MapUiState(loadState = MapLoadState.EMPTY),
+            stateReducer = ::reduceFilterState,
+        )
+
+        composeRule.onNodeWithText(RegionFilterLabel).performClick()
+
+        composeRule.onNodeWithText("전체국가").assertIsDisplayed().assertIsEnabled()
+        composeRule.onNodeWithText("생성된 지역 없음").assertIsDisplayed().assertIsNotEnabled()
     }
 
     @Test
@@ -338,8 +416,8 @@ class MapBottomSheetGestureTest {
                 .onNodeWithText(CreateFromVideoLabel)
                 .assertIsEnabled()
                 .assertHasClickAction()
-            assertDisabledCreateOption(CreateFromStorageLabel)
-            assertDisabledCreateOption(CreateManuallyLabel)
+            assertComingSoonCreateOption(CreateFromStorageLabel)
+            assertComingSoonCreateOption(CreateManuallyLabel)
 
             composeRule.mainClock.advanceTimeBy(AnimationSettleProbeMillis)
             composeRule.waitForIdle()
@@ -571,12 +649,12 @@ class MapBottomSheetGestureTest {
         assertCreateOptionDoesNotExist(hiddenLabel)
     }
 
-    private fun assertDisabledCreateOption(label: String) {
+    private fun assertComingSoonCreateOption(label: String) {
         composeRule
             .onNodeWithText(label)
             .assertIsDisplayed()
-            .assertIsNotEnabled()
-            .assertHasNoClickAction()
+            .assertIsEnabled()
+            .assertHasClickAction()
     }
 
     private fun assertCreateOptionDoesNotExist(label: String) {
@@ -587,6 +665,42 @@ class MapBottomSheetGestureTest {
                 .fetchSemanticsNodes()
                 .size,
         )
+    }
+
+    private fun assertPopupDoesNotExist(tag: String) {
+        assertEquals(0, composeRule.onAllNodesWithTag(tag).fetchSemanticsNodes().size)
+    }
+
+    private fun reduceFilterState(state: MapUiState, intent: MapIntent): MapUiState = when (intent) {
+        is MapIntent.ToggleFilter -> state.copy(
+            expandedFilter = intent.filter.takeUnless { it == state.expandedFilter },
+        )
+        is MapIntent.SelectRegion -> state.copy(
+            selectedRegion = intent.region,
+            expandedFilter = null,
+        )
+        is MapIntent.SelectStyle -> state.copy(
+            selectedStyle = intent.style,
+            expandedFilter = null,
+        )
+        is MapIntent.SelectDuration -> state.copy(
+            durationFilter = intent.duration,
+            expandedFilter = null,
+        )
+        else -> state
+    }
+
+    private fun reduceCreateState(state: MapUiState, intent: MapIntent): MapUiState = when (intent) {
+        MapIntent.ToggleCreateMenu -> state.copy(
+            isCreateMenuExpanded = !state.isCreateMenuExpanded,
+        )
+        MapIntent.ShowComingSoonDialog -> state.copy(
+            isComingSoonDialogVisible = true,
+        )
+        MapIntent.DismissComingSoonDialog -> state.copy(
+            isComingSoonDialogVisible = false,
+        )
+        else -> state
     }
 
     private companion object {
@@ -601,11 +715,18 @@ class MapBottomSheetGestureTest {
         const val CreateFromVideoLabel = "영상 링크로 만들기"
         const val CreateFromStorageLabel = "보관함에서 가져오기"
         const val CreateManuallyLabel = "직접 만들기"
+        const val ComingSoonTitle = "해당 기능은\n곧 출시 예정이에요!"
+        const val ComingSoonDescription = "조금만 기다려 주세요"
+        const val DialogConfirmLabel = "확인"
+        const val DialogCloseLabel = "닫기"
         const val EmptyCreateScheduleLabel = "일정 생성하기"
         const val RetryLabel = "다시 시도"
-        const val RegionFilterLabel = "지역"
+        const val RegionFilterLabel = "국가"
         const val StyleFilterLabel = "여행 스타일"
         const val DurationFilterLabel = "기간"
+        const val RegionFilterPopupTag = "map-filter-region-popup"
+        const val StyleFilterPopupTag = "map-filter-style-popup"
+        const val DurationFilterPopupTag = "map-filter-duration-popup"
         const val EmptySummaryLabel = "총 0개 일정"
         const val LatestSortLabel = "최신순"
         const val EmptyStateTitle = "아직 등록된 일정이 없습니다."

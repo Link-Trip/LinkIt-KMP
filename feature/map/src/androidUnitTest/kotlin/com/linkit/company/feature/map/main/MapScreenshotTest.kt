@@ -69,6 +69,33 @@ class MapScreenshotTest {
     )
 
     @Test
+    fun comingSoonDialog() = capture(
+        state = MapTestFixtures.contentState().copy(
+            isCreateMenuExpanded = true,
+            isComingSoonDialogVisible = true,
+        ),
+        createControlExpectation = CreateControlExpectation.IconOnlyClose,
+    )
+
+    @Test
+    fun regionFilterExpanded() = capture(
+        state = MapTestFixtures.contentState().copy(expandedFilter = MapFilterType.REGION),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun styleFilterExpanded() = capture(
+        state = MapTestFixtures.contentState().copy(expandedFilter = MapFilterType.STYLE),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun durationFilterExpanded() = capture(
+        state = MapTestFixtures.contentState().copy(expandedFilter = MapFilterType.DURATION),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
     fun placeSelected() = capture(
         MapTestFixtures.contentState(
             selectedScheduleId = MapTestFixtures.SeoulScheduleId,

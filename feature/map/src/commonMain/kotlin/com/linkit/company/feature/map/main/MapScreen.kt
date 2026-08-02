@@ -11,6 +11,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,17 +33,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,7 +74,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -80,10 +81,15 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.component.button.ButtonSize
 import com.linkit.company.core.designsystem.component.button.LinkItButton
+import com.linkit.company.core.designsystem.component.menu.LinkItMenuItem
+import com.linkit.company.core.designsystem.component.menu.MenuDefaults as LinkItMenuDefaults
+import com.linkit.company.core.designsystem.component.menu.MenuItemPadding
+import com.linkit.company.core.designsystem.component.popup.dialog.LinkItDialog
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.typography.rememberNanumSquareFontFamily
@@ -206,6 +212,16 @@ fun MapContent(
                     onOpenPlaceDetail = { onOpenPlaceDetail(place) },
                 )
             }
+        }
+
+        if (uiState.isComingSoonDialogVisible) {
+            LinkItDialog(
+                title = "해당 기능은\n곧 출시 예정이에요!",
+                description = "조금만 기다려 주세요",
+                confirmText = "확인",
+                onConfirmClick = { onIntent(MapIntent.DismissComingSoonDialog) },
+                onDismissRequest = { onIntent(MapIntent.DismissComingSoonDialog) },
+            )
         }
 
     }
@@ -610,10 +626,11 @@ private fun BoxScope.MapBottomSheetHost(
                     onCreateFromVideo()
                 },
                 onCreateFromStorage = {
-                    onIntent(MapIntent.ToggleCreateMenu)
-                    onCreateFromStorage()
+                    onIntent(MapIntent.ShowComingSoonDialog)
                 },
-                onCreateManually = onCreateManually,
+                onCreateManually = {
+                    onIntent(MapIntent.ShowComingSoonDialog)
+                },
             )
         }
     }
@@ -664,16 +681,9 @@ private fun ColumnScope.SavedScheduleSheetContent(
     )
 
     when (uiState.loadState) {
-        MapLoadState.CONTENT -> MapFilters(
-            uiState = uiState,
-            onIntent = onIntent,
-        )
+        MapLoadState.CONTENT -> MapFilters(uiState = uiState, onIntent = onIntent)
         MapLoadState.EMPTY -> {
-            MapFilters(
-                uiState = uiState,
-                durationIcon = Res.drawable.map_filter_money,
-                onIntent = onIntent,
-            )
+            MapFilters(uiState = uiState, onIntent = onIntent)
             Spacer(Modifier.height(16.dp))
         }
         else -> Unit
@@ -769,85 +779,131 @@ private const val MapCreateIconTransitionScale = .9f
 @Composable
 private fun MapFilters(
     uiState: MapUiState,
-    durationIcon: DrawableResource = Res.drawable.map_calendar,
     onIntent: (MapIntent) -> Unit,
 ) {
     Row(
         modifier = Modifier.padding(start = 20.dp, top = 8.dp, end = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        FilterPill(
-            icon = Res.drawable.map_filter_globe,
-            text = uiState.selectedRegion ?: "지역",
-            active = uiState.selectedRegion != null,
-            onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.REGION)) },
-        )
-        FilterPill(
-            icon = Res.drawable.map_filter_category,
-            text = uiState.selectedStyle?.removePrefix("#") ?: "여행 스타일",
-            active = uiState.selectedStyle != null,
-            onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.STYLE)) },
-        )
-        FilterPill(
-            icon = durationIcon,
-            text = uiState.durationFilter.takeUnless { it == MapDurationFilter.ALL }?.label ?: "기간",
-            active = uiState.durationFilter != MapDurationFilter.ALL,
-            onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.DURATION)) },
-        )
-    }
-
-    when (uiState.expandedFilter) {
-        MapFilterType.REGION -> FilterOptions(
-            options = listOf(null) + uiState.availableRegions,
-            selected = uiState.selectedRegion,
-            label = { it ?: "전체" },
-            onSelect = { onIntent(MapIntent.SelectRegion(it)) },
-        )
-        MapFilterType.STYLE -> FilterOptions(
-            options = listOf(null) + uiState.availableStyles,
-            selected = uiState.selectedStyle,
-            label = { it?.removePrefix("#") ?: "전체" },
-            onSelect = { onIntent(MapIntent.SelectStyle(it)) },
-        )
-        MapFilterType.DURATION -> FilterOptions(
-            options = MapDurationFilter.entries,
-            selected = uiState.durationFilter,
-            label = MapDurationFilter::label,
-            onSelect = { onIntent(MapIntent.SelectDuration(it)) },
-        )
-        null -> Unit
+        Box {
+            FilterPill(
+                icon = Res.drawable.map_filter_globe,
+                text = uiState.selectedRegion ?: "국가",
+                active = uiState.selectedRegion != null,
+                onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.REGION)) },
+            )
+            FilterOptions(
+                expanded = uiState.expandedFilter == MapFilterType.REGION,
+                filterType = MapFilterType.REGION,
+                options = listOf(null) + uiState.availableRegions,
+                selected = uiState.selectedRegion,
+                label = { it ?: "전체국가" },
+                emptyLabel = "생성된 지역 없음".takeIf { uiState.availableRegions.isEmpty() },
+                onDismiss = { onIntent(MapIntent.ToggleFilter(MapFilterType.REGION)) },
+                onSelect = { onIntent(MapIntent.SelectRegion(it)) },
+            )
+        }
+        Box {
+            FilterPill(
+                icon = Res.drawable.map_filter_category,
+                text = uiState.selectedStyle?.label ?: "여행 스타일",
+                active = uiState.selectedStyle != null,
+                onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.STYLE)) },
+            )
+            FilterOptions(
+                expanded = uiState.expandedFilter == MapFilterType.STYLE,
+                filterType = MapFilterType.STYLE,
+                options = listOf(null) + MapTravelStyleFilter.entries,
+                selected = uiState.selectedStyle,
+                label = { it?.label ?: "전체 스타일" },
+                onDismiss = { onIntent(MapIntent.ToggleFilter(MapFilterType.STYLE)) },
+                onSelect = { onIntent(MapIntent.SelectStyle(it)) },
+            )
+        }
+        Box {
+            FilterPill(
+                icon = Res.drawable.map_filter_money,
+                text = uiState.durationFilter.takeUnless { it == MapDurationFilter.ALL }?.label
+                    ?: "기간",
+                active = uiState.durationFilter != MapDurationFilter.ALL,
+                onClick = { onIntent(MapIntent.ToggleFilter(MapFilterType.DURATION)) },
+            )
+            FilterOptions(
+                expanded = uiState.expandedFilter == MapFilterType.DURATION,
+                filterType = MapFilterType.DURATION,
+                options = MapDurationFilter.entries,
+                selected = uiState.durationFilter,
+                label = MapDurationFilter::label,
+                onDismiss = { onIntent(MapIntent.ToggleFilter(MapFilterType.DURATION)) },
+                onSelect = { onIntent(MapIntent.SelectDuration(it)) },
+            )
+        }
     }
 }
 
 @Composable
 private fun <T> FilterOptions(
+    expanded: Boolean,
+    filterType: MapFilterType,
     options: List<T>,
     selected: T,
     label: (T) -> String,
+    emptyLabel: String? = null,
+    onDismiss: () -> Unit,
     onSelect: (T) -> Unit,
 ) {
-    LazyRow(
-        contentPadding = PaddingValues(start = 20.dp, top = 10.dp, end = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    val itemColors = LinkItMenuDefaults.itemColors().copy(
+        selectedTextColor = LinkItTheme.color.semantic.label.normal,
+    )
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        modifier = Modifier
+            .widthIn(min = LinkItMenuDefaults.MinWidth)
+            .heightIn(max = 224.dp)
+            .testTag("map-filter-${filterType.name.lowercase()}-popup"),
+        offset = DpOffset(0.dp, 8.dp),
+        shape = LinkItMenuDefaults.ContainerShape,
+        containerColor = LinkItMenuDefaults.containerColor,
+        tonalElevation = 0.dp,
+        shadowElevation = LinkItMenuDefaults.ShadowElevation,
+        border = BorderStroke(
+            LinkItMenuDefaults.BorderWidth,
+            LinkItMenuDefaults.borderColor,
+        ),
     ) {
-        items(options) { option ->
+        options.forEachIndexed { index, option ->
+            if (index > 0) Spacer(Modifier.height(LinkItMenuDefaults.ItemSpacing))
             val isSelected = option == selected
-            Text(
+            LinkItMenuItem(
                 text = label(option),
-                style = LinkItTheme.typography.caption1Bold,
-                color = if (isSelected) {
-                    LinkItTheme.color.semantic.primary.heavy
-                } else {
-                    LinkItTheme.color.semantic.label.neutral
-                },
+                onClick = { onSelect(option) },
+                selected = isSelected,
+                padding = MenuItemPadding.Compact,
+                colors = itemColors,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(
-                        if (isSelected) PaletteTokens.PingoMapSelectionBackground
-                        else LinkItTheme.color.semantic.fill.normal,
-                    )
-                    .clickable { onSelect(option) }
-                    .padding(horizontal = 12.dp, vertical = 7.dp),
+                    .padding(horizontal = 8.dp)
+                    .then(
+                        if (isSelected) {
+                            Modifier.background(
+                                LinkItTheme.color.semantic.fill.normal,
+                                LinkItMenuDefaults.ItemShape,
+                            )
+                        } else {
+                            Modifier
+                        },
+                    ),
+            )
+        }
+        emptyLabel?.let { text ->
+            Spacer(Modifier.height(LinkItMenuDefaults.ItemSpacing))
+            LinkItMenuItem(
+                text = text,
+                onClick = {},
+                enabled = false,
+                padding = MenuItemPadding.Compact,
+                colors = itemColors,
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
         }
     }
@@ -1469,21 +1525,21 @@ private fun CreateScheduleMenu(
         CreateScheduleMenuOption(
             icon = LinkItIcon.Control.Link,
             text = "영상 링크로 만들기",
-            enabled = true,
+            highlighted = true,
             onClick = onCreateFromVideo,
         )
         CreateScheduleMenuDivider()
         CreateScheduleMenuOption(
             icon = LinkItIcon.Control.Upload,
             text = "보관함에서 가져오기",
-            enabled = false,
+            highlighted = false,
             onClick = onCreateFromStorage,
         )
         CreateScheduleMenuDivider()
         CreateScheduleMenuOption(
             icon = LinkItIcon.Control.Customize,
             text = "직접 만들기",
-            enabled = false,
+            highlighted = false,
             onClick = onCreateManually,
         )
     }
@@ -1493,25 +1549,18 @@ private fun CreateScheduleMenu(
 private fun CreateScheduleMenuOption(
     icon: ImageVector,
     text: String,
-    enabled: Boolean,
+    highlighted: Boolean,
     onClick: () -> Unit,
 ) {
-    val contentColor = if (enabled) {
+    val contentColor = if (highlighted) {
         PaletteTokens.PingoNeutral50
     } else {
         PaletteTokens.PingoNeutral400
     }
-    val interactionModifier = if (enabled) {
-        Modifier.clickable(onClick = onClick)
-    } else {
-        Modifier.semantics(mergeDescendants = true) {
-            disabled()
-        }
-    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .then(interactionModifier)
+            .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

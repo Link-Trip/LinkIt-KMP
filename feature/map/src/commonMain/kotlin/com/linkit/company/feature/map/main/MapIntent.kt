@@ -14,10 +14,12 @@ sealed interface MapIntent : Intent {
     data object ShowPreviousPlace : MapIntent
     data object ShowNextPlace : MapIntent
     data object ToggleCreateMenu : MapIntent
+    data object ShowComingSoonDialog : MapIntent
+    data object DismissComingSoonDialog : MapIntent
     data object ToggleMapType : MapIntent
     data class ToggleFilter(val filter: MapFilterType) : MapIntent
     data class SelectRegion(val region: String?) : MapIntent
-    data class SelectStyle(val style: String?) : MapIntent
+    data class SelectStyle(val style: MapTravelStyleFilter?) : MapIntent
     data class SelectDuration(val duration: MapDurationFilter) : MapIntent
     data object RequestCurrentLocation : MapIntent
     data class CurrentLocationResolved(

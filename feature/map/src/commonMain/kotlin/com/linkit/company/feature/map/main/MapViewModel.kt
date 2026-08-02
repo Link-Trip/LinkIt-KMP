@@ -59,6 +59,12 @@ class MapViewModel(
             MapIntent.ToggleCreateMenu -> reduce {
                 copy(isCreateMenuExpanded = !isCreateMenuExpanded)
             }
+            MapIntent.ShowComingSoonDialog -> reduce {
+                copy(isComingSoonDialogVisible = true)
+            }
+            MapIntent.DismissComingSoonDialog -> reduce {
+                copy(isComingSoonDialogVisible = false)
+            }
             MapIntent.ToggleMapType -> reduce {
                 copy(mapType = if (mapType == MapType.DEFAULT) MapType.SATELLITE else MapType.DEFAULT)
             }

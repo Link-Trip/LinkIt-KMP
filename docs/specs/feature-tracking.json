@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-26T07:04:23.970Z",
+  "updatedAt": "2026-08-02T07:22:07.210Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -746,15 +746,15 @@
     },
     "main:SHEET_COUNTRY_FILTER": {
       "featureUid": "main:SHEET_COUNTRY_FILTER",
-      "workStatus": "not_started",
+      "workStatus": "implemented",
       "developer": "Unassigned",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "Figma 필터 팝업 및 도시 단위 지역 필터 반영",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -766,20 +766,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-02T07:22:07.049Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SHEET_DETAIL_FILTER": {
       "featureUid": "main:SHEET_DETAIL_FILTER",
-      "workStatus": "not_started",
+      "workStatus": "implemented",
       "developer": "Unassigned",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "여행 스타일 7종 및 기간 6종 필터 반영",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -791,8 +791,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-02T07:22:07.109Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SCHEDULE_MARKER_SHOW": {
       "featureUid": "main:SCHEDULE_MARKER_SHOW",

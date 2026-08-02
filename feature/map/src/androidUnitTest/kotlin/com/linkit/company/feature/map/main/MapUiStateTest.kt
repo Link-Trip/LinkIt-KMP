@@ -34,23 +34,35 @@ class MapUiStateTest {
     fun filtersSchedulesByRegionStyleAndDurationTogether() {
         val state = MapTestFixtures.contentState().copy(
             selectedRegion = "서울특별시",
-            selectedStyle = "#도시여행",
-            durationFilter = MapDurationFilter.MEDIUM,
+            selectedStyle = MapTravelStyleFilter.FOOD,
+            durationFilter = MapDurationFilter.THREE_NIGHTS_FOUR_DAYS,
         )
 
         assertEquals(listOf(MapTestFixtures.SeoulScheduleId), state.filteredSchedules.map { it.id })
         assertEquals(listOf("서울특별시", "부산광역시"), state.availableRegions)
-        assertEquals(listOf("#도시여행", "#맛집", "#힐링", "#바다"), state.availableStyles)
+        assertEquals(
+            listOf(
+                "맛집 중심",
+                "쇼핑 중심",
+                "명소 탐방 중심",
+                "자연·풍경 위주",
+                "문화·역사 탐방",
+                "액티비티",
+                "힐링",
+            ),
+            MapTravelStyleFilter.entries.map(MapTravelStyleFilter::label),
+        )
     }
 
     @Test
-    fun durationFiltersUseInclusiveBoundaries() {
-        assertEquals(true, MapDurationFilter.SHORT.accepts(3))
-        assertEquals(false, MapDurationFilter.SHORT.accepts(4))
-        assertEquals(true, MapDurationFilter.MEDIUM.accepts(4))
-        assertEquals(true, MapDurationFilter.MEDIUM.accepts(6))
-        assertEquals(false, MapDurationFilter.MEDIUM.accepts(7))
-        assertEquals(true, MapDurationFilter.LONG.accepts(7))
+    fun durationFiltersMatchEachTripLengthWithoutOverlap() {
+        assertEquals(true, MapDurationFilter.DAY_TRIP.accepts(1))
+        assertEquals(true, MapDurationFilter.ONE_NIGHT_TWO_DAYS.accepts(2))
+        assertEquals(true, MapDurationFilter.TWO_NIGHTS_THREE_DAYS.accepts(3))
+        assertEquals(true, MapDurationFilter.THREE_NIGHTS_FOUR_DAYS.accepts(4))
+        assertEquals(true, MapDurationFilter.FOUR_NIGHTS_FIVE_DAYS.accepts(5))
+        assertEquals(true, MapDurationFilter.FIVE_NIGHTS_OR_MORE.accepts(6))
+        assertEquals(false, MapDurationFilter.FIVE_NIGHTS_OR_MORE.accepts(5))
     }
 
     @Test
@@ -109,12 +121,21 @@ class MapUiStateTest {
         val result = mapData.toMapScheduleUiModel()
 
         assertEquals("schedule-42", result.id)
-        assertEquals("제주특별자치도", result.regionLabel)
+        assertEquals("제주시", result.regionLabel)
+        assertEquals(listOf("제주시"), result.regions)
         assertEquals(33.5081, result.centerLatitude)
         assertEquals(126.8347, result.centerLongitude)
         assertEquals(listOf("비자림", "세화 카페"), result.places.map { it.name })
         assertEquals(listOf("관광", "맛집"), result.places.map { it.categoryLabel })
         assertEquals("schedule-42::item-forest", result.places.first().markerId)
+    }
+
+    @Test
+    fun regionFilterUsesCityAndExcludesCountryAndDistrictSegments() {
+        assertEquals("도쿄", "일본, 도쿄, 신주쿠구".toCityRegionLabelOrNull())
+        assertEquals("파리", "프랑스, 파리".toCityRegionLabelOrNull())
+        assertEquals("서울특별시", "대한민국, 서울특별시 종로구 사직로 161".toCityRegionLabelOrNull())
+        assertEquals("제주시", "대한민국, 제주특별자치도 제주시 구좌읍".toCityRegionLabelOrNull())
     }
 
     private fun mapPlace(

@@ -16,10 +16,10 @@ class MapDebugMockDataTest {
         assertTrue(schedules.all { it.centerLatitude != null && it.centerLongitude != null })
         assertTrue(schedules.all { it.places.size >= 3 })
         assertEquals(markerIds.size, markerIds.distinct().size)
-        assertEquals(setOf("신주쿠", "하라주쿠", "시부야"), schedules.map { it.regionLabel }.toSet())
-        assertTrue(schedules.any { MapDurationFilter.SHORT.accepts(it.days) })
-        assertTrue(schedules.any { MapDurationFilter.MEDIUM.accepts(it.days) })
-        assertTrue(schedules.any { MapDurationFilter.LONG.accepts(it.days) })
+        assertEquals(setOf("도쿄"), schedules.map { it.regionLabel }.toSet())
+        assertTrue(schedules.any { MapDurationFilter.ONE_NIGHT_TWO_DAYS.accepts(it.days) })
+        assertTrue(schedules.any { MapDurationFilter.THREE_NIGHTS_FOUR_DAYS.accepts(it.days) })
+        assertTrue(schedules.any { MapDurationFilter.FIVE_NIGHTS_OR_MORE.accepts(it.days) })
 
         val selectedSchedule = schedules.first()
         val scheduleState = MapUiState(
