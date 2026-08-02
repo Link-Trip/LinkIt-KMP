@@ -105,19 +105,18 @@ fun LinkItDialog(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(DialogDefaults.CloseButtonInset)
-                        .size(DialogDefaults.CloseButtonSize)
-                        .clickable(
-                            enabled = showCloseButton,
-                            role = Role.Button,
-                            onClick = onDismissRequest,
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (showCloseButton) {
+                if (showCloseButton) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(DialogDefaults.CloseButtonInset)
+                            .size(DialogDefaults.CloseButtonSize)
+                            .clickable(
+                                role = Role.Button,
+                                onClick = onDismissRequest,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(
                             imageVector = LinkItIcon.Utility.Close,
                             contentDescription = "닫기",
