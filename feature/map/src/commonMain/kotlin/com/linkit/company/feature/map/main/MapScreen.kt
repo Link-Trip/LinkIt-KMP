@@ -30,10 +30,13 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -84,6 +87,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.linkit.company.core.designsystem.component.badge.BadgeColor
+import com.linkit.company.core.designsystem.component.badge.BadgeSize
+import com.linkit.company.core.designsystem.component.badge.LinkItBadge
+import com.linkit.company.core.designsystem.component.button.ButtonColor
 import com.linkit.company.core.designsystem.component.button.ButtonSize
 import com.linkit.company.core.designsystem.component.button.LinkItButton
 import com.linkit.company.core.designsystem.component.menu.LinkItMenuItem
@@ -121,6 +129,7 @@ fun MapScreen(
     onOpenPlaceDetail: (MapPlaceUiModel) -> Unit = {},
     onOpenStorage: () -> Unit = {},
     onOpenMyPage: () -> Unit = {},
+    onPlaceSelectionChanged: (Boolean) -> Unit = {},
     viewModel: MapViewModel = metroViewModel(),
 ) {
     val debugMapData = rememberMapDebugData()
@@ -128,6 +137,10 @@ fun MapScreen(
         debugMapData?.let(viewModel::useDebugMapData)
     }
     val uiState by viewModel.uiState.collectAsState()
+    val latestOnPlaceSelectionChanged = rememberUpdatedState(onPlaceSelectionChanged)
+    LaunchedEffect(uiState.selection) {
+        latestOnPlaceSelectionChanged.value(uiState.selection == MapSelection.PLACE)
+    }
     MapContent(
         uiState = uiState,
         onIntent = viewModel::onIntent,
@@ -214,8 +227,8 @@ fun MapContent(
             if (schedule != null && place != null) {
                 PlaceInformationCard(
                     place = place,
-                    placeIndex = uiState.selectedPlaceIndex,
-                    placeCount = schedule.places.size,
+                    canShowPrevious = uiState.canShowPreviousPlace,
+                    canShowNext = uiState.canShowNextPlace,
                     onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
                     onNext = { onIntent(MapIntent.ShowNextPlace) },
                     onClose = { onIntent(MapIntent.ClosePlace) },
@@ -333,7 +346,7 @@ internal fun Iterable<MapCoordinateUiModel>.convexHull(): List<MapCoordinateUiMo
     return lower.dropLast(1) + upper.dropLast(1)
 }
 
-private fun MapUiState.toMapMarkers(): List<MapMarkerUiModel> = buildList {
+internal fun MapUiState.toMapMarkers(): List<MapMarkerUiModel> = buildList {
     filteredSchedules.forEach { schedule ->
         val latitude = schedule.centerLatitude
         val longitude = schedule.centerLongitude
@@ -442,7 +455,8 @@ private fun BoxScope.SelectedScheduleMapMarker(schedule: MapScheduleUiModel) {
     Box(
         modifier = Modifier
             .align(Alignment.TopCenter)
-            .padding(top = 20.dp, start = 72.dp, end = 72.dp),
+            .padding(top = 12.dp, start = 72.dp, end = 72.dp)
+            .testTag("map-selected-schedule-marker"),
     ) {
         MapMarkerVisual(
             marker = MapMarkerUiModel(
@@ -1198,55 +1212,79 @@ private fun MapLocationPill(text: String) {
 @Composable
 private fun BoxScope.PlaceInformationCard(
     place: MapPlaceUiModel,
-    placeIndex: Int,
-    placeCount: Int,
+    canShowPrevious: Boolean,
+    canShowNext: Boolean,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onClose: () -> Unit,
     onViewInSchedule: () -> Unit,
     onOpenPlaceDetail: () -> Unit,
 ) {
+    val navigationBarBottomPadding =
+        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
     Row(
-        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 229.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(end = 20.dp, bottom = 241.dp + navigationBarBottomPadding),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        CircleArrow(LinkItIcon.Arrow.ChevronLeft, placeIndex > 0, onPrevious)
-        CircleArrow(LinkItIcon.Arrow.ChevronRight, placeIndex < placeCount - 1, onNext)
+        CircleArrow(
+            icon = LinkItIcon.Arrow.ChevronLeft,
+            contentDescription = "이전 장소 이동",
+            testTag = "map-place-previous",
+            enabled = canShowPrevious,
+            onClick = onPrevious,
+        )
+        CircleArrow(
+            icon = LinkItIcon.Arrow.ChevronRight,
+            contentDescription = "다음 장소 이동",
+            testTag = "map-place-next",
+            enabled = canShowNext,
+            onClick = onNext,
+        )
     }
+    val cardShape = RoundedCornerShape(16.dp)
     Column(
         modifier = Modifier
             .align(Alignment.BottomCenter)
-            .offset(y = 10.dp)
-            .padding(horizontal = 20.dp)
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                bottom = navigationBarBottomPadding,
+            )
             .fillMaxWidth()
             .height(233.dp)
-            .shadow(8.dp, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(2.dp, cardShape)
+            .clip(cardShape)
             .background(LinkItTheme.color.semantic.background.elevated.normal)
-            .padding(vertical = 16.dp),
+            .padding(16.dp)
+            .testTag("map-place-card"),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().height(24.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "${place.day}일차 ${place.itemOrder}번째 장소",
-                style = LinkItTheme.typography.caption1Medium,
-                color = LinkItTheme.color.semantic.label.alternative,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(LinkItTheme.color.semantic.fill.normal)
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
+            LinkItBadge(
+                text = "${place.day}일차 ${place.itemOrder}번째 여행",
+                size = BadgeSize.XSmall,
+                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
+                textStyle = LinkItTheme.typography.caption3Regular,
+                modifier = Modifier.testTag("map-place-order"),
             )
             Spacer(Modifier.weight(1f))
             Icon(
                 imageVector = LinkItIcon.Utility.Close,
                 contentDescription = "장소 카드 닫기",
                 tint = LinkItTheme.color.semantic.label.strong,
-                modifier = Modifier.size(20.dp).clickable(onClick = onClose),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable(onClick = onClose)
+                    .testTag("map-place-close"),
             )
         }
-        Row(modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp)) {
+        Spacer(Modifier.height(12.dp))
+        Row(modifier = Modifier.fillMaxWidth().height(64.dp)) {
             Image(
                 painter = painterResource(Res.drawable.map_place_photo),
                 contentDescription = null,
@@ -1257,69 +1295,105 @@ private fun BoxScope.PlaceInformationCard(
                 PlaceCategoryTag(place.categoryLabel)
                 Text(
                     text = place.name,
-                    style = LinkItTheme.typography.heading2Bold,
+                    style = LinkItTheme.typography.headline2Bold,
                     color = LinkItTheme.color.semantic.label.strong,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 4.dp),
                 )
-                Text(
-                    text = "⌖ ${place.address.ifBlank { "주소 정보 없음" }}",
-                    style = LinkItTheme.typography.caption2Regular,
-                    color = LinkItTheme.color.semantic.label.alternative,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = LinkItIcon.Location.LocationFill,
+                        contentDescription = null,
+                        tint = LinkItTheme.color.semantic.label.alternative,
+                        modifier = Modifier.size(12.dp),
+                    )
+                    Text(
+                        text = place.address.ifBlank { "주소 정보 없음" },
+                        style = LinkItTheme.typography.caption2Medium.copy(
+                            lineHeight = 16.5.sp,
+                            letterSpacing = 0.sp,
+                        ),
+                        color = LinkItTheme.color.semantic.label.alternative,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
+        Spacer(Modifier.height(12.dp))
         Text(
             text = place.description.ifBlank {
                 place.tips.ifBlank { "등록된 장소 설명이 없어요." }
             },
-            style = LinkItTheme.typography.caption1Regular,
+            style = LinkItTheme.typography.caption1Medium.copy(
+                lineHeight = 19.5.sp,
+                letterSpacing = 0.sp,
+            ),
             color = LinkItTheme.color.semantic.label.neutral,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp),
+            modifier = Modifier.fillMaxWidth().height(40.dp),
         )
+        Spacer(Modifier.height(11.dp))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 12.dp, end = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().height(38.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            CardAction("일정에서 보기", Modifier.weight(1f), onViewInSchedule)
-            CardAction("장소 상세보기", Modifier.weight(1f), onOpenPlaceDetail)
+            PlaceCardAction(
+                text = "일정에서 보기",
+                testTag = "map-place-view-schedule",
+                modifier = Modifier.weight(1f),
+                onClick = onViewInSchedule,
+            )
+            PlaceCardAction(
+                text = "장소 상세보기",
+                testTag = "map-place-open-detail",
+                modifier = Modifier.weight(1f),
+                onClick = onOpenPlaceDetail,
+            )
         }
     }
 }
 
 @Composable
 private fun PlaceCategoryTag(text: String) {
-    Text(
+    LinkItBadge(
         text = text,
-        style = LinkItTheme.typography.caption2Medium,
-        color = LinkItTheme.color.semantic.accent.foreground.blue,
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(LinkItTheme.color.semantic.accent.foreground.blue.copy(alpha = .08f))
-            .padding(horizontal = 6.dp, vertical = 3.dp),
+        size = BadgeSize.XSmall,
+        color = BadgeColor.Accent,
+        accentBackgroundColor = LinkItTheme.color.semantic.accent.foreground.blue,
+        accentContentColor = LinkItTheme.color.semantic.accent.foreground.blue,
+        textStyle = LinkItTheme.typography.caption3Bold,
     )
 }
 
 @Composable
-private fun CircleArrow(icon: ImageVector, enabled: Boolean, onClick: () -> Unit) {
+private fun CircleArrow(
+    icon: ImageVector,
+    contentDescription: String,
+    testTag: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
     Box(
         modifier = Modifier
-            .size(40.dp)
-            .shadow(4.dp, CircleShape)
+            .size(36.dp)
+            .shadow(1.dp, CircleShape)
             .clip(CircleShape)
             .background(LinkItTheme.color.semantic.background.elevated.normal)
-            .clickable(enabled = enabled, onClick = onClick),
+            .border(1.dp, PaletteTokens.CoolNeutral95, CircleShape)
+            .clickable(enabled = enabled, onClick = onClick)
+            .testTag(testTag),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = contentDescription,
             tint = if (enabled) {
                 LinkItTheme.color.semantic.label.strong
             } else {
@@ -1757,19 +1831,19 @@ private fun MiniTag(text: String) {
 }
 
 @Composable
-private fun CardAction(text: String, modifier: Modifier, onClick: () -> Unit) {
-    Box(
-        modifier = modifier
-            .height(42.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(LinkItTheme.color.semantic.fill.normal)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            style = LinkItTheme.typography.label1NormalSemibold,
-            color = LinkItTheme.color.semantic.label.strong,
-        )
-    }
+private fun PlaceCardAction(
+    text: String,
+    testTag: String,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    LinkItButton(
+        onClick = onClick,
+        text = text,
+        modifier = modifier.testTag(testTag),
+        color = ButtonColor.Assistive,
+        size = ButtonSize.Medium,
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 9.dp),
+        textStyle = LinkItTheme.typography.label1NormalRegular,
+    )
 }

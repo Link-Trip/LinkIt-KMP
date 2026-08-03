@@ -11,6 +11,7 @@ import com.linkit.company.feature.map.mypage.MyPageScreen
 fun EntryProviderScope<NavKey>.mapEntry(
     onOpenSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit,
     navigateToScheduleEdit: () -> Unit,
+    onPlaceSelectionChanged: (Boolean) -> Unit = {},
 ) {
     entry<LinkItNavKey.Map> {
         val navigator = LocalLinkItNavigator.current
@@ -33,6 +34,7 @@ fun EntryProviderScope<NavKey>.mapEntry(
             },
             onOpenStorage = { navigator.navigate(LinkItNavKey.Storage) },
             onOpenMyPage = { navigator.navigate(LinkItNavKey.MyPage) },
+            onPlaceSelectionChanged = onPlaceSelectionChanged,
         )
     }
 

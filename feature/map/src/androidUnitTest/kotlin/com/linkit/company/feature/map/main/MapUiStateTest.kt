@@ -28,6 +28,8 @@ class MapUiStateTest {
         assertEquals(MapSelection.PLACE, placeSelection.selection)
         assertEquals("광장시장", placeSelection.selectedPlace?.name)
         assertEquals(1, placeSelection.selectedPlaceIndex)
+        assertEquals(true, placeSelection.canShowPreviousPlace)
+        assertEquals(false, placeSelection.canShowNextPlace)
     }
 
     @Test
@@ -73,7 +75,45 @@ class MapUiStateTest {
         )
 
         assertNull(state.selectedPlace)
-        assertEquals(0, state.selectedPlaceIndex)
+        assertEquals(-1, state.selectedPlaceIndex)
+        assertEquals(false, state.canShowPreviousPlace)
+        assertEquals(false, state.canShowNextPlace)
+    }
+
+    @Test
+    fun selectedPlaceNavigationAvailabilityMatchesScheduleBoundaries() {
+        val firstPlace = MapTestFixtures.contentState(
+            selectedScheduleId = MapTestFixtures.SeoulScheduleId,
+            selectedPlaceMarkerId = MapTestFixtures.PalaceMarkerId,
+        )
+        val lastPlace = MapTestFixtures.contentState(
+            selectedScheduleId = MapTestFixtures.SeoulScheduleId,
+            selectedPlaceMarkerId = MapTestFixtures.MarketMarkerId,
+        )
+
+        assertEquals(false, firstPlace.canShowPreviousPlace)
+        assertEquals(true, firstPlace.canShowNextPlace)
+        assertEquals(true, lastPlace.canShowPreviousPlace)
+        assertEquals(false, lastPlace.canShowNextPlace)
+    }
+
+    @Test
+    fun placeSelectionShowsAllPlacesAndFocusesOnlySelectedMarker() {
+        val state = MapTestFixtures.contentState(
+            selectedScheduleId = MapTestFixtures.SeoulScheduleId,
+            selectedPlaceMarkerId = MapTestFixtures.MarketMarkerId,
+        )
+
+        val placeMarkers = state.toMapMarkers().filter { it.type == MapMarkerType.PLACE }
+
+        assertEquals(
+            listOf(MapTestFixtures.PalaceMarkerId, MapTestFixtures.MarketMarkerId),
+            placeMarkers.map(MapMarkerUiModel::id),
+        )
+        assertEquals(
+            listOf(MapTestFixtures.MarketMarkerId),
+            placeMarkers.filter(MapMarkerUiModel::selected).map(MapMarkerUiModel::id),
+        )
     }
 
     @Test

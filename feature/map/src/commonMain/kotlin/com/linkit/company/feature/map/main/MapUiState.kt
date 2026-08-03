@@ -135,8 +135,14 @@ data class MapUiState(
         get() = selectedSchedule
             ?.places
             ?.indexOfFirst { it.markerId == selectedPlaceMarkerId }
-            ?.coerceAtLeast(0)
-            ?: 0
+            ?: -1
+
+    val canShowPreviousPlace: Boolean
+        get() = selectedPlace != null && selectedPlaceIndex > 0
+
+    val canShowNextPlace: Boolean
+        get() = selectedPlace != null &&
+            selectedPlaceIndex in 0 until (selectedSchedule?.places?.lastIndex ?: -1)
 
     val filteredSchedules: List<MapScheduleUiModel>
         get() = schedules.filter { schedule ->

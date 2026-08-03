@@ -7,13 +7,18 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertValueEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.dp
@@ -97,12 +102,87 @@ class MapScreenshotTest {
     )
 
     @Test
-    fun placeSelected() = capture(
-        MapTestFixtures.contentState(
+    fun placeSelected() {
+        val debugSchedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
+        val selectedPlace = debugSchedule.places[2].copy(
+            name = "루브르 박물관",
+            categoryLabel = "음식점",
+            description = "세계 각지의 유물이 모여있는 박물관 입니다. 모나리자를 위해 드농 윙에 집중하세요.",
+            address = "뤼 드 리볼리, 75001 파리",
+        )
+        val schedule = debugSchedule.copy(
+            title = "도쿄 신주쿠 여행",
+            places = debugSchedule.places.toMutableList().apply { this[2] = selectedPlace },
+        )
+
+        capture(
+            MapUiState(
+                loadState = MapLoadState.CONTENT,
+                schedules = listOf(schedule),
+                selectedScheduleId = schedule.id,
+                selectedPlaceMarkerId = selectedPlace.markerId,
+                mapCenterLocationLabel = "일본, 도쿄",
+            ),
+        )
+    }
+
+    @Test
+    fun placeCardActionsFollowSelectionSpec() {
+        val intents = mutableListOf<MapIntent>()
+        var scheduleRequest: Triple<String, String, String?>? = null
+        var detailRequest: MapPlaceUiModel? = null
+        val state = MapTestFixtures.contentState(
             selectedScheduleId = MapTestFixtures.SeoulScheduleId,
             selectedPlaceMarkerId = MapTestFixtures.MarketMarkerId,
-        ),
-    )
+        )
+
+        setPlaceContent(
+            state = state,
+            onIntent = intents::add,
+            onOpenSchedule = { id, title, placeId ->
+                scheduleRequest = Triple(id, title, placeId)
+            },
+            onOpenPlaceDetail = { detailRequest = it },
+        )
+
+        composeRule.onNodeWithTag("map-place-card").assertIsDisplayed()
+        composeRule.onNodeWithText("2일차 2번째 여행").assertIsDisplayed()
+        composeRule.onNodeWithTag("map-selected-schedule-marker").assertIsDisplayed()
+        composeRule.onNodeWithTag("map-place-previous").assertIsEnabled().performClick()
+        composeRule.onNodeWithTag("map-place-next").assertIsNotEnabled()
+        composeRule.onNodeWithTag("map-place-close").performClick()
+        composeRule.onNodeWithTag("map-place-view-schedule").performClick()
+        composeRule.onNodeWithTag("map-place-open-detail").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(MapIntent.ShowPreviousPlace, MapIntent.ClosePlace),
+                intents,
+            )
+            assertEquals(
+                Triple(
+                    MapTestFixtures.SeoulScheduleId,
+                    state.selectedSchedule?.title,
+                    state.selectedPlace?.placeId,
+                ),
+                scheduleRequest,
+            )
+            assertEquals(state.selectedPlace, detailRequest)
+        }
+    }
+
+    @Test
+    fun placeCardDisablesPreviousAndEnablesNextAtFirstPlace() {
+        setPlaceContent(
+            state = MapTestFixtures.contentState(
+                selectedScheduleId = MapTestFixtures.SeoulScheduleId,
+                selectedPlaceMarkerId = MapTestFixtures.PalaceMarkerId,
+            ),
+        )
+
+        composeRule.onNodeWithTag("map-place-previous").assertIsNotEnabled()
+        composeRule.onNodeWithTag("map-place-next").assertIsEnabled()
+    }
 
     @Test
     fun loadingMap() = capture(
@@ -204,6 +284,29 @@ class MapScreenshotTest {
         sheetGesture?.let(::settleSheet)
         assertCreateControl(createControlExpectation)
         composeRule.onRoot().captureRoboImage()
+    }
+
+    private fun setPlaceContent(
+        state: MapUiState,
+        onIntent: (MapIntent) -> Unit = {},
+        onOpenSchedule: (String, String, String?) -> Unit = { _, _, _ -> },
+        onOpenPlaceDetail: (MapPlaceUiModel) -> Unit = {},
+    ) {
+        composeRule.setContent {
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                PreviewContextConfigurationEffect()
+                LinkItTheme {
+                    Box(Modifier.requiredSize(375.dp, 744.dp)) {
+                        MapContent(
+                            uiState = state,
+                            onIntent = onIntent,
+                            onOpenSchedule = onOpenSchedule,
+                            onOpenPlaceDetail = onOpenPlaceDetail,
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun assertCreateControl(expectation: CreateControlExpectation?) {

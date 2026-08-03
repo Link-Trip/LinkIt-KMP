@@ -111,7 +111,7 @@ private fun ScheduleMapMarkerVisual(marker: MapMarkerUiModel, modifier: Modifier
     Text(
         text = marker.label,
         style = if (marker.selected) {
-            LinkItTheme.typography.body2NormalSemibold
+            LinkItTheme.typography.headline2Bold
         } else {
             LinkItTheme.typography.label2Medium
         },
