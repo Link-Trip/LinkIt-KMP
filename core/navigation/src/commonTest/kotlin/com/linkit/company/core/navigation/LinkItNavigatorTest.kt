@@ -44,6 +44,17 @@ class LinkItNavigatorTest {
         assertEquals(LinkItNavKey.Map, state.currentTopLevelRoute)
     }
 
+    @Test
+    fun backAtStartRouteKeepsRoot() {
+        val state = navigationState()
+        val navigator = LinkItNavigator(state)
+
+        navigator.navigateBack()
+
+        assertEquals(listOf<NavKey>(LinkItNavKey.Map), state.topLevelStack)
+        assertEquals(LinkItNavKey.Map, state.currentTopLevelRoute)
+    }
+
     private fun navigationState(): NavigationState {
         val topLevelRoutes = listOf(LinkItNavKey.Map, LinkItNavKey.Storage, LinkItNavKey.Explore)
         return NavigationState(

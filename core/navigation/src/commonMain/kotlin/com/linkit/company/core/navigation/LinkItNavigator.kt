@@ -13,7 +13,9 @@ class LinkItNavigator(private val navigationState: NavigationState) {
 
     fun navigateBack() {
         if (navigationState.currentRoute == navigationState.currentTopLevelRoute) {
-            navigationState.topLevelStack.removeLastOrNull()
+            if (navigationState.topLevelStack.size > 1) {
+                navigationState.topLevelStack.removeLastOrNull()
+            }
         } else {
             navigationState.currentTopLevelBackStack.removeLastOrNull()
         }
