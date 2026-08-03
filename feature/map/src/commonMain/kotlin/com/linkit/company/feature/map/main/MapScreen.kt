@@ -387,19 +387,18 @@ private fun BoxScope.MapTopActions(
             .padding(top = 20.dp, end = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        MapRoundAction(LinkItIcon.Communication.PersonFill, "마이페이지", true, onOpenMyPage)
-        MapRoundAction(LinkItIcon.Location.Map, "지도 종류 변경", false, onToggleMapType)
+        MapTopAction(LinkItIcon.Communication.PersonFill, "마이페이지", onOpenMyPage)
+        MapTopAction(LinkItIcon.Location.Map, "지도 종류 변경", onToggleMapType)
     }
 }
 
 @Composable
-private fun MapRoundAction(
+private fun MapTopAction(
     icon: ImageVector,
     description: String,
-    round: Boolean,
     onClick: () -> Unit,
 ) {
-    val shape = if (round) CircleShape else RoundedCornerShape(10.dp)
+    val shape = RoundedCornerShape(10.dp)
     Box(
         modifier = Modifier
             .size(40.dp)
