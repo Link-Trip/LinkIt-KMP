@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -627,10 +628,36 @@ private fun BoxScope.MapBottomSheetHost(
                 },
         ) {
             MapLocationPill(locationLabel)
+            val sheetSurfaceSizeModifier = if (
+                content == MapSheetContent.SavedSchedules &&
+                uiState.loadState == MapLoadState.CONTENT &&
+                uiState.filteredSchedules.isNotEmpty()
+            ) {
+                Modifier
+                    .fillMaxWidth()
+                    .layout { measurable, constraints ->
+                        val currentOffset = draggableState.offset
+                            .takeUnless(Float::isNaN)
+                            ?: restingOffset
+                        val visibleHeight =
+                            (containerHeightPx - currentOffset - locationPillHeightPx)
+                            .roundToInt()
+                            .coerceIn(0, constraints.maxHeight)
+                        val placeable = measurable.measure(
+                            constraints.copy(
+                                minHeight = visibleHeight,
+                                maxHeight = visibleHeight,
+                            ),
+                        )
+                        layout(placeable.width, placeable.height) {
+                            placeable.placeRelative(0, 0)
+                        }
+                    }
+            } else {
+                Modifier.fillMaxSize()
+            }
             MapSheetSurface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .offset(y = MapLocationPillHeight),
+                modifier = sheetSurfaceSizeModifier.offset(y = MapLocationPillHeight),
                 shape = surfaceShape,
                 shadowElevation = if (content == MapSheetContent.SavedSchedules) 10.dp else 0.dp,
             ) {
@@ -1271,7 +1298,10 @@ private fun ColumnScope.ScheduleList(
                 description = "필터를 바꿔 다시 찾아보세요.",
             )
         } else {
-            LazyColumn(contentPadding = PaddingValues(bottom = 72.dp)) {
+            LazyColumn(
+                modifier = Modifier.testTag("map-schedule-list"),
+                contentPadding = PaddingValues(bottom = 72.dp),
+            ) {
                 items(schedules, key = MapScheduleUiModel::id) { schedule ->
                     ScheduleListRow(
                         schedule = schedule,

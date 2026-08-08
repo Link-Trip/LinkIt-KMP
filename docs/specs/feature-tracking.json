@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-08-03T11:13:34.171Z",
+  "updatedAt": "2026-08-08T10:15:11.333Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -648,7 +648,7 @@
       "testStatus": "passed",
       "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "3단 앵커 드래그, 50% 최근접 정착, 속도 기반 전환, 정착 중 재드래그, 여행 미리보기 공통 호스트 구현. Android/iOS 컴파일, map 단위 테스트, Roborazzi 4상태, API 35 에뮬레이터 왕복 드래그 확인.",
+      "notes": "3단 앵커 드래그, 50% 최근접 정착, 속도 기반 전환, 정착 중 재드래그, 여행 미리보기 공통 호스트 구현. 일정 리스트가 보이는 시트 높이를 초과할 때만 내부 스크롤을 허용하고, 펼쳐 모든 아이템이 보이면 스크롤 범위를 0으로 제한. Android/iOS 컴파일, map 단위·제스처 테스트, Roborazzi 및 앱 빌드 통과.",
       "workPlan": {
         "status": "done",
         "summary": "메인 지도 바텀시트를 Collapsed/Resting/Expanded anchor로 연속 드래그하고 가장 가까운 상태에 정착시키며 여행 선택 프리뷰를 동일 host에 통합",
@@ -691,7 +691,7 @@
           "createdBy": "fbghgus123"
         }
       ],
-      "updatedAt": "2026-07-25T06:39:53.515Z",
+      "updatedAt": "2026-08-08T10:15:11.328Z",
       "updatedBy": "yuhohyeon"
     },
     "main:SHEET_COLLAPSE_ON_PLACE_SELECT": {

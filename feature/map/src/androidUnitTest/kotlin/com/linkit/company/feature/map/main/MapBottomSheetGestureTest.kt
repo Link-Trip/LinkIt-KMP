@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
@@ -137,6 +138,29 @@ class MapBottomSheetGestureTest {
         sheet().assertValueEquals("Expanded")
         assertTrue(sheetSurfaceVisibleHeight() >= CreateControlThresholdPx)
         assertCreateControlIconOnly()
+    }
+
+    @Test
+    fun scheduleListScrollsOnlyWhileItemsOverflowTheVisibleSheet() {
+        setMapContent()
+
+        val initialScroll = scheduleListScrollValue()
+        assertTrue(scheduleListMaxScrollValue() > 0f)
+
+        composeRule.onNodeWithTag(ScheduleListTag).performTouchInput {
+            swipeWithVelocity(
+                start = center + Offset(x = 0f, y = 60f),
+                end = center + Offset(x = 0f, y = -60f),
+                endVelocity = 800f,
+            )
+        }
+        composeRule.waitForIdle()
+        assertTrue(scheduleListScrollValue() > initialScroll)
+
+        fastSwipeBy(deltaY = -80f)
+
+        sheet().assertValueEquals("Expanded")
+        assertEquals(0.0, scheduleListMaxScrollValue().toDouble(), 0.1)
     }
 
     @Test
@@ -603,6 +627,15 @@ class MapBottomSheetGestureTest {
     private fun handleCenterInRoot(): Offset =
         composeRule.onNodeWithTag(HandleTag).fetchSemanticsNode().boundsInRoot.center
 
+    private fun scheduleListScrollValue(): Float = scheduleListScrollRange().value()
+
+    private fun scheduleListMaxScrollValue(): Float = scheduleListScrollRange().maxValue()
+
+    private fun scheduleListScrollRange() = composeRule
+        .onNodeWithTag(ScheduleListTag)
+        .fetchSemanticsNode()
+        .config[SemanticsProperties.VerticalScrollAxisRange]
+
     private fun toggleCreateMenuWithSemantics() {
         composeRule
             .onNodeWithTag(CreateControlTag)
@@ -708,6 +741,7 @@ class MapBottomSheetGestureTest {
         const val HandleTag = "map-bottom-sheet-handle"
         const val CreateControlTag = "map-create-schedule-control"
         const val CreateMenuTag = "map-create-schedule-menu"
+        const val ScheduleListTag = "map-schedule-list"
         const val CreateScheduleLabel = "일정 생성"
         const val CloseLabel = "닫기"
         const val CreateMenuOpenDescription = "일정 생성 메뉴 열기"
