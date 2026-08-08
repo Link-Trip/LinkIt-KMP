@@ -19,6 +19,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.dp
@@ -67,6 +68,165 @@ class MapScreenshotTest {
         ),
         createControlExpectation = CreateControlExpectation.Absent,
     )
+
+    @Test
+    fun scheduleMoreMenuExpanded() = capture(
+        state = MapTestFixtures.contentState().copy(
+            expandedScheduleMenuId = MapTestFixtures.SeoulScheduleId,
+        ),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun selectedScheduleMoreMenuExpanded() = capture(
+        state = MapTestFixtures.contentState(
+            selectedScheduleId = MapTestFixtures.SeoulScheduleId,
+        ).copy(
+            expandedScheduleMenuId = MapTestFixtures.SeoulScheduleId,
+        ),
+        createControlExpectation = CreateControlExpectation.Absent,
+    )
+
+    @Test
+    fun scheduleRenameDialog() = capture(
+        state = MapTestFixtures.contentState().copy(
+            scheduleDialog = MapScheduleDialog.RENAME,
+            scheduleDialogScheduleId = MapTestFixtures.SeoulScheduleId,
+            scheduleNameDraft = "도쿄 신주쿠 여행 02",
+        ),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun scheduleDeleteDialog() = capture(
+        state = MapTestFixtures.contentState().copy(
+            scheduleDialog = MapScheduleDialog.DELETE,
+            scheduleDialogScheduleId = MapTestFixtures.SeoulScheduleId,
+        ),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun scheduleRenameSuccessFeedback() = capture(
+        state = MapTestFixtures.contentState().copy(
+            scheduleActionFeedback = MapScheduleActionFeedback(
+                id = 1,
+                message = "일정 이름 수정이 완료되었습니다.",
+                type = MapScheduleActionFeedbackType.SUCCESS,
+            ),
+        ),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    @Test
+    fun scheduleMoreButtonEmitsToggleIntent() {
+        val intents = mutableListOf<MapIntent>()
+
+        setMapContent(state = MapTestFixtures.contentState(), onIntent = intents::add)
+        composeRule
+            .onNodeWithTag("map-schedule-more-${MapTestFixtures.SeoulScheduleId}")
+            .performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(MapIntent.ToggleScheduleMenu(MapTestFixtures.SeoulScheduleId)),
+                intents,
+            )
+        }
+    }
+
+    @Test
+    fun scheduleMoreMenuShowsActionsAndEmitsRenameIntent() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapTestFixtures.contentState().copy(
+                expandedScheduleMenuId = MapTestFixtures.SeoulScheduleId,
+            ),
+            onIntent = intents::add,
+        )
+        composeRule
+            .onNodeWithTag("map-schedule-more-menu-${MapTestFixtures.SeoulScheduleId}")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("일정 이름 변경").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("일정 삭제").assertIsDisplayed()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(MapIntent.ShowRenameScheduleDialog(MapTestFixtures.SeoulScheduleId)),
+                intents,
+            )
+        }
+    }
+
+    @Test
+    fun scheduleMoreMenuEmitsDeleteIntent() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapTestFixtures.contentState().copy(
+                expandedScheduleMenuId = MapTestFixtures.SeoulScheduleId,
+            ),
+            onIntent = intents::add,
+        )
+
+        composeRule.onNodeWithText("일정 삭제").assertIsDisplayed().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(MapIntent.ShowDeleteScheduleDialog(MapTestFixtures.SeoulScheduleId)),
+                intents,
+            )
+        }
+    }
+
+    @Test
+    fun scheduleRenameDialogEditsAndConfirms() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapTestFixtures.contentState().copy(
+                scheduleDialog = MapScheduleDialog.RENAME,
+                scheduleDialogScheduleId = MapTestFixtures.SeoulScheduleId,
+                scheduleNameDraft = "도쿄 신주쿠 여행 02",
+            ),
+            onIntent = intents::add,
+        )
+
+        composeRule
+            .onNodeWithTag("map-schedule-name-input")
+            .assertTextEquals("도쿄 신주쿠 여행 02")
+            .performTextReplacement("새 일정 이름")
+        composeRule.onNodeWithTag("map-schedule-rename-confirm").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                listOf(
+                    MapIntent.UpdateScheduleName("새 일정 이름"),
+                    MapIntent.ConfirmScheduleRename,
+                ),
+                intents,
+            )
+        }
+    }
+
+    @Test
+    fun scheduleDeleteDialogShowsCloseAndEmitsConfirm() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapTestFixtures.contentState().copy(
+                scheduleDialog = MapScheduleDialog.DELETE,
+                scheduleDialogScheduleId = MapTestFixtures.SeoulScheduleId,
+            ),
+            onIntent = intents::add,
+        )
+
+        composeRule.onNodeWithText("정말 일정을 삭제하시겠어요?").assertIsDisplayed()
+        composeRule.onNodeWithText("삭제된 일정은 복구할 수 없어요").assertIsDisplayed()
+        composeRule.onNodeWithTag("map-schedule-dialog-close").assertIsDisplayed()
+        composeRule.onNodeWithTag("map-schedule-delete-confirm").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.ConfirmScheduleDelete), intents)
+        }
+    }
 
     @Test
     fun createMenuExpanded() = capture(
@@ -270,20 +430,27 @@ class MapScreenshotTest {
         sheetGesture: SheetGesture? = null,
         createControlExpectation: CreateControlExpectation? = null,
     ) {
+        setMapContent(state)
+
+        sheetGesture?.let(::settleSheet)
+        assertCreateControl(createControlExpectation)
+        composeRule.onRoot().captureRoboImage()
+    }
+
+    private fun setMapContent(
+        state: MapUiState,
+        onIntent: (MapIntent) -> Unit = {},
+    ) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, 744.dp)) {
-                        MapContent(uiState = state, onIntent = {})
+                        MapContent(uiState = state, onIntent = onIntent)
                     }
                 }
             }
         }
-
-        sheetGesture?.let(::settleSheet)
-        assertCreateControl(createControlExpectation)
-        composeRule.onRoot().captureRoboImage()
     }
 
     private fun setPlaceContent(

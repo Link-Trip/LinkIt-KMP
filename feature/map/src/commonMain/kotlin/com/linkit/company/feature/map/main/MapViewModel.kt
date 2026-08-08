@@ -7,8 +7,10 @@ import com.linkit.company.core.common.architecture.MviContext
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.model.map.TripPlanMapData
+import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
+import com.linkit.company.domain.usecase.RenameTripPlanUseCase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
@@ -24,6 +26,8 @@ import kotlin.math.abs
 class MapViewModel(
     private val getSavedTripPlansForMap: GetSavedTripPlansForMapUseCase,
     private val ensureAuthenticated: EnsureAuthenticatedUseCase,
+    private val renameTripPlan: RenameTripPlanUseCase,
+    private val deleteTripPlan: DeleteTripPlanUseCase,
 ) : ViewModel() {
     private val container = MviContainer<MapIntent, MapSideEffect, MapUiState>(
         initialState = MapUiState(),
@@ -31,6 +35,7 @@ class MapViewModel(
     )
     private var loadJob: Job? = null
     private var debugMapData: List<TripPlanMapData>? = null
+    private var scheduleActionFeedbackId: Int = 0
 
     val uiState = container.uiState
 
@@ -52,16 +57,60 @@ class MapViewModel(
             is MapIntent.SelectSchedule -> selectSchedule(intent.scheduleId)
             is MapIntent.SelectPlace -> selectPlace(intent.scheduleId, intent.markerId)
             MapIntent.ClearSelection -> reduce {
-                copy(selectedScheduleId = null, selectedPlaceMarkerId = null)
+                copy(
+                    selectedScheduleId = null,
+                    selectedPlaceMarkerId = null,
+                    expandedScheduleMenuId = null,
+                )
             }
             MapIntent.ClosePlace -> reduce { copy(selectedPlaceMarkerId = null) }
             MapIntent.ShowPreviousPlace -> selectAdjacentPlace(offset = -1)
             MapIntent.ShowNextPlace -> selectAdjacentPlace(offset = 1)
             MapIntent.ToggleCreateMenu -> reduce {
-                copy(isCreateMenuExpanded = !isCreateMenuExpanded)
+                copy(
+                    isCreateMenuExpanded = !isCreateMenuExpanded,
+                    expandedScheduleMenuId = null,
+                )
+            }
+            is MapIntent.ToggleScheduleMenu -> reduce {
+                if (schedules.any { it.id == intent.scheduleId }) {
+                    copy(
+                        expandedScheduleMenuId = intent.scheduleId
+                            .takeUnless { it == expandedScheduleMenuId },
+                        isCreateMenuExpanded = false,
+                        expandedFilter = null,
+                    )
+                } else {
+                    this
+                }
+            }
+            MapIntent.DismissScheduleMenu -> reduce { copy(expandedScheduleMenuId = null) }
+            is MapIntent.ShowRenameScheduleDialog -> showScheduleDialog(
+                scheduleId = intent.scheduleId,
+                dialog = MapScheduleDialog.RENAME,
+            )
+            is MapIntent.ShowDeleteScheduleDialog -> showScheduleDialog(
+                scheduleId = intent.scheduleId,
+                dialog = MapScheduleDialog.DELETE,
+            )
+            is MapIntent.UpdateScheduleName -> reduce {
+                if (scheduleDialog == MapScheduleDialog.RENAME && !isScheduleActionInProgress) {
+                    copy(scheduleNameDraft = intent.value.take(MaxScheduleNameLength))
+                } else {
+                    this
+                }
+            }
+            MapIntent.ConfirmScheduleRename -> confirmScheduleRename()
+            MapIntent.ConfirmScheduleDelete -> confirmScheduleDelete()
+            MapIntent.DismissScheduleDialog -> dismissScheduleDialog()
+            MapIntent.DismissScheduleActionFeedback -> reduce {
+                copy(scheduleActionFeedback = null)
             }
             MapIntent.ShowComingSoonDialog -> reduce {
-                copy(isComingSoonDialogVisible = true)
+                copy(
+                    isComingSoonDialogVisible = true,
+                    expandedScheduleMenuId = null,
+                )
             }
             MapIntent.DismissComingSoonDialog -> reduce {
                 copy(isComingSoonDialogVisible = false)
@@ -70,7 +119,10 @@ class MapViewModel(
                 copy(mapType = if (mapType == MapType.DEFAULT) MapType.SATELLITE else MapType.DEFAULT)
             }
             is MapIntent.ToggleFilter -> reduce {
-                copy(expandedFilter = intent.filter.takeUnless { it == expandedFilter })
+                copy(
+                    expandedFilter = intent.filter.takeUnless { it == expandedFilter },
+                    expandedScheduleMenuId = null,
+                )
             }
             is MapIntent.SelectRegion -> reduce {
                 copy(selectedRegion = intent.region, expandedFilter = null)
@@ -123,6 +175,146 @@ class MapViewModel(
         }
     }
 
+    private fun MviContext<MapUiState, MapSideEffect>.showScheduleDialog(
+        scheduleId: String,
+        dialog: MapScheduleDialog,
+    ) {
+        val schedule = currentState.schedules.firstOrNull { it.id == scheduleId } ?: return
+        reduce {
+            copy(
+                expandedScheduleMenuId = null,
+                scheduleDialog = dialog,
+                scheduleDialogScheduleId = scheduleId,
+                scheduleNameDraft = schedule.title,
+                isScheduleActionInProgress = false,
+                scheduleActionFeedback = null,
+            )
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.dismissScheduleDialog() {
+        if (currentState.isScheduleActionInProgress) return
+        reduce {
+            copy(
+                scheduleDialog = null,
+                scheduleDialogScheduleId = null,
+                scheduleNameDraft = "",
+            )
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.confirmScheduleRename() {
+        val scheduleId = currentState.scheduleDialogScheduleId ?: return
+        val title = currentState.scheduleNameDraft
+        if (
+            currentState.scheduleDialog != MapScheduleDialog.RENAME ||
+            currentState.isScheduleActionInProgress ||
+            title.isBlank()
+        ) {
+            return
+        }
+
+        reduce { copy(isScheduleActionInProgress = true) }
+        viewModelScope.launch {
+            try {
+                val updated = runWithAuthRetry { renameTripPlan(scheduleId, title) }
+                container.mviContext.reduce {
+                    copy(
+                        schedules = schedules.map { schedule ->
+                            if (schedule.id == scheduleId) schedule.copy(title = updated.title) else schedule
+                        },
+                        scheduleDialog = null,
+                        scheduleDialogScheduleId = null,
+                        scheduleNameDraft = "",
+                        isScheduleActionInProgress = false,
+                        scheduleActionFeedback = nextScheduleActionFeedback(
+                            message = "일정 이름 수정이 완료되었습니다.",
+                            type = MapScheduleActionFeedbackType.SUCCESS,
+                        ),
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                showScheduleActionError(error, fallback = "일정 이름을 수정하지 못했어요.")
+            }
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.confirmScheduleDelete() {
+        val scheduleId = currentState.scheduleDialogScheduleId ?: return
+        if (
+            currentState.scheduleDialog != MapScheduleDialog.DELETE ||
+            currentState.isScheduleActionInProgress
+        ) {
+            return
+        }
+
+        reduce { copy(isScheduleActionInProgress = true) }
+        viewModelScope.launch {
+            try {
+                runWithAuthRetry { deleteTripPlan(scheduleId) }
+                container.mviContext.reduce {
+                    val remainingSchedules = schedules.filterNot { it.id == scheduleId }
+                    val deletedSelectedSchedule = selectedScheduleId == scheduleId
+                    copy(
+                        loadState = if (remainingSchedules.isEmpty()) {
+                            MapLoadState.EMPTY
+                        } else {
+                            MapLoadState.CONTENT
+                        },
+                        schedules = remainingSchedules,
+                        selectedScheduleId = selectedScheduleId.takeUnless { deletedSelectedSchedule },
+                        selectedPlaceMarkerId = selectedPlaceMarkerId.takeUnless { deletedSelectedSchedule },
+                        scheduleDialog = null,
+                        scheduleDialogScheduleId = null,
+                        scheduleNameDraft = "",
+                        isScheduleActionInProgress = false,
+                        scheduleActionFeedback = nextScheduleActionFeedback(
+                            message = "일정이 삭제되었습니다.",
+                            type = MapScheduleActionFeedbackType.SUCCESS,
+                        ),
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                showScheduleActionError(error, fallback = "일정을 삭제하지 못했어요.")
+            }
+        }
+    }
+
+    private fun showScheduleActionError(error: Throwable, fallback: String) {
+        val message = (error as? LinkTripApiException)
+            ?.message
+            ?.takeIf(String::isNotBlank)
+            ?: fallback
+        container.mviContext.reduce {
+            copy(
+                scheduleDialog = null,
+                scheduleDialogScheduleId = null,
+                scheduleNameDraft = "",
+                isScheduleActionInProgress = false,
+                scheduleActionFeedback = nextScheduleActionFeedback(
+                    message = message,
+                    type = MapScheduleActionFeedbackType.ERROR,
+                ),
+            )
+        }
+    }
+
+    private fun nextScheduleActionFeedback(
+        message: String,
+        type: MapScheduleActionFeedbackType,
+    ): MapScheduleActionFeedback {
+        scheduleActionFeedbackId = scheduleActionFeedbackId.nextRequestToken()
+        return MapScheduleActionFeedback(
+            id = scheduleActionFeedbackId,
+            message = message,
+            type = type,
+        )
+    }
+
     private fun MviContext<MapUiState, MapSideEffect>.selectSchedule(scheduleId: String) {
         if (currentState.schedules.none { it.id == scheduleId }) return
         reduce {
@@ -130,6 +322,7 @@ class MapViewModel(
                 selectedScheduleId = scheduleId,
                 selectedPlaceMarkerId = null,
                 isCreateMenuExpanded = false,
+                expandedScheduleMenuId = null,
                 expandedFilter = null,
             )
         }
@@ -146,6 +339,7 @@ class MapViewModel(
                 selectedScheduleId = scheduleId,
                 selectedPlaceMarkerId = markerId,
                 isCreateMenuExpanded = false,
+                expandedScheduleMenuId = null,
                 expandedFilter = null,
             )
         }
@@ -181,15 +375,19 @@ class MapViewModel(
         }
     }
 
-    private suspend fun loadWithAuthRetry(): List<TripPlanMapData> = try {
+    private suspend fun loadWithAuthRetry(): List<TripPlanMapData> = runWithAuthRetry {
         getSavedTripPlansForMap()
+    }
+
+    private suspend fun <T> runWithAuthRetry(action: suspend () -> T): T = try {
+        action()
     } catch (error: LinkTripApiException) {
         val isUnauthorized = error.httpStatus == UnauthorizedStatus ||
             error.errorCode == LinkTripErrorCode.UNAUTHORIZED_AUTHENTICATION_FAILED
         if (!isUnauthorized) throw error
 
         ensureAuthenticated(forceRefresh = true)
-        getSavedTripPlansForMap()
+        action()
     }
 
     private fun showSchedules(mapData: List<TripPlanMapData>) {
@@ -208,6 +406,11 @@ class MapViewModel(
                     schedules.any { it.id == selectedId }
                 },
                 selectedPlaceMarkerId = null,
+                expandedScheduleMenuId = null,
+                scheduleDialog = null,
+                scheduleDialogScheduleId = null,
+                scheduleNameDraft = "",
+                isScheduleActionInProgress = false,
                 cameraLatitude = nextLatitude,
                 cameraLongitude = nextLongitude,
             )
@@ -239,6 +442,7 @@ class MapViewModel(
 
     private companion object {
         const val UnauthorizedStatus = 401
+        const val MaxScheduleNameLength = 20
         const val MinZoom = 3f
         const val MaxZoom = 21f
     }

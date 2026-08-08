@@ -26,6 +26,22 @@ enum class MapFilterType {
     DURATION,
 }
 
+enum class MapScheduleDialog {
+    RENAME,
+    DELETE,
+}
+
+enum class MapScheduleActionFeedbackType {
+    SUCCESS,
+    ERROR,
+}
+
+data class MapScheduleActionFeedback(
+    val id: Int,
+    val message: String,
+    val type: MapScheduleActionFeedbackType,
+)
+
 enum class MapTravelStyleFilter(val label: String) {
     FOOD("맛집 중심"),
     SHOPPING("쇼핑 중심"),
@@ -100,6 +116,12 @@ data class MapUiState(
     val selectedScheduleId: String? = null,
     val selectedPlaceMarkerId: String? = null,
     val isCreateMenuExpanded: Boolean = false,
+    val expandedScheduleMenuId: String? = null,
+    val scheduleDialog: MapScheduleDialog? = null,
+    val scheduleDialogScheduleId: String? = null,
+    val scheduleNameDraft: String = "",
+    val isScheduleActionInProgress: Boolean = false,
+    val scheduleActionFeedback: MapScheduleActionFeedback? = null,
     val isComingSoonDialogVisible: Boolean = false,
     val mapType: MapType = MapType.DEFAULT,
     val expandedFilter: MapFilterType? = null,

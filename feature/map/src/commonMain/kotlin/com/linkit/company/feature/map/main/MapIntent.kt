@@ -14,6 +14,15 @@ sealed interface MapIntent : Intent {
     data object ShowPreviousPlace : MapIntent
     data object ShowNextPlace : MapIntent
     data object ToggleCreateMenu : MapIntent
+    data class ToggleScheduleMenu(val scheduleId: String) : MapIntent
+    data object DismissScheduleMenu : MapIntent
+    data class ShowRenameScheduleDialog(val scheduleId: String) : MapIntent
+    data class ShowDeleteScheduleDialog(val scheduleId: String) : MapIntent
+    data class UpdateScheduleName(val value: String) : MapIntent
+    data object ConfirmScheduleRename : MapIntent
+    data object ConfirmScheduleDelete : MapIntent
+    data object DismissScheduleDialog : MapIntent
+    data object DismissScheduleActionFeedback : MapIntent
     data object ShowComingSoonDialog : MapIntent
     data object DismissComingSoonDialog : MapIntent
     data object ToggleMapType : MapIntent

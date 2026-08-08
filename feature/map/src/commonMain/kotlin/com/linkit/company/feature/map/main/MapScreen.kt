@@ -46,6 +46,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -66,6 +67,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -77,6 +80,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -88,21 +92,29 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.linkit.company.core.designsystem.component.badge.BadgeColor
 import com.linkit.company.core.designsystem.component.badge.BadgeSize
 import com.linkit.company.core.designsystem.component.badge.LinkItBadge
 import com.linkit.company.core.designsystem.component.button.ButtonColor
+import com.linkit.company.core.designsystem.component.button.ButtonColors
 import com.linkit.company.core.designsystem.component.button.ButtonSize
+import com.linkit.company.core.designsystem.component.button.ButtonVariant
 import com.linkit.company.core.designsystem.component.button.LinkItButton
 import com.linkit.company.core.designsystem.component.menu.LinkItMenuItem
 import com.linkit.company.core.designsystem.component.menu.MenuDefaults as LinkItMenuDefaults
 import com.linkit.company.core.designsystem.component.menu.MenuItemPadding
+import com.linkit.company.core.designsystem.component.popup.LinkItToast
+import com.linkit.company.core.designsystem.component.popup.ToastVariant
+import com.linkit.company.core.designsystem.component.popup.dialog.DialogDefaults
 import com.linkit.company.core.designsystem.component.popup.dialog.LinkItDialog
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.typography.rememberNanumSquareFontFamily
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.coroutines.delay
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.map_calendar
 import linkitcompany.feature.map.generated.resources.map_empty_schedule_bubble
@@ -175,6 +187,12 @@ fun MapContent(
             onIntent(MapIntent.CurrentLocationUnavailable("위치 권한 또는 위치 서비스를 확인해 주세요."))
         },
     )
+    LaunchedEffect(uiState.scheduleActionFeedback?.id) {
+        if (uiState.scheduleActionFeedback != null) {
+            delay(ScheduleActionFeedbackDurationMillis)
+            onIntent(MapIntent.DismissScheduleActionFeedback)
+        }
+    }
     MapCenterLocationEffect(
         coordinate = mapCenter,
         onLocationResolved = { coordinate, label ->
@@ -248,6 +266,38 @@ fun MapContent(
                 onConfirmClick = { onIntent(MapIntent.DismissComingSoonDialog) },
                 onDismissRequest = { onIntent(MapIntent.DismissComingSoonDialog) },
             )
+        }
+
+        uiState.scheduleActionFeedback?.let { feedback ->
+            LinkItToast(
+                text = feedback.message,
+                variant = if (feedback.type == MapScheduleActionFeedbackType.SUCCESS) {
+                    ToastVariant.Positive
+                } else {
+                    ToastVariant.Negative
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .fillMaxWidth()
+                    .testTag("map-schedule-action-feedback"),
+            )
+        }
+
+        when (uiState.scheduleDialog) {
+            MapScheduleDialog.RENAME -> ScheduleRenameDialog(
+                value = uiState.scheduleNameDraft,
+                isLoading = uiState.isScheduleActionInProgress,
+                onValueChange = { onIntent(MapIntent.UpdateScheduleName(it)) },
+                onConfirm = { onIntent(MapIntent.ConfirmScheduleRename) },
+                onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
+            )
+            MapScheduleDialog.DELETE -> ScheduleDeleteDialog(
+                isLoading = uiState.isScheduleActionInProgress,
+                onConfirm = { onIntent(MapIntent.ConfirmScheduleDelete) },
+                onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
+            )
+            null -> Unit
         }
 
     }
@@ -595,7 +645,18 @@ private fun BoxScope.MapBottomSheetHost(
                     MapSheetContent.TravelPreview -> selectedSchedule?.let { schedule ->
                         SelectedScheduleSheetContent(
                             schedule = schedule,
+                            menuExpanded = uiState.expandedScheduleMenuId == schedule.id,
                             onBack = { onIntent(MapIntent.ClearSelection) },
+                            onToggleMenu = {
+                                onIntent(MapIntent.ToggleScheduleMenu(schedule.id))
+                            },
+                            onDismissMenu = { onIntent(MapIntent.DismissScheduleMenu) },
+                            onRename = {
+                                onIntent(MapIntent.ShowRenameScheduleDialog(schedule.id))
+                            },
+                            onDelete = {
+                                onIntent(MapIntent.ShowDeleteScheduleDialog(schedule.id))
+                            },
                             onOpenSchedule = {
                                 onOpenSchedule(schedule.id, schedule.title, null)
                             },
@@ -726,7 +787,18 @@ private fun ColumnScope.SavedScheduleSheetContent(
         )
         MapLoadState.CONTENT -> ScheduleList(
             schedules = uiState.filteredSchedules,
+            expandedScheduleMenuId = uiState.expandedScheduleMenuId,
             onScheduleClick = onScheduleClick,
+            onToggleMenu = { scheduleId ->
+                onIntent(MapIntent.ToggleScheduleMenu(scheduleId))
+            },
+            onDismissMenu = { onIntent(MapIntent.DismissScheduleMenu) },
+            onRename = { scheduleId ->
+                onIntent(MapIntent.ShowRenameScheduleDialog(scheduleId))
+            },
+            onDelete = { scheduleId ->
+                onIntent(MapIntent.ShowDeleteScheduleDialog(scheduleId))
+            },
         )
     }
 }
@@ -734,7 +806,12 @@ private fun ColumnScope.SavedScheduleSheetContent(
 @Composable
 private fun ColumnScope.SelectedScheduleSheetContent(
     schedule: MapScheduleUiModel,
+    menuExpanded: Boolean,
     onBack: () -> Unit,
+    onToggleMenu: () -> Unit,
+    onDismissMenu: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
     onOpenSchedule: () -> Unit,
 ) {
     Row(
@@ -755,6 +832,24 @@ private fun ColumnScope.SelectedScheduleSheetContent(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(start = 4.dp).weight(1f),
         )
+        Box {
+            Icon(
+                imageVector = LinkItIcon.Utility.MoreHorizontal,
+                contentDescription = "일정 더보기",
+                tint = LinkItTheme.color.semantic.label.strong,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable(onClick = onToggleMenu)
+                    .testTag("map-selected-schedule-more"),
+            )
+            ScheduleMoreMenu(
+                expanded = menuExpanded,
+                scheduleId = schedule.id,
+                onDismiss = onDismissMenu,
+                onRename = onRename,
+                onDelete = onDelete,
+            )
+        }
     }
     ScheduleListRow(
         schedule = schedule,
@@ -791,6 +886,8 @@ private val MapCreateControlIconThreshold = 380.dp - 76.dp
 private val MapCreateControlLabelledWidth = 97.dp
 private val MapCreateControlIconOnlyWidth = 40.dp
 private val MapCreateMenuWidth = 171.dp
+private val ScheduleMoreMenuWidth = 160.dp
+private const val ScheduleActionFeedbackDurationMillis = 3_000L
 private const val MapSheetSavedRestingFraction = .53f
 private const val MapCreateControlAnimationDurationMillis = 180
 private const val MapCreateMenuEnterDurationMillis = 210
@@ -1141,7 +1238,12 @@ private fun MapSheetStatus(
 @Composable
 private fun ColumnScope.ScheduleList(
     schedules: List<MapScheduleUiModel>,
+    expandedScheduleMenuId: String?,
     onScheduleClick: (MapScheduleUiModel) -> Unit,
+    onToggleMenu: (String) -> Unit,
+    onDismissMenu: () -> Unit,
+    onRename: (String) -> Unit,
+    onDelete: (String) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth().weight(1f)) {
         Row(
@@ -1173,6 +1275,11 @@ private fun ColumnScope.ScheduleList(
                 items(schedules, key = MapScheduleUiModel::id) { schedule ->
                     ScheduleListRow(
                         schedule = schedule,
+                        menuExpanded = expandedScheduleMenuId == schedule.id,
+                        onToggleMenu = { onToggleMenu(schedule.id) },
+                        onDismissMenu = onDismissMenu,
+                        onRename = { onRename(schedule.id) },
+                        onDelete = { onDelete(schedule.id) },
                         modifier = Modifier
                             .testTag("map-schedule-${schedule.id}")
                             .clickable { onScheduleClick(schedule) },
@@ -1733,6 +1840,11 @@ private fun ScheduleListRow(
     schedule: MapScheduleUiModel,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    menuExpanded: Boolean = false,
+    onToggleMenu: () -> Unit = {},
+    onDismissMenu: () -> Unit = {},
+    onRename: () -> Unit = {},
+    onDelete: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
@@ -1781,12 +1893,24 @@ private fun ScheduleListRow(
                 )
             }
             if (!compact) {
-                Icon(
-                    imageVector = LinkItIcon.Utility.MoreHorizontal,
-                    contentDescription = "일정 더보기",
-                    tint = LinkItTheme.color.semantic.label.normal,
-                    modifier = Modifier.size(24.dp),
-                )
+                Box {
+                    Icon(
+                        imageVector = LinkItIcon.Utility.MoreHorizontal,
+                        contentDescription = "일정 더보기",
+                        tint = LinkItTheme.color.semantic.label.normal,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable(onClick = onToggleMenu)
+                            .testTag("map-schedule-more-${schedule.id}"),
+                    )
+                    ScheduleMoreMenu(
+                        expanded = menuExpanded,
+                        scheduleId = schedule.id,
+                        onDismiss = onDismissMenu,
+                        onRename = onRename,
+                        onDelete = onDelete,
+                    )
+                }
             }
         }
         Box(
@@ -1795,6 +1919,316 @@ private fun ScheduleListRow(
                 .padding(horizontal = 16.dp)
                 .height(1.dp)
                 .background(LinkItTheme.color.semantic.line.solid.normal),
+        )
+    }
+}
+
+@Composable
+private fun ScheduleRenameDialog(
+    value: String,
+    isLoading: Boolean,
+    onValueChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ScheduleActionDialogSurface(
+        onDismiss = onDismiss,
+        shadowElevation = 8.dp,
+        testTag = "map-schedule-rename-dialog",
+    ) {
+        Spacer(Modifier.height(12.dp))
+        ScheduleDialogDescription(
+            title = "변경을 원하는 이름을 적어주세요",
+            description = "한글, 영문, 특수문자, 공백 포함\n20자 까지 적을 수 있어요",
+            spacing = 8.dp,
+            horizontalPadding = 20.dp,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+        ) {
+            ScheduleNameTextField(
+                value = value,
+                onValueChange = onValueChange,
+                enabled = !isLoading,
+            )
+        }
+        ScheduleDialogActions {
+            LinkItButton(
+                onClick = onConfirm,
+                text = "확인",
+                enabled = value.isNotBlank() && !isLoading,
+                size = ButtonSize.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("map-schedule-rename-confirm"),
+            )
+            LinkItButton(
+                onClick = onDismiss,
+                text = "취소",
+                enabled = !isLoading,
+                variant = ButtonVariant.Outlined,
+                color = ButtonColor.Assistive,
+                size = ButtonSize.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("map-schedule-dialog-cancel"),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScheduleDeleteDialog(
+    isLoading: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ScheduleActionDialogSurface(
+        onDismiss = onDismiss,
+        showCloseButton = true,
+        shadowElevation = 1.dp,
+        testTag = "map-schedule-delete-dialog",
+    ) {
+        ScheduleDialogDescription(
+            title = "정말 일정을 삭제하시겠어요?",
+            description = "삭제된 일정은 복구할 수 없어요",
+            spacing = 4.dp,
+            horizontalPadding = 40.dp,
+        )
+        ScheduleDialogActions {
+            LinkItButton(
+                onClick = onConfirm,
+                text = "삭제하기",
+                enabled = !isLoading,
+                colors = scheduleDeleteButtonColors(),
+                size = ButtonSize.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("map-schedule-delete-confirm"),
+            )
+            LinkItButton(
+                onClick = onDismiss,
+                text = "돌아가기",
+                enabled = !isLoading,
+                variant = ButtonVariant.Outlined,
+                color = ButtonColor.Assistive,
+                size = ButtonSize.Medium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("map-schedule-dialog-cancel"),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScheduleActionDialogSurface(
+    onDismiss: () -> Unit,
+    shadowElevation: Dp,
+    testTag: String,
+    showCloseButton: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Popup(
+        alignment = Alignment.Center,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DialogDefaults.dimmerColor)
+                .semantics { dialog() },
+            contentAlignment = Alignment.Center,
+        ) {
+            val shape = LinkItTheme.shape.xl
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .widthIn(max = 320.dp)
+                    .fillMaxWidth()
+                    .shadow(shadowElevation, shape)
+                    .clip(shape)
+                    .background(DialogDefaults.containerColor)
+                    .testTag(testTag),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    content = content,
+                )
+
+                if (showCloseButton) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                            .size(40.dp)
+                            .clickable(onClick = onDismiss)
+                            .testTag("map-schedule-dialog-close"),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = LinkItIcon.Utility.Close,
+                            contentDescription = "닫기",
+                            tint = LinkItTheme.color.semantic.label.normal,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScheduleDialogDescription(
+    title: String,
+    description: String,
+    spacing: Dp,
+    horizontalPadding: Dp,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = horizontalPadding,
+                top = 20.dp,
+                end = horizontalPadding,
+                bottom = 4.dp,
+            ),
+        verticalArrangement = Arrangement.spacedBy(spacing),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = title,
+            style = LinkItTheme.typography.body1NormalBold,
+            color = LinkItTheme.color.semantic.label.strong,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = description,
+            modifier = Modifier.fillMaxWidth(),
+            style = LinkItTheme.typography.label2Medium,
+            color = LinkItTheme.color.semantic.label.alternative,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun ScheduleNameTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean,
+) {
+    val shape = LinkItTheme.shape.xl
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .testTag("map-schedule-name-input"),
+        enabled = enabled,
+        singleLine = true,
+        textStyle = LinkItTheme.typography.body2NormalMedium.copy(
+            color = LinkItTheme.color.semantic.label.normal,
+        ),
+        cursorBrush = SolidColor(LinkItTheme.color.semantic.label.normal),
+        decorationBox = { innerTextField ->
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .shadow(1.dp, shape)
+                    .clip(shape)
+                    .background(LinkItTheme.color.semantic.background.normal.normal)
+                    .border(
+                        width = LinkItTheme.borderWidth.sm,
+                        color = LinkItTheme.color.semantic.line.normal.neutral,
+                        shape = shape,
+                    )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                innerTextField()
+            }
+        },
+    )
+}
+
+@Composable
+private fun ScheduleDialogActions(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        content = content,
+    )
+}
+
+@Composable
+private fun scheduleDeleteButtonColors(): ButtonColors {
+    val semantic = LinkItTheme.color.semantic
+    return ButtonColors(
+        containerColor = semantic.status.negative,
+        contentColor = semantic.static.white,
+        borderColor = Color.Unspecified,
+        disabledContainerColor = semantic.interaction.disable,
+        disabledContentColor = semantic.label.disable,
+        disabledBorderColor = Color.Unspecified,
+    )
+}
+
+@Composable
+private fun ScheduleMoreMenu(
+    expanded: Boolean,
+    scheduleId: String,
+    onDismiss: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        modifier = Modifier
+            .width(ScheduleMoreMenuWidth)
+            .testTag("map-schedule-more-menu-$scheduleId"),
+        shape = LinkItMenuDefaults.ContainerShape,
+        containerColor = LinkItMenuDefaults.containerColor,
+        tonalElevation = 0.dp,
+        shadowElevation = LinkItMenuDefaults.ShadowElevation,
+        border = BorderStroke(
+            LinkItMenuDefaults.BorderWidth,
+            LinkItMenuDefaults.borderColor,
+        ),
+    ) {
+        LinkItMenuItem(
+            text = "일정 이름 변경",
+            onClick = onRename,
+            leadingIcon = LinkItIcon.Control.Write,
+            padding = MenuItemPadding.Regular,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .testTag("map-schedule-rename"),
+        )
+        Spacer(Modifier.height(LinkItMenuDefaults.ItemSpacing))
+        LinkItMenuItem(
+            text = "일정 삭제",
+            onClick = onDelete,
+            leadingIcon = LinkItIcon.Control.Trash,
+            padding = MenuItemPadding.Regular,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .testTag("map-schedule-delete"),
         )
     }
 }
