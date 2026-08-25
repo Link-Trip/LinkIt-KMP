@@ -325,7 +325,7 @@ private fun ItineraryContent(focusedPlaceId: String? = null) {
             style = LinkItTheme.typography.body2NormalMedium,
             color = LinkItTheme.color.semantic.label.strong,
             modifier = Modifier
-                .padding(top = 0.dp)
+                .padding(top = 16.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(LinkItTheme.color.semantic.fill.normal)
                 .padding(horizontal = 14.dp, vertical = 8.dp),
