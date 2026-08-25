@@ -2,9 +2,11 @@ package com.linkit.company.feature.schedule
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,23 +19,40 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.dialog
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import com.linkit.company.core.designsystem.component.button.ButtonSize
+import com.linkit.company.core.designsystem.component.button.LinkItButton
+import com.linkit.company.core.designsystem.component.menu.LinkItMenuItem
+import com.linkit.company.core.designsystem.component.menu.MenuDefaults
+import com.linkit.company.core.designsystem.component.menu.MenuItemPadding
+import com.linkit.company.core.designsystem.component.popup.dialog.DialogDefaults
+import com.linkit.company.core.designsystem.component.popup.dialog.LinkItDialog
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import dev.zacsweers.metrox.viewmodel.metroViewModel
@@ -63,8 +82,16 @@ fun ScheduleTripDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isServerTripPlan = tripPlanId != null
+
+    LaunchedEffect(viewModel) {
+        viewModel.sideEffect.collect { effect ->
+            if (effect == ScheduleSideEffect.TripPlanDeleted) onBack()
+        }
+    }
+
     ScheduleTripDetailContent(
         uiState = if (isServerTripPlan) uiState.copy(showTripMapPreview = false) else uiState,
+        tripPlanId = tripPlanId,
         title = title?.takeIf(String::isNotBlank) ?: if (isServerTripPlan) "일정 상세" else "도쿄 신주쿠 여행",
         onIntent = viewModel::onIntent,
         onBack = onBack,
@@ -76,6 +103,7 @@ fun ScheduleTripDetailScreen(
 fun ScheduleTripDetailContent(
     uiState: ScheduleUiState,
     onIntent: (ScheduleIntent) -> Unit,
+    tripPlanId: String? = null,
     title: String = "도쿄 신주쿠 여행",
     focusedPlaceId: String? = null,
     onBack: () -> Unit = {},
@@ -85,37 +113,89 @@ fun ScheduleTripDetailContent(
         ScheduleSelectedMapPreview(modifier = modifier, onBack = onBack)
         return
     }
-    Column(
+    val displayTitle = uiState.renamedTripPlanTitle
+        ?.takeIf { uiState.renamedTripPlanId == tripPlanId }
+        ?: title
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(LinkItTheme.color.semantic.background.normal.normal),
     ) {
-        TripDetailTopBar(
-            title = title,
-            onBack = onBack,
-            showMore = uiState.tripDetailTab == TripDetailTab.SUMMARY,
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            TripTabs(
-                selected = uiState.tripDetailTab,
-                onSelect = { onIntent(ScheduleIntent.SelectTripDetailTab(it)) },
+        Column(Modifier.fillMaxSize()) {
+            TripDetailTopBar(
+                title = displayTitle,
+                onBack = onBack,
+                showMore = tripPlanId != null,
+                menuExpanded = uiState.tripDetailMenuExpanded,
+                onToggleMenu = { onIntent(ScheduleIntent.ToggleTripDetailMenu) },
+                onDismissMenu = { onIntent(ScheduleIntent.DismissTripDetailMenu) },
+                onRename = {
+                    tripPlanId?.let {
+                        onIntent(ScheduleIntent.ShowTripDetailRenameDialog(it, displayTitle))
+                    }
+                },
+                onDelete = {
+                    tripPlanId?.let {
+                        onIntent(ScheduleIntent.ShowTripDetailDeleteDialog(it))
+                    }
+                },
             )
-            when (uiState.tripDetailTab) {
-                TripDetailTab.ITINERARY -> ItineraryContent(focusedPlaceId = focusedPlaceId)
-                TripDetailTab.SUMMARY -> SummaryContent()
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                TripTabs(
+                    selected = uiState.tripDetailTab,
+                    onSelect = { onIntent(ScheduleIntent.SelectTripDetailTab(it)) },
+                )
+                when (uiState.tripDetailTab) {
+                    TripDetailTab.ITINERARY -> ItineraryContent(focusedPlaceId = focusedPlaceId)
+                    TripDetailTab.SUMMARY -> SummaryContent()
+                }
             }
+        }
+
+        when (uiState.tripDetailDialog) {
+            TripDetailDialog.RENAME -> TripDetailRenameDialog(
+                value = uiState.tripDetailNameDraft,
+                isLoading = uiState.isTripDetailActionInProgress,
+                errorMessage = uiState.tripDetailActionError,
+                onValueChange = { onIntent(ScheduleIntent.UpdateTripDetailName(it)) },
+                onConfirm = { onIntent(ScheduleIntent.ConfirmTripDetailRename) },
+                onDismiss = { onIntent(ScheduleIntent.DismissTripDetailDialog) },
+            )
+            TripDetailDialog.DELETE -> LinkItDialog(
+                title = "정말 일정을 삭제하시겠어요?",
+                description = uiState.tripDetailActionError ?: "삭제된 일정은 복구할 수 없어요",
+                confirmText = if (uiState.isTripDetailActionInProgress) "삭제 중..." else "삭제하기",
+                onConfirmClick = {
+                    if (!uiState.isTripDetailActionInProgress) {
+                        onIntent(ScheduleIntent.ConfirmTripDetailDelete)
+                    }
+                },
+                onDismissRequest = { onIntent(ScheduleIntent.DismissTripDetailDialog) },
+                modifier = Modifier.testTag("schedule-trip-delete-dialog"),
+            )
+            null -> Unit
         }
     }
 }
 
 @Composable
-private fun TripDetailTopBar(title: String, onBack: () -> Unit, showMore: Boolean) {
+private fun TripDetailTopBar(
+    title: String,
+    onBack: () -> Unit,
+    showMore: Boolean,
+    menuExpanded: Boolean,
+    onToggleMenu: () -> Unit,
+    onDismissMenu: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -133,11 +213,158 @@ private fun TripDetailTopBar(title: String, onBack: () -> Unit, showMore: Boolea
             modifier = Modifier.padding(start = 12.dp).weight(1f),
         )
         if (showMore) {
-            Text(
-                text = "•••",
-                style = LinkItTheme.typography.body1NormalSemibold,
-                color = LinkItTheme.color.semantic.label.neutral,
-            )
+            Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable(onClick = onToggleMenu)
+                        .testTag("schedule-trip-more"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = LinkItIcon.Utility.MoreHorizontal,
+                        contentDescription = "일정 더보기",
+                        tint = LinkItTheme.color.semantic.label.normal,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = onDismissMenu,
+                    modifier = Modifier
+                        .width(240.dp)
+                        .testTag("schedule-trip-more-menu"),
+                    shape = MenuDefaults.ContainerShape,
+                    containerColor = MenuDefaults.containerColor,
+                    tonalElevation = 0.dp,
+                    shadowElevation = MenuDefaults.ShadowElevation,
+                    border = BorderStroke(MenuDefaults.BorderWidth, MenuDefaults.borderColor),
+                ) {
+                    LinkItMenuItem(
+                        text = "일정 이름 변경",
+                        onClick = onRename,
+                        leadingIcon = LinkItIcon.Control.Write,
+                        padding = MenuItemPadding.Regular,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                    Spacer(Modifier.height(MenuDefaults.ItemSpacing))
+                    LinkItMenuItem(
+                        text = "일정 삭제",
+                        onClick = onDelete,
+                        leadingIcon = LinkItIcon.Control.Trash,
+                        padding = MenuItemPadding.Regular,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TripDetailRenameDialog(
+    value: String,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onValueChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Popup(
+        alignment = Alignment.Center,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+        ),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(DialogDefaults.dimmerColor)
+                .semantics { dialog() },
+            contentAlignment = Alignment.Center,
+        ) {
+            val shape = LinkItTheme.shape.xl
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = DialogDefaults.HorizontalMargin)
+                    .widthIn(max = DialogDefaults.MaxWidth)
+                    .fillMaxWidth()
+                    .shadow(DialogDefaults.ShadowElevation, shape)
+                    .clip(shape)
+                    .background(DialogDefaults.containerColor)
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .testTag("schedule-trip-rename-dialog"),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "변경을 원하는 이름을 적어주세요",
+                    style = LinkItTheme.typography.body1NormalBold,
+                    color = DialogDefaults.titleColor,
+                )
+                Text(
+                    text = errorMessage ?: "한글, 영문, 특수문자, 공백 포함 20자까지 적을 수 있어요",
+                    style = LinkItTheme.typography.label2Medium,
+                    color = if (errorMessage == null) {
+                        DialogDefaults.descriptionColor
+                    } else {
+                        LinkItTheme.color.semantic.status.negative
+                    },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    enabled = !isLoading,
+                    singleLine = true,
+                    textStyle = LinkItTheme.typography.body2NormalMedium.copy(
+                        color = LinkItTheme.color.semantic.label.normal,
+                    ),
+                    cursorBrush = SolidColor(LinkItTheme.color.semantic.label.normal),
+                    modifier = Modifier
+                        .padding(top = 20.dp)
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("schedule-trip-name-input"),
+                    decorationBox = { innerTextField ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(shape)
+                                .background(LinkItTheme.color.semantic.background.normal.normal)
+                                .border(
+                                    LinkItTheme.borderWidth.sm,
+                                    LinkItTheme.color.semantic.line.normal.neutral,
+                                    shape,
+                                )
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            innerTextField()
+                        }
+                    },
+                )
+                LinkItButton(
+                    onClick = onConfirm,
+                    text = if (isLoading) "변경 중..." else "확인",
+                    enabled = value.isNotBlank() && !isLoading,
+                    size = ButtonSize.Medium,
+                    modifier = Modifier
+                        .padding(top = 20.dp)
+                        .fillMaxWidth()
+                        .testTag("schedule-trip-rename-confirm"),
+                )
+                Text(
+                    text = "취소",
+                    style = LinkItTheme.typography.label1NormalMedium,
+                    color = LinkItTheme.color.semantic.label.alternative,
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .clickable(enabled = !isLoading, onClick = onDismiss),
+                )
+            }
         }
     }
 }

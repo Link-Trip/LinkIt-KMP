@@ -73,6 +73,7 @@ fun ScheduleEditScreen(
                 is ScheduleSideEffect.OpenExistingSchedule -> {
                     onOpenExistingSchedule(effect.tripPlanId, effect.title)
                 }
+                ScheduleSideEffect.TripPlanDeleted -> Unit
             }
         }
     }

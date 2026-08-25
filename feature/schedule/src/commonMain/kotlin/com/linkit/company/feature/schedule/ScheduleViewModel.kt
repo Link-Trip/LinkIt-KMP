@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linkit.company.core.common.architecture.MviContainer
 import com.linkit.company.core.common.architecture.MviContext
+import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
+import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
+import com.linkit.company.domain.usecase.RenameTripPlanUseCase
 import com.linkit.company.domain.usecase.StartVideoScheduleCreationResult
 import com.linkit.company.domain.usecase.StartVideoScheduleCreationUseCase
 import dev.zacsweers.metro.AppScope
@@ -20,6 +23,8 @@ import kotlinx.coroutines.launch
 @Inject
 class ScheduleViewModel(
     private val startVideoScheduleCreation: StartVideoScheduleCreationUseCase,
+    private val renameTripPlan: RenameTripPlanUseCase,
+    private val deleteTripPlan: DeleteTripPlanUseCase,
 ) : ViewModel() {
     private val container = MviContainer<ScheduleIntent, ScheduleSideEffect, ScheduleUiState>(
         initialState = ScheduleUiState(),
@@ -65,8 +70,126 @@ class ScheduleViewModel(
             is ScheduleIntent.SelectTripDetailTab -> reduce {
                 copy(tripDetailTab = intent.tab, showTripMapPreview = false)
             }
+            ScheduleIntent.ToggleTripDetailMenu -> reduce {
+                copy(tripDetailMenuExpanded = !tripDetailMenuExpanded)
+            }
+            ScheduleIntent.DismissTripDetailMenu -> reduce {
+                copy(tripDetailMenuExpanded = false)
+            }
+            is ScheduleIntent.ShowTripDetailRenameDialog -> reduce {
+                copy(
+                    tripDetailMenuExpanded = false,
+                    tripDetailDialog = TripDetailDialog.RENAME,
+                    tripDetailActionTripPlanId = intent.tripPlanId,
+                    tripDetailNameDraft = intent.currentTitle,
+                    tripDetailActionError = null,
+                )
+            }
+            is ScheduleIntent.ShowTripDetailDeleteDialog -> reduce {
+                copy(
+                    tripDetailMenuExpanded = false,
+                    tripDetailDialog = TripDetailDialog.DELETE,
+                    tripDetailActionTripPlanId = intent.tripPlanId,
+                    tripDetailActionError = null,
+                )
+            }
+            is ScheduleIntent.UpdateTripDetailName -> reduce {
+                if (
+                    tripDetailDialog == TripDetailDialog.RENAME &&
+                    !isTripDetailActionInProgress
+                ) {
+                    copy(
+                        tripDetailNameDraft = intent.value.take(MaxTripPlanTitleLength),
+                        tripDetailActionError = null,
+                    )
+                } else {
+                    this
+                }
+            }
+            ScheduleIntent.ConfirmTripDetailRename -> confirmTripDetailRename()
+            ScheduleIntent.ConfirmTripDetailDelete -> confirmTripDetailDelete()
+            ScheduleIntent.DismissTripDetailDialog -> dismissTripDetailDialog()
         }
     }
+
+    private fun MviContext<ScheduleUiState, ScheduleSideEffect>.dismissTripDetailDialog() {
+        if (currentState.isTripDetailActionInProgress) return
+        reduce { clearTripDetailAction() }
+    }
+
+    private fun MviContext<ScheduleUiState, ScheduleSideEffect>.confirmTripDetailRename() {
+        val tripPlanId = currentState.tripDetailActionTripPlanId ?: return
+        val title = currentState.tripDetailNameDraft
+        if (
+            currentState.tripDetailDialog != TripDetailDialog.RENAME ||
+            currentState.isTripDetailActionInProgress ||
+            title.isBlank()
+        ) {
+            return
+        }
+
+        reduce { copy(isTripDetailActionInProgress = true, tripDetailActionError = null) }
+        viewModelScope.launch {
+            try {
+                val updated = renameTripPlan(tripPlanId, title)
+                container.mviContext.reduce {
+                    clearTripDetailAction().copy(
+                        renamedTripPlanId = tripPlanId,
+                        renamedTripPlanTitle = updated.title,
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                showTripDetailActionError(error, "일정 이름을 수정하지 못했어요.")
+            }
+        }
+    }
+
+    private fun MviContext<ScheduleUiState, ScheduleSideEffect>.confirmTripDetailDelete() {
+        val tripPlanId = currentState.tripDetailActionTripPlanId ?: return
+        if (
+            currentState.tripDetailDialog != TripDetailDialog.DELETE ||
+            currentState.isTripDetailActionInProgress
+        ) {
+            return
+        }
+
+        reduce { copy(isTripDetailActionInProgress = true, tripDetailActionError = null) }
+        viewModelScope.launch {
+            try {
+                deleteTripPlan(tripPlanId)
+                container.mviContext.reduce { clearTripDetailAction() }
+                container.mviContext.postSideEffect(ScheduleSideEffect.TripPlanDeleted)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                showTripDetailActionError(error, "일정을 삭제하지 못했어요.")
+            }
+        }
+    }
+
+    private fun showTripDetailActionError(error: Throwable, fallback: String) {
+        val message = (error as? LinkTripApiException)
+            ?.message
+            ?.takeIf(String::isNotBlank)
+            ?: fallback
+        container.mviContext.reduce {
+            copy(
+                isTripDetailActionInProgress = false,
+                tripDetailActionError = message,
+            )
+        }
+    }
+
+    private fun ScheduleUiState.clearTripDetailAction() = copy(
+        tripDetailMenuExpanded = false,
+        tripDetailDialog = null,
+        tripDetailActionTripPlanId = null,
+        tripDetailNameDraft = "",
+        isTripDetailActionInProgress = false,
+        tripDetailActionError = null,
+    )
 
     private fun MviContext<ScheduleUiState, ScheduleSideEffect>.submitVideoLink(
         allowDuplicate: Boolean,
@@ -143,5 +266,9 @@ class ScheduleViewModel(
         submissionJob?.cancel()
         container.close()
         super.onCleared()
+    }
+
+    private companion object {
+        const val MaxTripPlanTitleLength = 20
     }
 }

@@ -12,6 +12,11 @@ enum class VideoLinkError {
     INVALID_LINK,
 }
 
+enum class TripDetailDialog {
+    RENAME,
+    DELETE,
+}
+
 data class ExistingScheduleUiModel(
     val tripPlanId: String,
     val title: String,
@@ -24,6 +29,14 @@ data class ScheduleUiState(
     val existingSchedule: ExistingScheduleUiModel? = null,
     val tripDetailTab: TripDetailTab = TripDetailTab.ITINERARY,
     val showTripMapPreview: Boolean = true,
+    val tripDetailMenuExpanded: Boolean = false,
+    val tripDetailDialog: TripDetailDialog? = null,
+    val tripDetailActionTripPlanId: String? = null,
+    val tripDetailNameDraft: String = "",
+    val renamedTripPlanId: String? = null,
+    val renamedTripPlanTitle: String? = null,
+    val isTripDetailActionInProgress: Boolean = false,
+    val tripDetailActionError: String? = null,
 ) : UiState {
     val canCreate: Boolean
         get() = videoLink.isNotBlank() && videoLinkError == null && !isSubmittingVideoLink

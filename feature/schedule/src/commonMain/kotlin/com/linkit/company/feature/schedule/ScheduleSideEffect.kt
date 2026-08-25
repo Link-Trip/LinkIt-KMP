@@ -12,4 +12,6 @@ sealed interface ScheduleSideEffect : SideEffect {
         val tripPlanId: String,
         val title: String,
     ) : ScheduleSideEffect
+
+    data object TripPlanDeleted : ScheduleSideEffect
 }
