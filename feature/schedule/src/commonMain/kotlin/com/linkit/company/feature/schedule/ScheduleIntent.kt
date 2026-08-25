@@ -4,8 +4,9 @@ import com.linkit.company.core.common.architecture.contract.Intent
 
 sealed interface ScheduleIntent : Intent {
     data class UpdateVideoLink(val link: String) : ScheduleIntent
-    data class CopyRecommendedLink(val index: Int) : ScheduleIntent
     data object SubmitVideoLink : ScheduleIntent
-    data object DismissInvalidLink : ScheduleIntent
+    data object CreateDuplicateVideoSchedule : ScheduleIntent
+    data object OpenExistingSchedule : ScheduleIntent
+    data object DismissExistingSchedule : ScheduleIntent
     data class SelectTripDetailTab(val tab: TripDetailTab) : ScheduleIntent
 }

@@ -17,10 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.interaction.InteractionDefaults
+import com.linkit.company.core.designsystem.theme.LinkItTheme
 
 /**
  * [LinkItMenu] 안에 놓이는 한 줄짜리 메뉴 항목(셀).
@@ -30,6 +33,7 @@ import com.linkit.company.core.designsystem.foundation.interaction.InteractionDe
  * @param variant 시각적 스타일. ([MenuItemVariant.Normal] 기본)
  * @param selected 선택 여부. [MenuItemVariant.Normal] 은 강조 색, [MenuItemVariant.Checkbox] 는 체크 상태로 표현한다.
  * @param enabled `false` 면 비활성 색을 쓰고 클릭을 막는다.
+ * @param leadingIcon 항목 앞에 표시할 아이콘. `null` 이면 아이콘 영역을 만들지 않는다.
  * @param padding 상하 여백 규격. ([MenuItemPadding.Regular] 기본)
  * @param colors 색상 묶음. 기본은 [MenuDefaults.itemColors].
  * @param textStyle 텍스트 타이포. 기본은 [MenuDefaults.textStyle].
@@ -42,6 +46,8 @@ fun LinkItMenuItem(
     variant: MenuItemVariant = MenuItemVariant.Normal,
     selected: Boolean = false,
     enabled: Boolean = true,
+    leadingIcon: ImageVector? = null,
+    leadingIconTint: Color? = null,
     padding: MenuItemPadding = MenuItemPadding.Regular,
     colors: MenuItemColors = MenuDefaults.itemColors(),
     textStyle: TextStyle = MenuDefaults.textStyle,
@@ -66,6 +72,14 @@ fun LinkItMenuItem(
         horizontalArrangement = Arrangement.spacedBy(MenuDefaults.ItemContentSpacing),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        leadingIcon?.let { icon ->
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = leadingIconTint ?: LinkItTheme.color.semantic.label.alternative,
+                modifier = Modifier.size(MenuDefaults.LeadingIconSize),
+            )
+        }
         if (variant == MenuItemVariant.Checkbox) {
             MenuItemCheckbox(checked = selected, colors = colors)
         }

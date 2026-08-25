@@ -7,6 +7,7 @@ import com.linkit.company.data.dto.video.RecentVideoResponse
 import com.linkit.company.data.dto.video.ScheduleItemResponse
 import com.linkit.company.data.dto.video.TimelineResponse
 import com.linkit.company.data.dto.video.VideoAnalyzeResponse
+import com.linkit.company.data.dto.video.YouTubeOEmbedResponse
 import com.linkit.company.domain.model.video.CostBasis
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
@@ -18,6 +19,7 @@ import com.linkit.company.domain.model.video.ScheduleItem
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
 import com.linkit.company.domain.model.video.VideoTimeline
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 
 internal fun VideoAnalyzeResponse.toDomain(): VideoAnalysis {
     return VideoAnalysis(
@@ -32,6 +34,13 @@ internal fun VideoAnalyzeResponse.toDomain(): VideoAnalysis {
         placeEnrichmentCompleted = placeEnrichmentCompleted,
         timelines = timelines.map { it.toDomain() },
         itineraryItems = itineraryItems.map { it.toDomain() },
+    )
+}
+
+internal fun YouTubeOEmbedResponse.toDomain(): YouTubeVideoMetadata {
+    return YouTubeVideoMetadata(
+        title = title,
+        thumbnailUrl = thumbnailUrl,
     )
 }
 

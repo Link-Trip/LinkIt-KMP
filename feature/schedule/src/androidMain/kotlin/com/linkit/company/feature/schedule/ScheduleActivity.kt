@@ -8,6 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.ViewModelProvider
 import com.linkit.company.core.common.extension.enableEdgeToEdgeConfig
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.feature.schedule.navigation.ScheduleNavDisplay
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
@@ -30,15 +31,32 @@ class ScheduleActivity(
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdgeConfig()
         super.onCreate(savedInstanceState)
+        val tripPlanId = intent.getStringExtra(ExtraTripPlanId)
+        val startRoute: LinkItNavKey = if (tripPlanId == null) {
+            LinkItNavKey.ScheduleEdit
+        } else {
+            LinkItNavKey.ScheduleTripDetail(
+                tripPlanId = tripPlanId,
+                title = intent.getStringExtra(ExtraTripPlanTitle),
+                focusedPlaceId = intent.getStringExtra(ExtraFocusedPlaceId),
+            )
+        }
 
         setContent {
             CompositionLocalProvider(LocalMetroViewModelFactory provides viewModelFactory) {
                 LinkItTheme {
                     ScheduleNavDisplay(
                         onFinishActivity = this::finish,
+                        startRoute = startRoute,
                     )
                 }
             }
         }
+    }
+
+    private companion object {
+        const val ExtraTripPlanId = "trip_plan_id"
+        const val ExtraTripPlanTitle = "trip_plan_title"
+        const val ExtraFocusedPlaceId = "focused_place_id"
     }
 }

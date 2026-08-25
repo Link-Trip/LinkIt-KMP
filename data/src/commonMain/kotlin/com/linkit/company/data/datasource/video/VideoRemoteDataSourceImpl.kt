@@ -7,14 +7,20 @@ import com.linkit.company.data.dto.video.DiscoverVideoCursorResponse
 import com.linkit.company.data.dto.video.DiscoverVideoResponse
 import com.linkit.company.data.dto.video.VideoAnalyzeRequest
 import com.linkit.company.data.dto.video.VideoAnalyzeResponse
+import com.linkit.company.data.dto.video.YouTubeOEmbedResponse
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
 @Inject
 @ContributesBinding(DataScope::class)
 class VideoRemoteDataSourceImpl(
     ktorfit: Ktorfit,
+    private val httpClient: HttpClient,
 ) : VideoRemoteDataSource {
 
     private val api = ktorfit.create<VideoApi>()
@@ -27,6 +33,13 @@ class VideoRemoteDataSourceImpl(
     override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalyzeResponse {
         val response = api.getVideoAnalysis(videoAnalysisTaskId)
         return checkNotNull(response.data) { "video/schedule/$videoAnalysisTaskId 응답에 data가 없습니다" }
+    }
+
+    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeOEmbedResponse {
+        return httpClient.get(YouTubeOEmbedUrl) {
+            parameter("url", youtubeUrl)
+            parameter("format", "json")
+        }.body()
     }
 
     override suspend fun getDiscoverVideosByTheme(
@@ -48,3 +61,5 @@ class VideoRemoteDataSourceImpl(
         return api.getDiscoverVideosByCategory(country = country, region = region).data?.videos.orEmpty()
     }
 }
+
+private const val YouTubeOEmbedUrl = "https://www.youtube.com/oembed"

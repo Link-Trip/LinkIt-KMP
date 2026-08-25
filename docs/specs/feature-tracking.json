@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-07-11T05:54:40.964Z",
+  "updatedAt": "2026-08-18T10:29:38.017Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -640,40 +640,71 @@
     },
     "main:SHEET_DRAG": {
       "featureUid": "main:SHEET_DRAG",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "3단 앵커 드래그, 50% 최근접 정착, 속도 기반 전환, 정착 중 재드래그, 여행 미리보기 공통 호스트 구현. 일정 리스트가 보이는 시트 높이를 초과할 때만 내부 스크롤을 허용하고, 펼쳐 모든 아이템이 보이면 스크롤 범위를 0으로 제한. Android/iOS 컴파일, map 단위·제스처 테스트, Roborazzi 및 앱 빌드 통과.",
       "workPlan": {
-        "status": "empty",
-        "summary": "",
-        "tasks": [],
-        "affectedFiles": [],
-        "testPlan": [],
-        "risks": [],
-        "updatedAt": null,
-        "updatedBy": null
+        "status": "done",
+        "summary": "메인 지도 바텀시트를 Collapsed/Resting/Expanded anchor로 연속 드래그하고 가장 가까운 상태에 정착시키며 여행 선택 프리뷰를 동일 host에 통합",
+        "tasks": [
+          "공용 draggable sheet host 구현",
+          "핸들 연속 드래그와 nearest-anchor settle 구현",
+          "일반 목록과 여행 프리뷰 content mode 통합",
+          "지도 padding을 settled anchor 기준으로 연동",
+          "접근성 semantics 및 테스트 태그 추가"
+        ],
+        "affectedFiles": [
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main/MapScreen.kt",
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main/MapUiState.kt",
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main/MapIntent.kt",
+          "feature/map/src/androidUnitTest/kotlin/com/linkit/company/feature/map/main/MapScreenshotTest.kt",
+          "feature/map/src/commonTest/kotlin/com/linkit/company/feature/map/main/MapViewModelTest.kt"
+        ],
+        "testPlan": [
+          "Android/iOS compile",
+          "Roborazzi 4개 상태",
+          "anchor 정착과 여행 선택 UI 테스트",
+          "Android 에뮬레이터 직접 드래그와 여행 선택 확인"
+        ],
+        "risks": [
+          "LazyColumn과 sheet nested scroll 충돌",
+          "Foundation 실제 해석 버전 드리프트",
+          "Google Map padding을 프레임마다 갱신할 때 jank"
+        ],
+        "updatedAt": "2026-07-25T06:39:53.510Z",
+        "updatedBy": "yuhohyeon"
       },
-      "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "promptHistory": [
+        {
+          "promptId": "prompt_1784959790991_bdb422",
+          "agent": "codex",
+          "action": "user-approval",
+          "prompt": "오케이 구현 시작하고, 직접 에뮬로 테스트도 해서 확인까지 해.",
+          "resultSummary": null,
+          "createdAt": "2026-07-25T06:09:50.991Z",
+          "createdBy": "fbghgus123"
+        }
+      ],
+      "updatedAt": "2026-08-18T10:29:37.516Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SHEET_COLLAPSE_ON_PLACE_SELECT": {
       "featureUid": "main:SHEET_COLLAPSE_ON_PLACE_SELECT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "장소 선택 시 일정 바텀시트를 장소 정보 카드 상태로 전환하는 흐름을 Compose 및 에뮬레이터에서 검증",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -685,8 +716,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.561Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SHEET_SCHEDULE_SELECT": {
       "featureUid": "main:SHEET_SCHEDULE_SELECT",
@@ -715,15 +746,15 @@
     },
     "main:SHEET_COUNTRY_FILTER": {
       "featureUid": "main:SHEET_COUNTRY_FILTER",
-      "workStatus": "not_started",
+      "workStatus": "in_review",
       "developer": "Unassigned",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "Figma 필터 팝업 및 도시 단위 지역 필터 반영",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -735,20 +766,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.595Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SHEET_DETAIL_FILTER": {
       "featureUid": "main:SHEET_DETAIL_FILTER",
-      "workStatus": "not_started",
+      "workStatus": "in_review",
       "developer": "Unassigned",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "여행 스타일 7종 및 기간 6종 필터 반영",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -760,33 +791,55 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.631Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SCHEDULE_MARKER_SHOW": {
       "featureUid": "main:SCHEDULE_MARKER_SHOW",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
-      "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
+      "issue": "#42",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
-        "status": "empty",
-        "summary": "",
-        "tasks": [],
-        "affectedFiles": [],
-        "testPlan": [],
-        "risks": [],
-        "updatedAt": null,
-        "updatedBy": null
+        "status": "in_progress",
+        "summary": "실제 서버 일정과 장소 좌표를 메인 지도·바텀시트·마커 상태에 연결한다",
+        "tasks": [
+          "인증 부트스트랩 연결",
+          "일정 목록·상세 조합 UseCase 구현",
+          "MapUiState와 Intent를 실제 ID 기반으로 확장",
+          "Android Google Maps SDK 마커와 카메라 연결",
+          "로딩·빈 상태·오류·재시도 처리"
+        ],
+        "affectedFiles": [
+          "domain/src/commonMain/kotlin/com/linkit/company/domain/usecase",
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main",
+          "feature/map/src/androidMain/kotlin/com/linkit/company/feature/map/main",
+          "feature/home",
+          "app-android/src/main/AndroidManifest.xml"
+        ],
+        "testPlan": [
+          "UseCase와 MapViewModel 단위 테스트",
+          ":feature:map:verifyRoborazziDebug",
+          "Medium_Phone 에뮬레이터 정상·빈·오류 검증",
+          "서버 일정 수와 지도 마커 수 대조"
+        ],
+        "risks": [
+          "서버 TLS 인증서 만료",
+          "목록 뒤 상세 N+1 호출",
+          "지역·사진 필드 부족",
+          "iOS 지도는 정적 구현"
+        ],
+        "updatedAt": "2026-07-22T10:50:15.589Z",
+        "updatedBy": "yuhohyeon"
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.667Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SCHEDULE_MARKER_CENTER_RULE": {
       "featureUid": "main:SCHEDULE_MARKER_CENTER_RULE",
@@ -815,13 +868,13 @@
     },
     "main:SCHEDULE_MARKER_SELECT": {
       "featureUid": "main:SCHEDULE_MARKER_SELECT",
-      "workStatus": "not_started",
+      "workStatus": "in_review",
       "developer": "Unassigned",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
       "notes": "",
       "workPlan": {
@@ -835,8 +888,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.705Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:SCHEDULE_MARKER_FOCUS_KEEP": {
       "featureUid": "main:SCHEDULE_MARKER_FOCUS_KEEP",
@@ -965,40 +1018,61 @@
     },
     "main:PLACE_MARKER_SELECT": {
       "featureUid": "main:PLACE_MARKER_SELECT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "Figma 17789:50745/51476 기준 UI 정합화, Compose·ViewModel 테스트, Roborazzi, Android/iOS 빌드 및 Android 에뮬레이터 장소 선택 흐름 검증 완료",
       "workPlan": {
         "status": "empty",
-        "summary": "",
-        "tasks": [],
-        "affectedFiles": [],
-        "testPlan": [],
-        "risks": [],
-        "updatedAt": null,
-        "updatedBy": null
+        "summary": "Figma 장소 마커 선택 화면의 카드·포커스·이전/다음·닫기·상세 이동을 기존 지도 MVI 흐름에 맞게 완성하고 시각 검증한다",
+        "tasks": [
+          "기존 장소 선택 구현과 Figma 스펙 차이 보완",
+          "선택/이전/다음/닫기 상태 전이 검증",
+          "일정에서 보기와 장소 상세보기 콜백 검증",
+          "장소 카드 디자인 토큰과 접근성 보정",
+          "Roborazzi 및 Android/iOS 컴파일 검증"
+        ],
+        "affectedFiles": [
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main/MapScreen.kt",
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main/MapUiState.kt",
+          "feature/map/src/commonMain/kotlin/com/linkit/company/feature/map/main/MapViewModel.kt",
+          "feature/map/src/androidUnitTest/kotlin/com/linkit/company/feature/map/main/MapScreenshotTest.kt"
+        ],
+        "testPlan": [
+          "장소 선택 UI 상호작용 테스트",
+          "이전/다음 disabled 경계 테스트",
+          "콜백 라우팅 테스트",
+          ":feature:map:verifyRoborazziDebug",
+          "Android/iOS 컴파일"
+        ],
+        "risks": [
+          "실제 지도는 스크린샷 테스트에서 inspection placeholder로 대체됨",
+          "iOS MapKit 마커 표현은 Android Google Maps와 차이가 있음",
+          "장소 선택 줌 배율은 SCC TBD-02로 미정"
+        ],
+        "updatedAt": "2026-08-03T10:55:36.479Z",
+        "updatedBy": "yuhohyeon"
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.746Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_MARKER_SCHEDULE_FOCUS": {
       "featureUid": "main:PLACE_MARKER_SCHEDULE_FOCUS",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "선택 일정 마커 상단 고정·타이포·간격을 Figma와 대조하고 골든 및 에뮬레이터에서 검증",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1010,20 +1084,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.783Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_MARKER_SELECT_ANOTHER": {
       "featureUid": "main:PLACE_MARKER_SELECT_ANOTHER",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "다른 장소 마커 선택 시 선택 포커스와 카드 콘텐츠가 교체되는 ViewModel 테스트 통과",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1035,20 +1109,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.820Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_MARKER_FOCUS_KEEP": {
       "featureUid": "main:PLACE_MARKER_FOCUS_KEEP",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "지도 CameraChanged 이후에도 장소 선택 포커스가 유지되는 ViewModel 테스트 통과",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1060,20 +1134,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.862Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_PREV_NEXT": {
       "featureUid": "main:PLACE_PREV_NEXT",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "첫·마지막 경계 비활성화와 이전·다음 장소 이동을 Compose·ViewModel·에뮬레이터에서 검증",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1085,20 +1159,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.899Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_CLOSE": {
       "featureUid": "main:PLACE_CLOSE",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "닫기 시 장소 선택을 해제하고 선택 일정 상태로 복귀하는 ViewModel 및 에뮬레이터 검증 통과",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1110,20 +1184,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.939Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_VIEW_IN_SCHEDULE": {
       "featureUid": "main:PLACE_VIEW_IN_SCHEDULE",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "선택 일정·장소 식별자 전달과 ScheduleActivity 여행 일정 화면 진입을 Compose 및 에뮬레이터에서 검증",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1135,20 +1209,20 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:37.975Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_DETAIL_OPEN": {
       "featureUid": "main:PLACE_DETAIL_OPEN",
-      "workStatus": "not_started",
-      "developer": "Unassigned",
+      "workStatus": "in_review",
+      "developer": "fbghgus123",
       "issue": null,
-      "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "pr": "#43",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "",
+      "notes": "선택 장소 모델 전달과 장소 상세 화면 진입을 Compose 및 에뮬레이터에서 검증",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1160,8 +1234,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-18T10:29:38.016Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:PLACE_DETAIL_FROM_MARKER": {
       "featureUid": "main:PLACE_DETAIL_FROM_MARKER",

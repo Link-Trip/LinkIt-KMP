@@ -23,7 +23,7 @@ LinkItTheme {
 
 ## 기존 컴포넌트 활용
 
-새 UI를 만들기 전에 `core/designsystem/component/`의 14개 기존 컴포넌트 확인:
+새 UI를 만들기 전에 `core/designsystem/component/`의 기존 컴포넌트 확인:
 
 | 컴포넌트 | 용도 |
 |---------|------|
@@ -41,6 +41,7 @@ LinkItTheme {
 | `LinkItScheduleListItem` | 일정 목록 아이템 |
 | `LinkItFolderCard` | 폴더 카드 |
 | `LinkItVideoCard` | 영상 카드 |
+| `LinkItDialog` | 제목·설명·단일 확인 액션의 모달 다이얼로그 |
 
 ## KMP 제약사항
 

@@ -9,22 +9,32 @@ import com.linkit.company.feature.schedule.ScheduleEditScreen
 import com.linkit.company.feature.schedule.ScheduleTripDetailScreen
 
 fun EntryProviderScope<NavKey>.scheduleEditEntry(
-    onCreateSchedule: () -> Unit,
-    onAnalysisComplete: () -> Unit,
+    onCreateSchedule: (videoTitle: String?, thumbnailUrl: String?) -> Unit,
+    onOpenExistingSchedule: (tripPlanId: String, title: String) -> Unit,
+    onReturnHome: () -> Unit,
+    showNotificationPermissionSheet: Boolean,
+    onAllowNotifications: () -> Unit,
+    onDismissNotificationPrompt: () -> Unit,
     onConfirmAnalysis: () -> Unit,
     onBack: () -> Unit,
 ) {
     entry<LinkItNavKey.ScheduleEdit> {
         ScheduleEditScreen(
             onCreateSchedule = onCreateSchedule,
+            onOpenExistingSchedule = onOpenExistingSchedule,
             onBack = onBack,
         )
     }
 
-    entry<LinkItNavKey.ScheduleAnalysisLoading> {
+    entry<LinkItNavKey.ScheduleAnalysisLoading> { route ->
         ScheduleAnalysisLoadingScreen(
+            videoTitle = route.videoTitle,
+            thumbnailUrl = route.thumbnailUrl,
             onBack = onBack,
-            onAnalysisComplete = onAnalysisComplete,
+            onReturnHome = onReturnHome,
+            showNotificationPermissionSheet = showNotificationPermissionSheet,
+            onAllowNotifications = onAllowNotifications,
+            onDismissNotificationPrompt = onDismissNotificationPrompt,
         )
     }
 
@@ -32,7 +42,12 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
         ScheduleAnalysisCompleteScreen(onConfirm = onConfirmAnalysis)
     }
 
-    entry<LinkItNavKey.ScheduleTripDetail> {
-        ScheduleTripDetailScreen(onBack = onBack)
+    entry<LinkItNavKey.ScheduleTripDetail> { route ->
+        ScheduleTripDetailScreen(
+            tripPlanId = route.tripPlanId,
+            title = route.title,
+            focusedPlaceId = route.focusedPlaceId,
+            onBack = onBack,
+        )
     }
 }

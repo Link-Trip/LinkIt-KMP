@@ -52,6 +52,9 @@ object MenuDefaults {
     /** 항목 내부 요소(체크박스·텍스트) 사이 간격. */
     val ItemContentSpacing: Dp = 8.dp
 
+    /** 항목 앞 아이콘 크기. */
+    val LeadingIconSize: Dp = 24.dp
+
     /** 항목 콘텐츠 최소 높이. (Figma `min-h-24`) */
     val ItemMinContentHeight: Dp = 24.dp
 

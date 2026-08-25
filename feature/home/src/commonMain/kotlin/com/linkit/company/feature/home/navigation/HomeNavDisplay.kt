@@ -3,13 +3,17 @@ package com.linkit.company.feature.home.navigation
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -53,6 +57,9 @@ fun LinkItNavigationBar(
 fun HomeNavDisplay(
     savedStateConfiguration: SavedStateConfiguration,
     navigateToScheduleEdit: () -> Unit = {},
+    navigateToSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit = { _, _, _ ->
+        navigateToScheduleEdit()
+    },
     modifier: Modifier = Modifier,
 ) {
     val navigationState =
@@ -63,17 +70,13 @@ fun HomeNavDisplay(
         )
 
     val navigator = remember(navigationState) { LinkItNavigator(navigationState) }
+    var isMapPlaceSelected by remember { mutableStateOf(false) }
 
     val entryProvider = entryProvider {
         mapEntry(
-            onOpenSchedule = {
-//                navigator.navigate(LinkItNavKey.ScheduleEdit)
-                navigateToScheduleEdit()
-            },
-            navigateToScheduleEdit = {
-//                navigator.navigate(LinkItNavKey.ScheduleEdit)
-                navigateToScheduleEdit()
-            },
+            onOpenSchedule = navigateToSchedule,
+            navigateToScheduleEdit = navigateToScheduleEdit,
+            onPlaceSelectionChanged = { isMapPlaceSelected = it },
         )
         storageEntry()
         exploreEntry(navigator)
@@ -81,12 +84,24 @@ fun HomeNavDisplay(
 
     CompositionLocalProvider(LocalLinkItNavigator provides navigator) {
         Scaffold(
-            modifier = modifier.fillMaxSize().systemBarsPadding(),
+            modifier = modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .then(
+                    if (isMapPlaceSelected) {
+                        Modifier
+                    } else {
+                        Modifier.navigationBarsPadding()
+                    }
+                ),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                LinkItNavigationBar(
-                    currentTab = navigationState.currentTopLevelRoute,
-                    onTabSelected = { key -> navigator.navigate(key) },
-                )
+                if (!isMapPlaceSelected) {
+                    LinkItNavigationBar(
+                        currentTab = navigationState.currentTopLevelRoute,
+                        onTabSelected = { key -> navigator.navigate(key) },
+                    )
+                }
             }
         ) { paddingValues ->
             LinkItNavDisplay(
