@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-08-18T10:29:38.017Z",
+  "updatedAt": "2026-08-25T10:42:08.648Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -1289,15 +1289,15 @@
     },
     "main:CREATE_VIDEO_LINK": {
       "featureUid": "main:CREATE_VIDEO_LINK",
-      "workStatus": "not_started",
+      "workStatus": "implemented",
       "developer": "Unassigned",
       "issue": null,
       "pr": null,
-      "branch": null,
-      "testStatus": "not_started",
-      "screenshotStatus": "not_started",
+      "branch": "feature/#42-main_map_screen",
+      "testStatus": "passed",
+      "screenshotStatus": "not_applicable",
       "blockedReason": null,
-      "notes": "",
+      "notes": "영상 링크 생성 화면 헤더 뒤로가기에서 루트 route일 때 ScheduleActivity를 종료하도록 수정",
       "workPlan": {
         "status": "empty",
         "summary": "",
@@ -1309,8 +1309,8 @@
         "updatedBy": null
       },
       "promptHistory": [],
-      "updatedAt": null,
-      "updatedBy": null
+      "updatedAt": "2026-08-25T10:42:08.648Z",
+      "updatedBy": "yuhohyeon"
     },
     "main:CLIPBOARD_LINK_ACTIVE": {
       "featureUid": "main:CLIPBOARD_LINK_ACTIVE",
