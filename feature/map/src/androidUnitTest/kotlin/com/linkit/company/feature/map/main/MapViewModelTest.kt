@@ -8,6 +8,19 @@ import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.TripPlanRepository
+import com.linkit.company.domain.repository.VideoRepository
+import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverVideo
+import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.VideoAnalysisStatus
+import com.linkit.company.domain.model.video.VideoScheduleCreationState
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
+import com.linkit.company.domain.usecase.AcknowledgeVideoScheduleCreationUseCase
+import com.linkit.company.domain.usecase.ObserveVideoScheduleCreationUseCase
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
@@ -23,6 +36,112 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class MapViewModelTest {
+    @Test
+    fun returningToMapReloadsServerChangesWithoutMovingCameraOrLosingSelection() {
+        val repository = RecordingTripPlanRepository().apply {
+            savedSchedules = MapDebugMockData.schedules
+        }
+        val viewModel = createViewModel(repository)
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+        val selected = viewModel.uiState.value.schedules.first()
+        val selectedPlace = selected.places.first()
+        viewModel.onIntent(MapIntent.SelectPlace(selected.id, selectedPlace.markerId))
+        viewModel.onIntent(MapIntent.CameraChanged(35.0, 130.0, 15f))
+        viewModel.onScreenPaused()
+        repository.savedSchedules = repository.savedSchedules.map {
+            if (it.summary.id == selected.id) it.copy(summary = it.summary.copy(title = "서버에서 변경한 이름")) else it
+        }
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals("서버에서 변경한 이름", viewModel.uiState.value.selectedSchedule?.title)
+        assertEquals(selectedPlace.markerId, viewModel.uiState.value.selectedPlaceMarkerId)
+        assertEquals(35.0, viewModel.uiState.value.cameraLatitude, 0.0)
+        viewModel.onScreenPaused()
+    }
+
+    @Test
+    fun completedAnalysisLinksToServerScheduleAndAcknowledgementClearsNotice() {
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
+        val summary = repository.savedSchedules.first().summary
+        val videos = EmptyVideoRepository().apply {
+            pending.value = summary.videoAnalysisTaskId
+            analysis = VideoAnalysis(
+                id = summary.videoAnalysisTaskId, youtubeUrl = summary.youtubeUrl,
+                isValid = true, status = VideoAnalysisStatus.COMPLETED, summary = "분석 요약",
+                estimatedMinCost = 100, estimatedMaxCost = 200, costBasis = null,
+                placeEnrichmentCompleted = true, timelines = emptyList(), itineraryItems = emptyList(),
+            )
+        }
+        val viewModel = createViewModel(repository, videos)
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(
+            VideoScheduleCreationState.Completed(summary.videoAnalysisTaskId, summary.id, summary.title),
+            viewModel.uiState.value.videoCreationState,
+        )
+        viewModel.onIntent(MapIntent.AcknowledgeVideoCreation(summary.videoAnalysisTaskId))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertNull(videos.pending.value)
+        assertEquals(VideoScheduleCreationState.Idle, viewModel.uiState.value.videoCreationState)
+        viewModel.onScreenPaused()
+    }
+
+    @Test
+    fun staleRefreshDoesNotDismissRenameDraftAndDeferredRefreshKeepsSavedTitle() {
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
+        val viewModel = createViewModel(repository)
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+        val schedule = viewModel.uiState.value.schedules.first()
+        val delayedRefresh = CompletableDeferred<Unit>()
+        repository.nextListGate = delayedRefresh
+        viewModel.onScreenPaused()
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+
+        viewModel.onIntent(MapIntent.ShowRenameScheduleDialog(schedule.id))
+        viewModel.onIntent(MapIntent.UpdateScheduleName("저장할 이름"))
+        viewModel.onIntent(MapIntent.RetryLoad)
+        delayedRefresh.complete(Unit)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals(MapScheduleDialog.RENAME, viewModel.uiState.value.scheduleDialog)
+        assertEquals("저장할 이름", viewModel.uiState.value.scheduleNameDraft)
+        viewModel.onIntent(MapIntent.ConfirmScheduleRename)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals("저장할 이름", viewModel.uiState.value.schedules.first { it.id == schedule.id }.title)
+        assertNull(viewModel.uiState.value.scheduleDialog)
+        viewModel.onScreenPaused()
+    }
+
+    @Test
+    fun lateRefreshCannotRestoreADeletedSchedule() {
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
+        val viewModel = createViewModel(repository)
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+        val schedule = viewModel.uiState.value.schedules.first()
+        val delayedRefresh = CompletableDeferred<Unit>()
+        repository.nextListGate = delayedRefresh
+        viewModel.onScreenPaused()
+        viewModel.onScreenResumed()
+        shadowOf(Looper.getMainLooper()).idle()
+
+        viewModel.onIntent(MapIntent.ShowDeleteScheduleDialog(schedule.id))
+        viewModel.onIntent(MapIntent.ConfirmScheduleDelete)
+        shadowOf(Looper.getMainLooper()).idle()
+        delayedRefresh.complete(Unit)
+        shadowOf(Looper.getMainLooper()).idle()
+
+        assertEquals(schedule.id, repository.deletedScheduleId)
+        assertEquals(false, viewModel.uiState.value.schedules.any { it.id == schedule.id })
+        assertEquals("일정이 삭제되었습니다.", viewModel.uiState.value.scheduleActionFeedback?.message)
+        viewModel.onScreenPaused()
+    }
+
     @Test
     fun placeSelectionKeepsFocusWhileMapMovesAndCloseReturnsToSchedule() {
         val viewModel = createViewModel()
@@ -148,6 +267,7 @@ class MapViewModelTest {
 
     private fun createViewModel(
         tripPlanRepository: TripPlanRepository = RecordingTripPlanRepository(),
+        videoRepository: VideoRepository = EmptyVideoRepository(),
     ): MapViewModel {
         val authRepository = EmptyAuthRepository()
         val ensureAuthenticated = EnsureAuthenticatedUseCase(authRepository)
@@ -155,6 +275,7 @@ class MapViewModelTest {
             getSavedTripPlansForMap = GetSavedTripPlansForMapUseCase(
                 ensureAuthenticated = ensureAuthenticated,
                 tripPlanRepository = tripPlanRepository,
+                videoRepository = videoRepository,
             ),
             ensureAuthenticated = ensureAuthenticated,
             renameTripPlan = RenameTripPlanUseCase(
@@ -165,6 +286,10 @@ class MapViewModelTest {
                 ensureAuthenticated = ensureAuthenticated,
                 tripPlanRepository = tripPlanRepository,
             ),
+            observeVideoScheduleCreation = ObserveVideoScheduleCreationUseCase(
+                ensureAuthenticated, videoRepository, tripPlanRepository,
+            ),
+            acknowledgeVideoScheduleCreation = AcknowledgeVideoScheduleCreationUseCase(videoRepository),
         )
     }
 }
@@ -178,13 +303,25 @@ private class EmptyAuthRepository : AuthRepository {
 }
 
 private class RecordingTripPlanRepository : TripPlanRepository {
+    var savedSchedules = emptyList<com.linkit.company.domain.model.map.TripPlanMapData>()
+    var nextListGate: CompletableDeferred<Unit>? = null
     var renamedSchedule: Pair<String, String>? = null
     var deletedScheduleId: String? = null
 
-    override suspend fun getTripPlans(cursor: String?): CursorPage<TripPlanSummary> =
-        CursorPage(items = emptyList(), nextCursor = null, hasNext = false)
+    override suspend fun getTripPlans(cursor: String?): CursorPage<TripPlanSummary> {
+        val snapshot = savedSchedules.map { it.summary }
+        val gate = nextListGate
+        nextListGate = null
+        // 이미 전송된 응답이 취소 이후에도 늦게 도착하는 상황을 재현한다.
+        if (gate != null) withContext(NonCancellable) { gate.await() }
+        return CursorPage(items = snapshot, nextCursor = null, hasNext = false)
+    }
 
-    override suspend fun getTripPlan(tripPlanId: String): TripPlanDetail = error("Not used")
+    override suspend fun getTripPlan(tripPlanId: String): TripPlanDetail {
+        val saved = savedSchedules.first { it.summary.id == tripPlanId }
+        return TripPlanDetail(tripPlanId, saved.summary.title, saved.summary.videoAnalysisTaskId,
+            saved.places.map { it.item }, saved.summary.createdAt, saved.summary.updatedAt)
+    }
 
     override suspend fun updateTripPlan(
         tripPlanId: String,
@@ -193,6 +330,9 @@ private class RecordingTripPlanRepository : TripPlanRepository {
     ): TripPlanDetail {
         val updatedTitle = requireNotNull(title)
         renamedSchedule = tripPlanId to updatedTitle
+        savedSchedules = savedSchedules.map {
+            if (it.summary.id == tripPlanId) it.copy(summary = it.summary.copy(title = updatedTitle)) else it
+        }
         return TripPlanDetail(
             id = tripPlanId,
             title = updatedTitle,
@@ -205,5 +345,24 @@ private class RecordingTripPlanRepository : TripPlanRepository {
 
     override suspend fun deleteTripPlan(tripPlanId: String) {
         deletedScheduleId = tripPlanId
+        savedSchedules = savedSchedules.filterNot { it.summary.id == tripPlanId }
     }
+}
+
+private class EmptyVideoRepository : VideoRepository {
+    val pending = MutableStateFlow<String?>(null)
+    var analysis: VideoAnalysis? = null
+    override fun observePendingVideoAnalysisTaskId() = pending
+    override suspend fun savePendingVideoAnalysisTaskId(taskId: String, excludedTripPlanIds: Set<String>) { pending.value = taskId }
+    override suspend fun getPendingVideoAnalysisExcludedTripPlanIds(): Set<String> = emptySet()
+    override suspend fun clearPendingVideoAnalysisTaskId(expectedTaskId: String) {
+        if (pending.value == expectedTaskId) pending.value = null
+    }
+    override suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis = error("Not used")
+    override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis = analysis ?: error("No analysis")
+    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata = error("No metadata")
+    override suspend fun getDiscoverChannels(): List<DiscoverChannel> = error("Not used")
+    override suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo> = error("Not used")
+    override suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo> = error("Not used")
+    override suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo> = error("Not used")
 }

@@ -1,15 +1,25 @@
 package com.linkit.company.domain.usecase
 
+import com.linkit.company.domain.exception.LinkTripApiException
+import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.VideoAnalysisStatus
 import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
 sealed interface StartVideoScheduleCreationResult {
     data object InvalidFormat : StartVideoScheduleCreationResult
+
+    data class AlreadyInProgress(val taskId: String) : StartVideoScheduleCreationResult
 
     data class ExistingSchedule(
         val tripPlanId: String,
@@ -32,23 +42,39 @@ class StartVideoScheduleCreationUseCase(
     suspend operator fun invoke(
         youtubeUrl: String,
         allowDuplicate: Boolean = false,
-    ): StartVideoScheduleCreationResult {
+    ): StartVideoScheduleCreationResult = creationMutex.withLock {
         val normalizedUrl = youtubeUrl.trim()
         val videoId = normalizedUrl.youtubeVideoIdOrNull()
-            ?: return StartVideoScheduleCreationResult.InvalidFormat
+            ?: return@withLock StartVideoScheduleCreationResult.InvalidFormat
+
+        videoRepository.observePendingVideoAnalysisTaskId().first()?.let { taskId ->
+            return@withLock StartVideoScheduleCreationResult.AlreadyInProgress(taskId)
+        }
 
         ensureAuthenticated()
 
+        val existingSchedules = withAuthenticationRetry {
+            findExistingSchedules(videoId, stopAfterFirst = !allowDuplicate)
+        }
         if (!allowDuplicate) {
-            findExistingSchedule(videoId)?.let { existing ->
-                return StartVideoScheduleCreationResult.ExistingSchedule(
+            existingSchedules.firstOrNull()?.let { existing ->
+                return@withLock StartVideoScheduleCreationResult.ExistingSchedule(
                     tripPlanId = existing.id,
                     title = existing.title,
                 )
             }
         }
 
-        val analysis = videoRepository.analyzeVideo(normalizedUrl)
+        val analysis = withAuthenticationRetry { videoRepository.analyzeVideo(normalizedUrl) }
+        if (analysis.isInProgress || analysis.status == VideoAnalysisStatus.COMPLETED && analysis.isValid) {
+            // 분석 요청이 수락된 뒤 화면을 떠나도 작업 ID 저장은 끝낸다.
+            withContext(NonCancellable) {
+                videoRepository.savePendingVideoAnalysisTaskId(
+                    taskId = analysis.id,
+                    excludedTripPlanIds = existingSchedules.map { it.id }.toSet(),
+                )
+            }
+        }
         val metadata = try {
             videoRepository.getYouTubeVideoMetadata(normalizedUrl)
         } catch (error: CancellationException) {
@@ -57,25 +83,44 @@ class StartVideoScheduleCreationUseCase(
             null
         }
 
-        return StartVideoScheduleCreationResult.AnalysisStarted(analysis, metadata)
+        StartVideoScheduleCreationResult.AnalysisStarted(analysis, metadata)
     }
 
-    private suspend fun findExistingSchedule(videoId: String): TripPlanSummary? {
+    private suspend fun <T> withAuthenticationRetry(action: suspend () -> T): T {
+        return try {
+            action()
+        } catch (error: LinkTripApiException) {
+            if (error.errorCode != LinkTripErrorCode.UNAUTHORIZED_AUTHENTICATION_FAILED && error.httpStatus != 401) {
+                throw error
+            }
+            ensureAuthenticated(forceRefresh = true)
+            action()
+        }
+    }
+
+    private suspend fun findExistingSchedules(videoId: String, stopAfterFirst: Boolean): List<TripPlanSummary> {
+        val matchingSchedules = mutableListOf<TripPlanSummary>()
         val requestedCursors = mutableSetOf<String?>(null)
         var cursor: String? = null
 
         while (true) {
             val page = tripPlanRepository.getTripPlans(cursor)
-            page.items.firstOrNull { summary ->
+            matchingSchedules += page.items.filter { summary ->
                 summary.youtubeUrl.youtubeVideoIdOrNull() == videoId
-            }?.let { return it }
+            }
+            if (stopAfterFirst && matchingSchedules.isNotEmpty()) return matchingSchedules
 
-            if (!page.hasNext) return null
+            if (!page.hasNext) return matchingSchedules
 
-            val nextCursor = page.nextCursor ?: return null
-            if (!requestedCursors.add(nextCursor)) return null
+            val nextCursor = page.nextCursor ?: return matchingSchedules
+            if (!requestedCursors.add(nextCursor)) return matchingSchedules
             cursor = nextCursor
         }
+    }
+
+    private companion object {
+        // ponytail: 단일 기기 계정 전체를 직렬화한다. 다중 계정 동시 생성을 지원하면 계정별 lock으로 분리한다.
+        val creationMutex = Mutex()
     }
 }
 

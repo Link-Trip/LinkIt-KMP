@@ -46,6 +46,11 @@ internal data class MapCameraUiModel(
     val zoom: Float,
 )
 
+internal fun MapCameraUiModel.shouldApplyToNativeMap(
+    lastRequestedCamera: MapCameraUiModel?,
+    lastNativeCamera: MapCameraUiModel?,
+): Boolean = this != lastRequestedCamera && this != lastNativeCamera
+
 internal data class MapMarkerUiModel(
     val id: String,
     val lat: Double,

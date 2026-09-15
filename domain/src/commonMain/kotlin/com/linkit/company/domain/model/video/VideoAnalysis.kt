@@ -15,5 +15,5 @@ data class VideoAnalysis(
 ) {
     /** 분석 진행 중 여부 — true면 결과 조회를 폴링해야 한다 (HTTP 202 대응) */
     val isInProgress: Boolean
-        get() = status == VideoAnalysisStatus.PENDING
+        get() = status == VideoAnalysisStatus.PENDING || status == VideoAnalysisStatus.PROCESSING
 }

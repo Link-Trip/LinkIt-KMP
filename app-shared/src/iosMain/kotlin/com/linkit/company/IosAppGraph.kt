@@ -17,6 +17,8 @@ import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSourceImpl
 import com.linkit.company.data.datasource.video.VideoRemoteDataSource
 import com.linkit.company.data.datasource.video.VideoRemoteDataSourceImpl
+import com.linkit.company.data.datasource.video.VideoAnalysisLocalDataSource
+import com.linkit.company.data.datasource.video.VideoAnalysisLocalDataSourceImpl
 import com.linkit.company.data.repository.AuthRepositoryImpl
 import com.linkit.company.data.repository.TripPlanRepositoryImpl
 import com.linkit.company.data.repository.VideoRepositoryImpl
@@ -86,6 +88,9 @@ interface IosAppGraph : AppGraph {
 
     @Binds
     val VideoRemoteDataSourceImpl.bind: VideoRemoteDataSource
+
+    @Binds
+    val VideoAnalysisLocalDataSourceImpl.bind: VideoAnalysisLocalDataSource
 
     @Binds
     val VideoRepositoryImpl.bind: VideoRepository

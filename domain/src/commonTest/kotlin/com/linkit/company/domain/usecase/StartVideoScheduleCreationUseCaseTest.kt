@@ -1,5 +1,7 @@
 package com.linkit.company.domain.usecase
 
+import com.linkit.company.domain.exception.LinkTripApiException
+import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.model.auth.Auth
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
@@ -14,9 +16,13 @@ import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import com.linkit.company.domain.runImmediateSuspend
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
 
 class StartVideoScheduleCreationUseCaseTest {
 
@@ -100,11 +106,14 @@ class StartVideoScheduleCreationUseCaseTest {
         )
         assertEquals(listOf("https://youtube.com/shorts/new-video"), videoRepository.analyzedUrls)
         assertEquals(listOf("https://youtube.com/shorts/new-video"), videoRepository.metadataUrls)
+        assertEquals("analysis-id", videoRepository.pendingTask.value)
     }
 
     @Test
-    fun skipsDuplicateLookupWhenUserConfirmsCreatingAnotherSchedule() = runImmediateSuspend {
-        val tripPlanRepository = VideoTripPlanRepositoryFake(emptyMap())
+    fun capturesOldSchedulesWhenUserConfirmsCreatingAnotherSchedule() = runImmediateSuspend {
+        val tripPlanRepository = VideoTripPlanRepositoryFake(
+            mapOf(null to CursorPage(listOf(summary("old", "https://youtu.be/same-video")), null, false)),
+        )
         val videoRepository = VideoRepositoryFake()
         val useCase = createUseCase(
             authRepository = VideoAuthRepositoryFake(),
@@ -118,8 +127,9 @@ class StartVideoScheduleCreationUseCaseTest {
         )
 
         assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result)
-        assertEquals(emptyList(), tripPlanRepository.requestedCursors)
+        assertEquals(listOf<String?>(null), tripPlanRepository.requestedCursors)
         assertEquals(listOf("https://youtu.be/same-video"), videoRepository.analyzedUrls)
+        assertEquals(setOf("old"), videoRepository.excludedTripPlanIds)
     }
 
     @Test
@@ -140,6 +150,84 @@ class StartVideoScheduleCreationUseCaseTest {
             null,
             assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result).metadata,
         )
+        assertEquals("analysis-id", videoRepository.pendingTask.value)
+    }
+
+    @Test
+    fun doesNotStartAnotherAnalysisEvenWhenDuplicateVideoWasConfirmed() = runImmediateSuspend {
+        val repository = VideoRepositoryFake().apply { pendingTask.value = "existing-task" }
+        val auth = VideoAuthRepositoryFake(isLoggedIn = false)
+        val result = createUseCase(auth, VideoTripPlanRepositoryFake(emptyMap()), repository)(
+            youtubeUrl = "https://youtu.be/new-video",
+            allowDuplicate = true,
+        )
+
+        assertEquals(StartVideoScheduleCreationResult.AlreadyInProgress("existing-task"), result)
+        assertEquals(0, auth.loginCallCount)
+        assertEquals(emptyList(), repository.analyzedUrls)
+    }
+
+    @Test
+    fun persistsCompletedAnalysisUntilItsCreatedTripPlanIsConfirmed() = runImmediateSuspend {
+        val repository = VideoRepositoryFake(status = VideoAnalysisStatus.COMPLETED)
+        val useCase = createUseCase(VideoAuthRepositoryFake(), VideoTripPlanRepositoryFake(emptyMap()), repository)
+
+        useCase("https://youtu.be/new-video", allowDuplicate = true)
+
+        assertEquals("analysis-id", repository.pendingTask.value)
+    }
+
+    @Test
+    fun invalidAndFailedAnalysisDoNotLeavePendingTasks() = runImmediateSuspend {
+        for (status in listOf(VideoAnalysisStatus.INVALID, VideoAnalysisStatus.FAILED)) {
+            val repository = VideoRepositoryFake(status = status)
+            val useCase = createUseCase(VideoAuthRepositoryFake(), VideoTripPlanRepositoryFake(emptyMap()), repository)
+
+            useCase("https://youtu.be/new-video", allowDuplicate = true)
+
+            assertEquals(null, repository.pendingTask.value)
+        }
+    }
+
+    @Test
+    fun cancellationDuringMetadataLookupKeepsAcceptedTaskId() = runImmediateSuspend {
+        val repository = VideoRepositoryFake(metadataError = CancellationException("screen left"))
+        val useCase = createUseCase(VideoAuthRepositoryFake(), VideoTripPlanRepositoryFake(emptyMap()), repository)
+
+        assertFailsWith<CancellationException> {
+            useCase("https://youtu.be/new-video", allowDuplicate = true)
+        }
+
+        assertEquals("analysis-id", repository.pendingTask.value)
+    }
+
+    @Test
+    fun refreshesUnknown401OnceAndPersistsAcceptedAnalysis() = runImmediateSuspend {
+        val auth = VideoAuthRepositoryFake()
+        val video = VideoRepositoryFake(
+            analysisErrors = mutableListOf(LinkTripApiException(LinkTripErrorCode.UNKNOWN, 401, "expired")),
+        )
+
+        val result = createUseCase(auth, VideoTripPlanRepositoryFake(emptyMap()), video)("https://youtu.be/new-video")
+
+        assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result)
+        assertEquals(1, auth.loginCallCount)
+        assertEquals(2, video.analyzedUrls.size)
+        assertEquals("analysis-id", video.pendingTask.value)
+    }
+
+    @Test
+    fun repeatedUnknown401DoesNotKeepRefreshingOrLeavePendingAnalysis() = runImmediateSuspend {
+        val auth = VideoAuthRepositoryFake()
+        val unauthorized = LinkTripApiException(LinkTripErrorCode.UNKNOWN, 401, "expired")
+        val video = VideoRepositoryFake(analysisErrors = mutableListOf(unauthorized, unauthorized))
+        val useCase = createUseCase(auth, VideoTripPlanRepositoryFake(emptyMap()), video)
+
+        assertFailsWith<LinkTripApiException> { useCase("https://youtu.be/new-video") }
+
+        assertEquals(1, auth.loginCallCount)
+        assertEquals(2, video.analyzedUrls.size)
+        assertEquals(null, video.pendingTask.value)
     }
 
     private fun createUseCase(
@@ -178,6 +266,7 @@ private class VideoTripPlanRepositoryFake(
 
     override suspend fun getTripPlans(cursor: String?): CursorPage<TripPlanSummary> {
         requestedCursors += cursor
+        if (pages.isEmpty()) return CursorPage(emptyList(), null, false)
         return checkNotNull(pages[cursor]) { "No page fixture for cursor=$cursor" }
     }
 
@@ -195,17 +284,35 @@ private class VideoTripPlanRepositoryFake(
 
 private class VideoRepositoryFake(
     private val metadataError: Throwable? = null,
+    private val status: VideoAnalysisStatus = VideoAnalysisStatus.PENDING,
+    private val analysisErrors: MutableList<LinkTripApiException> = mutableListOf(),
 ) : VideoRepository {
     val analyzedUrls = mutableListOf<String>()
     val metadataUrls = mutableListOf<String>()
+    val pendingTask = MutableStateFlow<String?>(null)
+    var excludedTripPlanIds = emptySet<String>()
+
+    override fun observePendingVideoAnalysisTaskId(): Flow<String?> = pendingTask
+
+    override suspend fun savePendingVideoAnalysisTaskId(taskId: String, excludedTripPlanIds: Set<String>) {
+        pendingTask.value = taskId
+        this.excludedTripPlanIds = excludedTripPlanIds
+    }
+
+    override suspend fun getPendingVideoAnalysisExcludedTripPlanIds(): Set<String> = excludedTripPlanIds
+
+    override suspend fun clearPendingVideoAnalysisTaskId(expectedTaskId: String) {
+        pendingTask.compareAndSet(expectedTaskId, null)
+    }
 
     override suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis {
         analyzedUrls += youtubeUrl
+        if (analysisErrors.isNotEmpty()) throw analysisErrors.removeAt(0)
         return VideoAnalysis(
             id = "analysis-id",
             youtubeUrl = youtubeUrl,
             isValid = true,
-            status = VideoAnalysisStatus.PENDING,
+            status = status,
             summary = "",
             estimatedMinCost = null,
             estimatedMaxCost = null,

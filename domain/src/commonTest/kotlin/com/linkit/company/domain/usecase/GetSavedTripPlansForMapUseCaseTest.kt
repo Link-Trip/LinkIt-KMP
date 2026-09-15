@@ -9,15 +9,25 @@ import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItem
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
+import com.linkit.company.domain.model.video.CostBasis
+import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverVideo
+import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.VideoAnalysisStatus
+import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.TripPlanRepository
+import com.linkit.company.domain.repository.VideoRepository
 import com.linkit.company.domain.runImmediateSuspend
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class GetSavedTripPlansForMapUseCaseTest {
 
@@ -61,6 +71,7 @@ class GetSavedTripPlansForMapUseCaseTest {
         val useCase = GetSavedTripPlansForMapUseCase(
             ensureAuthenticated = EnsureAuthenticatedUseCase(authRepository),
             tripPlanRepository = tripPlanRepository,
+            videoRepository = MapVideoRepositoryFake(),
         )
 
         val result = useCase()
@@ -104,6 +115,7 @@ class GetSavedTripPlansForMapUseCaseTest {
         val useCase = GetSavedTripPlansForMapUseCase(
             ensureAuthenticated = EnsureAuthenticatedUseCase(MapAuthRepositoryFake(isLoggedIn = true)),
             tripPlanRepository = tripPlanRepository,
+            videoRepository = MapVideoRepositoryFake(),
         )
 
         val result = useCase()
@@ -128,6 +140,7 @@ class GetSavedTripPlansForMapUseCaseTest {
         val useCase = GetSavedTripPlansForMapUseCase(
             ensureAuthenticated = EnsureAuthenticatedUseCase(MapAuthRepositoryFake(isLoggedIn = true)),
             tripPlanRepository = tripPlanRepository,
+            videoRepository = MapVideoRepositoryFake(),
         )
 
         val result = useCase()
@@ -151,6 +164,7 @@ class GetSavedTripPlansForMapUseCaseTest {
         val useCase = GetSavedTripPlansForMapUseCase(
             ensureAuthenticated = EnsureAuthenticatedUseCase(MapAuthRepositoryFake(isLoggedIn = true)),
             tripPlanRepository = tripPlanRepository,
+            videoRepository = MapVideoRepositoryFake(),
         )
 
         val result = useCase()
@@ -181,12 +195,187 @@ class GetSavedTripPlansForMapUseCaseTest {
         val useCase = GetSavedTripPlansForMapUseCase(
             ensureAuthenticated = EnsureAuthenticatedUseCase(MapAuthRepositoryFake(isLoggedIn = true)),
             tripPlanRepository = tripPlanRepository,
+            videoRepository = MapVideoRepositoryFake(),
         )
 
         assertFailsWith<LinkTripApiException> {
             runImmediateSuspend { useCase() }
         }
     }
+
+    @Test
+    fun enrichesEveryScheduleAndRequestsSharedVideoOnlyOnce() = runImmediateSuspend {
+        val videoRepository = MapVideoRepositoryFake()
+        val result = enrichmentUseCase(videoRepository)()
+
+        assertEquals(listOf("task-trip-1"), videoRepository.requestedTaskIds)
+        assertEquals(listOf("https://youtube.com/watch?v=trip-1"), videoRepository.requestedUrls)
+        result.forEach { schedule ->
+            assertEquals("제주 여행 요약", schedule.analysisSummary)
+            assertEquals(100_000, schedule.estimatedMinCost)
+            assertEquals(200_000, schedule.estimatedMaxCost)
+            assertEquals(CostBasis.VIDEO_MENTIONED, schedule.costBasis)
+            assertEquals("https://i.ytimg.com/vi/video/hqdefault.jpg", schedule.thumbnailUrl)
+            assertEquals(1, schedule.places.size)
+        }
+    }
+
+    @Test
+    fun optionalEnrichmentFailuresKeepEverySummaryAndMarkerWithoutRetryingSharedVideo() = runImmediateSuspend {
+        val videoRepository = MapVideoRepositoryFake(
+            analysisError = IllegalStateException("Analysis unavailable"),
+            metadataError = IllegalStateException("YouTube unavailable"),
+        )
+        val result = enrichmentUseCase(videoRepository)()
+
+        assertEquals(listOf("trip-1", "trip-2"), result.map { it.summary.id })
+        assertEquals(1, videoRepository.requestedTaskIds.size)
+        assertEquals(1, videoRepository.requestedUrls.size)
+        result.forEach { schedule ->
+            assertEquals(1, schedule.places.size)
+            assertEquals(GeoCoordinate(37.5665, 126.978), schedule.center)
+            assertNull(schedule.analysisSummary)
+            assertNull(schedule.estimatedMinCost)
+            assertNull(schedule.estimatedMaxCost)
+            assertNull(schedule.costBasis)
+            assertNull(schedule.thumbnailUrl)
+        }
+    }
+
+    @Test
+    fun keepsThumbnailWhenOnlyAnalysisRequestFails() = runImmediateSuspend {
+        val result = enrichmentUseCase(
+            MapVideoRepositoryFake(analysisError = IllegalStateException("Analysis unavailable")),
+        )()
+
+        assertNull(result.first().estimatedMinCost)
+        assertEquals("https://i.ytimg.com/vi/video/hqdefault.jpg", result.first().thumbnailUrl)
+    }
+
+    @Test
+    fun propagatesUnauthorizedEnrichmentFailureForAuthenticationRetry() {
+        val unauthorized = LinkTripApiException(
+            errorCode = LinkTripErrorCode.UNAUTHORIZED_AUTHENTICATION_FAILED,
+            httpStatus = 401,
+            message = "Unauthorized",
+        )
+
+        assertFailsWith<LinkTripApiException> {
+            runImmediateSuspend {
+                enrichmentUseCase(MapVideoRepositoryFake(analysisError = unauthorized))()
+            }
+        }
+    }
+
+    @Test
+    fun youtubeUnauthorizedResponseKeepsSchedulesAndAnalysisWithoutAuthenticationRetry() = runImmediateSuspend {
+        val videoRepository = MapVideoRepositoryFake(
+            metadataError = LinkTripApiException(
+                errorCode = LinkTripErrorCode.UNKNOWN,
+                httpStatus = 401,
+                message = "YouTube Unauthorized",
+            ),
+        )
+
+        val result = enrichmentUseCase(videoRepository)()
+
+        assertEquals(listOf("trip-1", "trip-2"), result.map { it.summary.id })
+        assertEquals(1, videoRepository.requestedUrls.size)
+        result.forEach { schedule ->
+            assertEquals(1, schedule.places.size)
+            assertEquals(100_000, schedule.estimatedMinCost)
+            assertEquals("제주 여행 요약", schedule.analysisSummary)
+            assertNull(schedule.thumbnailUrl)
+        }
+    }
+
+    @Test
+    fun propagatesEnrichmentCancellation() {
+        assertFailsWith<CancellationException> {
+            runImmediateSuspend {
+                enrichmentUseCase(
+                    MapVideoRepositoryFake(metadataError = CancellationException("Screen left")),
+                )()
+            }
+        }
+    }
+}
+
+private fun enrichmentUseCase(videoRepository: VideoRepository): GetSavedTripPlansForMapUseCase {
+    val firstSummary = summary(id = "trip-1")
+    return GetSavedTripPlansForMapUseCase(
+        ensureAuthenticated = EnsureAuthenticatedUseCase(MapAuthRepositoryFake(isLoggedIn = true)),
+        tripPlanRepository = FakeTripPlanRepository(
+            pages = mapOf(
+                null to CursorPage(
+                    items = listOf(firstSummary, firstSummary.copy(id = "trip-2")),
+                    nextCursor = null,
+                    hasNext = false,
+                ),
+            ),
+            details = mapOf(
+                "trip-1" to detail("trip-1", items = listOf(item("place-1"))),
+                "trip-2" to detail("trip-2", items = listOf(item("place-2"))),
+            ),
+        ),
+        videoRepository = videoRepository,
+    )
+}
+
+private class MapVideoRepositoryFake(
+    private val analysisError: Throwable? = null,
+    private val metadataError: Throwable? = null,
+) : VideoRepository {
+    val requestedTaskIds = mutableListOf<String>()
+    val requestedUrls = mutableListOf<String>()
+
+    override fun observePendingVideoAnalysisTaskId(): Flow<String?> = flowOf(null)
+
+    override suspend fun savePendingVideoAnalysisTaskId(taskId: String, excludedTripPlanIds: Set<String>) = Unit
+
+    override suspend fun getPendingVideoAnalysisExcludedTripPlanIds(): Set<String> = emptySet()
+
+    override suspend fun clearPendingVideoAnalysisTaskId(expectedTaskId: String) = Unit
+
+    override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis {
+        requestedTaskIds += videoAnalysisTaskId
+        analysisError?.let { throw it }
+        return VideoAnalysis(
+            id = videoAnalysisTaskId,
+            youtubeUrl = "https://youtube.com/watch?v=trip-1",
+            isValid = true,
+            status = VideoAnalysisStatus.COMPLETED,
+            summary = "제주 여행 요약",
+            estimatedMinCost = 100_000,
+            estimatedMaxCost = 200_000,
+            costBasis = CostBasis.VIDEO_MENTIONED,
+            placeEnrichmentCompleted = true,
+            timelines = emptyList(),
+            itineraryItems = emptyList(),
+        )
+    }
+
+    override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata {
+        requestedUrls += youtubeUrl
+        metadataError?.let { throw it }
+        return YouTubeVideoMetadata(
+            title = "제주 여행 영상",
+            thumbnailUrl = "https://i.ytimg.com/vi/video/hqdefault.jpg",
+        )
+    }
+
+    override suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis = error("Not used in this test")
+
+    override suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo> =
+        error("Not used in this test")
+
+    override suspend fun getDiscoverChannels(): List<DiscoverChannel> = error("Not used in this test")
+
+    override suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo> =
+        error("Not used in this test")
+
+    override suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo> =
+        error("Not used in this test")
 }
 
 private class MapAuthRepositoryFake(

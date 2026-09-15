@@ -23,6 +23,10 @@ sealed interface MapIntent : Intent {
     data object ConfirmScheduleDelete : MapIntent
     data object DismissScheduleDialog : MapIntent
     data object DismissScheduleActionFeedback : MapIntent
+    data object ShowCreationInProgressDialog : MapIntent
+    data object DismissCreationInProgressDialog : MapIntent
+    data object RetryVideoCreation : MapIntent
+    data class AcknowledgeVideoCreation(val taskId: String) : MapIntent
     data object ShowComingSoonDialog : MapIntent
     data object DismissComingSoonDialog : MapIntent
     data object ToggleMapType : MapIntent

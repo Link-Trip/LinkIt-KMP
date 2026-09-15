@@ -7,10 +7,13 @@ import com.linkit.company.core.common.architecture.MviContext
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.model.map.TripPlanMapData
+import com.linkit.company.domain.model.video.VideoScheduleCreationState
+import com.linkit.company.domain.usecase.AcknowledgeVideoScheduleCreationUseCase
 import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
 import com.linkit.company.domain.usecase.RenameTripPlanUseCase
+import com.linkit.company.domain.usecase.ObserveVideoScheduleCreationUseCase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
@@ -28,32 +31,87 @@ class MapViewModel(
     private val ensureAuthenticated: EnsureAuthenticatedUseCase,
     private val renameTripPlan: RenameTripPlanUseCase,
     private val deleteTripPlan: DeleteTripPlanUseCase,
+    private val observeVideoScheduleCreation: ObserveVideoScheduleCreationUseCase,
+    private val acknowledgeVideoScheduleCreation: AcknowledgeVideoScheduleCreationUseCase,
 ) : ViewModel() {
     private val container = MviContainer<MapIntent, MapSideEffect, MapUiState>(
         initialState = MapUiState(),
         onIntent = { handleIntent(it) },
     )
     private var loadJob: Job? = null
+    private var loadGeneration = 0
+    private var reloadAfterScheduleAction = false
+    private var videoCreationJob: Job? = null
+    private var isScreenResumed = false
     private var debugMapData: List<TripPlanMapData>? = null
     private var scheduleActionFeedbackId: Int = 0
 
     val uiState = container.uiState
 
-    init {
+    fun onIntent(intent: MapIntent) = container.intent(intent)
+
+    fun onScreenResumed() {
+        isScreenResumed = true
         loadSchedules()
+        observeVideoCreation()
     }
 
-    fun onIntent(intent: MapIntent) = container.intent(intent)
+    fun onScreenPaused() {
+        isScreenResumed = false
+        videoCreationJob?.cancel()
+        cancelScheduleLoad()
+    }
+
+    private fun observeVideoCreation() {
+        videoCreationJob?.cancel()
+        if (!isScreenResumed || debugMapData != null) return
+        videoCreationJob = viewModelScope.launch {
+            observeVideoScheduleCreation().collect { creation ->
+                val previous = uiState.value.videoCreationState
+                container.mviContext.reduce { copy(videoCreationState = creation) }
+                if (creation is VideoScheduleCreationState.Completed && creation != previous) {
+                    cancelScheduleLoad()
+                    loadSchedules()
+                }
+            }
+        }
+    }
+
+    private fun acknowledgeVideoCreation(taskId: String) {
+        viewModelScope.launch {
+            try {
+                acknowledgeVideoScheduleCreation(taskId)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Throwable) {
+                container.mviContext.reduce {
+                    copy(videoCreationState = VideoScheduleCreationState.Error(
+                        taskId = taskId,
+                        message = "상태를 저장하지 못했어요. 다시 확인해 주세요.",
+                    ))
+                }
+            }
+        }
+    }
 
     internal fun useDebugMapData(mapData: List<TripPlanMapData>) {
         debugMapData = mapData
-        loadJob?.cancel()
+        cancelScheduleLoad()
+        videoCreationJob?.cancel()
         showSchedules(mapData)
     }
 
     private fun MviContext<MapUiState, MapSideEffect>.handleIntent(intent: MapIntent) {
         when (intent) {
             MapIntent.RetryLoad -> loadSchedules()
+            MapIntent.RetryVideoCreation -> observeVideoCreation()
+            is MapIntent.AcknowledgeVideoCreation -> acknowledgeVideoCreation(intent.taskId)
+            MapIntent.ShowCreationInProgressDialog -> reduce {
+                copy(isCreationInProgressDialogVisible = true, isCreateMenuExpanded = false)
+            }
+            MapIntent.DismissCreationInProgressDialog -> reduce {
+                copy(isCreationInProgressDialogVisible = false)
+            }
             is MapIntent.SelectSchedule -> selectSchedule(intent.scheduleId)
             is MapIntent.SelectPlace -> selectPlace(intent.scheduleId, intent.markerId)
             MapIntent.ClearSelection -> reduce {
@@ -179,7 +237,10 @@ class MapViewModel(
         scheduleId: String,
         dialog: MapScheduleDialog,
     ) {
+        if (currentState.isScheduleActionInProgress) return
         val schedule = currentState.schedules.firstOrNull { it.id == scheduleId } ?: return
+        if (loadJob?.isActive == true) reloadAfterScheduleAction = true
+        cancelScheduleLoad()
         reduce {
             copy(
                 expandedScheduleMenuId = null,
@@ -201,6 +262,7 @@ class MapViewModel(
                 scheduleNameDraft = "",
             )
         }
+        loadDeferredSchedules()
     }
 
     private fun MviContext<MapUiState, MapSideEffect>.confirmScheduleRename() {
@@ -233,6 +295,7 @@ class MapViewModel(
                         ),
                     )
                 }
+                loadDeferredSchedules()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
@@ -276,6 +339,7 @@ class MapViewModel(
                         ),
                     )
                 }
+                loadDeferredSchedules()
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
@@ -301,6 +365,7 @@ class MapViewModel(
                 ),
             )
         }
+        loadDeferredSchedules()
     }
 
     private fun nextScheduleActionFeedback(
@@ -356,23 +421,42 @@ class MapViewModel(
     }
 
     private fun loadSchedules() {
+        if (uiState.value.scheduleDialog != null || uiState.value.isScheduleActionInProgress) {
+            reloadAfterScheduleAction = true
+            return
+        }
         if (loadJob?.isActive == true) return
+        reloadAfterScheduleAction = false
         debugMapData?.let { mapData ->
             showSchedules(mapData)
             return
         }
+        val generation = ++loadGeneration
         loadJob = viewModelScope.launch {
             container.mviContext.reduce {
-                copy(loadState = MapLoadState.LOADING, errorMessage = null)
+                copy(
+                    loadState = if (schedules.isEmpty()) MapLoadState.LOADING else loadState,
+                    errorMessage = null,
+                )
             }
             val result = runCatching { loadWithAuthRetry() }
-            if (result.exceptionOrNull() is CancellationException || debugMapData != null) {
+            if (generation != loadGeneration || result.exceptionOrNull() is CancellationException || debugMapData != null) {
                 return@launch
             }
             result
                 .onSuccess(::showSchedules)
                 .onFailure(::showLoadError)
         }
+    }
+
+    private fun cancelScheduleLoad() {
+        loadGeneration += 1
+        loadJob?.cancel()
+        loadJob = null
+    }
+
+    private fun loadDeferredSchedules() {
+        if (reloadAfterScheduleAction && isScreenResumed) loadSchedules()
     }
 
     private suspend fun loadWithAuthRetry(): List<TripPlanMapData> = runWithAuthRetry {
@@ -396,8 +480,12 @@ class MapViewModel(
             it.centerLatitude != null && it.centerLongitude != null
         }
         container.mviContext.reduce {
-            val nextLatitude = firstCenter?.centerLatitude ?: cameraLatitude
-            val nextLongitude = firstCenter?.centerLongitude ?: cameraLongitude
+            val nextLatitude = if (this.schedules.isEmpty()) {
+                firstCenter?.centerLatitude ?: cameraLatitude
+            } else cameraLatitude
+            val nextLongitude = if (this.schedules.isEmpty()) {
+                firstCenter?.centerLongitude ?: cameraLongitude
+            } else cameraLongitude
             copy(
                 loadState = if (schedules.isEmpty()) MapLoadState.EMPTY else MapLoadState.CONTENT,
                 schedules = schedules,
@@ -405,7 +493,9 @@ class MapViewModel(
                 selectedScheduleId = selectedScheduleId?.takeIf { selectedId ->
                     schedules.any { it.id == selectedId }
                 },
-                selectedPlaceMarkerId = null,
+                selectedPlaceMarkerId = selectedPlaceMarkerId?.takeIf { markerId ->
+                    schedules.any { it.id == selectedScheduleId && it.places.any { place -> place.markerId == markerId } }
+                },
                 expandedScheduleMenuId = null,
                 scheduleDialog = null,
                 scheduleDialogScheduleId = null,
@@ -424,6 +514,11 @@ class MapViewModel(
         } ?: "저장한 일정을 불러오지 못했어요. 네트워크 연결을 확인해 주세요."
 
         container.mviContext.reduce {
+            if (schedules.isNotEmpty()) {
+                return@reduce copy(
+                    scheduleActionFeedback = nextScheduleActionFeedback(message, MapScheduleActionFeedbackType.ERROR),
+                )
+            }
             copy(
                 loadState = MapLoadState.ERROR,
                 schedules = emptyList(),
@@ -435,7 +530,8 @@ class MapViewModel(
     }
 
     override fun onCleared() {
-        loadJob?.cancel()
+        cancelScheduleLoad()
+        videoCreationJob?.cancel()
         container.close()
         super.onCleared()
     }

@@ -379,6 +379,7 @@ private val VideoLinkError.supportingText: String
     get() = when (this) {
         VideoLinkError.WRONG_FORMAT -> "올바른 링크 형식이 아닙니다."
         VideoLinkError.INVALID_LINK -> "유효한 링크가 아닙니다."
+        VideoLinkError.ALREADY_IN_PROGRESS -> "이미 생성 중인 일정이 있어요. 메인 화면에서 진행 상태를 확인해 주세요."
     }
 
 private data class RecommendedVideo(

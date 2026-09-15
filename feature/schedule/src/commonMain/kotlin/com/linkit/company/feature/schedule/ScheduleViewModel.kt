@@ -216,6 +216,9 @@ class ScheduleViewModel(
                     StartVideoScheduleCreationResult.InvalidFormat -> {
                         showVideoLinkError(VideoLinkError.WRONG_FORMAT)
                     }
+                    is StartVideoScheduleCreationResult.AlreadyInProgress -> {
+                        showVideoLinkError(VideoLinkError.ALREADY_IN_PROGRESS)
+                    }
                     is StartVideoScheduleCreationResult.ExistingSchedule -> {
                         container.mviContext.reduce {
                             copy(
@@ -229,9 +232,8 @@ class ScheduleViewModel(
                     }
                     is StartVideoScheduleCreationResult.AnalysisStarted -> {
                         if (
-                            result.analysis.isValid &&
-                            result.analysis.status != VideoAnalysisStatus.INVALID &&
-                            result.analysis.status != VideoAnalysisStatus.FAILED
+                            result.analysis.isInProgress ||
+                            result.analysis.isValid && result.analysis.status == VideoAnalysisStatus.COMPLETED
                         ) {
                             container.mviContext.reduce { copy(isSubmittingVideoLink = false) }
                             container.mviContext.postSideEffect(

@@ -79,19 +79,35 @@ internal actual fun PlatformMapBackground(
         },
         modifier = modifier,
         update = { mapView ->
-            mapView.mapType = when (mapType) {
-                MapType.DEFAULT -> MKMapTypeStandard
-                MapType.SATELLITE -> MKMapTypeSatellite
+            if (delegate.lastMapType != mapType) {
+                delegate.lastMapType = mapType
+                mapView.mapType = when (mapType) {
+                    MapType.DEFAULT -> MKMapTypeStandard
+                    MapType.SATELLITE -> MKMapTypeSatellite
+                }
             }
-            mapView.layoutMargins = UIEdgeInsetsMake(
-                top = 0.0,
-                left = 0.0,
-                bottom = contentPaddingBottom.value.toDouble(),
-                right = 0.0,
-            )
-            mapView.showsUserLocation = currentLocation != null
-            mapView.replaceMarkers(markers, delegate)
-            mapView.replaceArea(selectedArea)
+            if (delegate.lastContentPaddingBottom != contentPaddingBottom) {
+                delegate.lastContentPaddingBottom = contentPaddingBottom
+                mapView.layoutMargins = UIEdgeInsetsMake(
+                    top = 0.0,
+                    left = 0.0,
+                    bottom = contentPaddingBottom.value.toDouble(),
+                    right = 0.0,
+                )
+            }
+            val showsUserLocation = currentLocation != null
+            if (delegate.lastShowsUserLocation != showsUserLocation) {
+                delegate.lastShowsUserLocation = showsUserLocation
+                mapView.showsUserLocation = showsUserLocation
+            }
+            if (delegate.lastMarkers != markers) {
+                delegate.lastMarkers = markers
+                mapView.replaceMarkers(markers, delegate)
+            }
+            if (delegate.lastArea != selectedArea) {
+                delegate.lastArea = selectedArea
+                mapView.replaceArea(selectedArea)
+            }
 
             val selectedPlaceMarker = markers.firstOrNull {
                 it.selected && it.type == MapMarkerType.PLACE
@@ -134,13 +150,20 @@ internal actual fun PlatformMapBackground(
                 else -> {
                     delegate.lastScheduleBoundsId = null
                     delegate.lastSelectedPlaceId = null
-                    val safeTarget = initialCamera.center
-                        .takeIf(MapCoordinateUiModel::hasValidCoordinate)
-                        ?: DefaultMapCamera.center
-                    mapView.setRegion(
-                        safeTarget.toMapRegion(initialCamera.zoom),
-                        animated = false,
+                    val shouldSetRegion = initialCamera.shouldApplyToNativeMap(
+                        lastRequestedCamera = delegate.lastDefaultCamera,
+                        lastNativeCamera = delegate.lastCameraFromMap,
                     )
+                    delegate.lastDefaultCamera = initialCamera
+                    if (shouldSetRegion) {
+                        val safeTarget = initialCamera.center
+                            .takeIf(MapCoordinateUiModel::hasValidCoordinate)
+                            ?: DefaultMapCamera.center
+                        mapView.setRegion(
+                            safeTarget.toMapRegion(initialCamera.zoom),
+                            animated = false,
+                        )
+                    }
                 }
             }
         },
@@ -154,6 +177,13 @@ private class PingoMapViewDelegate : NSObject(), MKMapViewDelegateProtocol {
     var lastScheduleBoundsId: String? = null
     var lastSelectedPlaceId: String? = null
     var lastLocationFocusRequest: Int = 0
+    var lastMapType: MapType? = null
+    var lastContentPaddingBottom: Dp? = null
+    var lastShowsUserLocation: Boolean? = null
+    var lastMarkers: List<MapMarkerUiModel>? = null
+    var lastArea: MapAreaUiModel? = null
+    var lastDefaultCamera: MapCameraUiModel? = null
+    var lastCameraFromMap: MapCameraUiModel? = null
     val markersByAnnotation = mutableMapOf<MKAnnotationProtocol, MapMarkerUiModel>()
 
     override fun mapView(
@@ -215,6 +245,7 @@ private class PingoMapViewDelegate : NSObject(), MKMapViewDelegateProtocol {
                     .coerceIn(MinZoom, MaxZoom),
             )
         }
+        lastCameraFromMap = camera
         onCameraChanged(camera)
     }
 }

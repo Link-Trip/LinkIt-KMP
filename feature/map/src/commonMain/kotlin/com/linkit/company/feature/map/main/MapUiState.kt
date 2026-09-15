@@ -1,6 +1,8 @@
 package com.linkit.company.feature.map.main
 
 import com.linkit.company.core.common.architecture.contract.UiState
+import com.linkit.company.domain.model.video.CostBasis
+import com.linkit.company.domain.model.video.VideoScheduleCreationState
 
 enum class MapSelection {
     NONE,
@@ -91,6 +93,11 @@ data class MapScheduleUiModel(
     val centerLatitude: Double?,
     val centerLongitude: Double?,
     val places: List<MapPlaceUiModel>,
+    val analysisSummary: String? = null,
+    val estimatedMinCost: Int? = null,
+    val estimatedMaxCost: Int? = null,
+    val costBasis: CostBasis? = null,
+    val thumbnailUrl: String? = null,
 )
 
 data class MapPlaceUiModel(
@@ -123,6 +130,8 @@ data class MapUiState(
     val isScheduleActionInProgress: Boolean = false,
     val scheduleActionFeedback: MapScheduleActionFeedback? = null,
     val isComingSoonDialogVisible: Boolean = false,
+    val videoCreationState: VideoScheduleCreationState = VideoScheduleCreationState.Idle,
+    val isCreationInProgressDialogVisible: Boolean = false,
     val mapType: MapType = MapType.DEFAULT,
     val expandedFilter: MapFilterType? = null,
     val selectedRegion: String? = null,

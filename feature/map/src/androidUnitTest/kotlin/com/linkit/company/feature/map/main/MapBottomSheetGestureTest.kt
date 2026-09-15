@@ -14,10 +14,12 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertValueEquals
+import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -48,6 +50,15 @@ import org.robolectric.annotation.GraphicsMode
 class MapBottomSheetGestureTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun handleHasComfortableTouchTarget() {
+        setMapContent()
+
+        composeRule.onNodeWithTag(HandleTag)
+            .assertWidthIsEqualTo(160.dp)
+            .assertHeightIsEqualTo(48.dp)
+    }
 
     @Test
     fun sheetTracksFingerAndReturnsToNearestAnchor() {
@@ -118,6 +129,22 @@ class MapBottomSheetGestureTest {
         sheet().assertValueEquals("Collapsed")
         fastSwipeBy(deltaY = -80f)
         sheet().assertValueEquals("Resting")
+    }
+
+    @Test
+    fun shortDownwardDragDoesNotBounceBack() {
+        setMapContent()
+
+        composeRule.onNodeWithTag(HandleTag).performTouchInput {
+            swipeWithVelocity(
+                start = center,
+                end = center + Offset(x = 0f, y = 80f),
+                endVelocity = 100f,
+            )
+        }
+        composeRule.waitForIdle()
+
+        sheet().assertValueEquals("Collapsed")
     }
 
     @Test

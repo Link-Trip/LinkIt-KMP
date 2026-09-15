@@ -10,6 +10,7 @@ enum class TripDetailTab {
 enum class VideoLinkError {
     WRONG_FORMAT,
     INVALID_LINK,
+    ALREADY_IN_PROGRESS,
 }
 
 enum class TripDetailDialog {

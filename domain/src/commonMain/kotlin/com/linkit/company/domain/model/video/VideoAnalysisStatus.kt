@@ -4,6 +4,9 @@ enum class VideoAnalysisStatus {
     /** 분석 진행 중 — 폴링 필요 */
     PENDING,
 
+    /** 서버가 분석을 수행 중 — 폴링 필요 */
+    PROCESSING,
+
     /** 분석 완료 */
     COMPLETED,
 

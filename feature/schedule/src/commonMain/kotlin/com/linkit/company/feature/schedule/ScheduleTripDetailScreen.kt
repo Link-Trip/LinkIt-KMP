@@ -6,6 +6,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,16 +23,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,9 +47,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -55,6 +65,11 @@ import com.linkit.company.core.designsystem.component.popup.dialog.DialogDefault
 import com.linkit.company.core.designsystem.component.popup.dialog.LinkItDialog
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import coil3.compose.AsyncImage
+import com.linkit.company.domain.model.place.PlaceCategory
+import com.linkit.company.domain.model.video.VideoAnalysis
+import com.linkit.company.domain.model.video.VideoTimeline
+import com.linkit.company.domain.usecase.TripPlanContent
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import linkitcompany.feature.schedule.generated.resources.Res
 import linkitcompany.feature.schedule.generated.resources.schedule_map_background
@@ -79,9 +94,15 @@ fun ScheduleTripDetailScreen(
     focusedPlaceId: String? = null,
     onBack: () -> Unit = {},
     viewModel: ScheduleViewModel = metroViewModel(),
+    detailViewModel: TripDetailViewModel = metroViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val detailState by detailViewModel.uiState.collectAsState()
     val isServerTripPlan = tripPlanId != null
+
+    LaunchedEffect(tripPlanId, focusedPlaceId) {
+        tripPlanId?.let { detailViewModel.onIntent(TripDetailIntent.Load(it, focusedPlaceId)) }
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.sideEffect.collect { effect ->
@@ -92,10 +113,17 @@ fun ScheduleTripDetailScreen(
     ScheduleTripDetailContent(
         uiState = if (isServerTripPlan) uiState.copy(showTripMapPreview = false) else uiState,
         tripPlanId = tripPlanId,
-        title = title?.takeIf(String::isNotBlank) ?: if (isServerTripPlan) "일정 상세" else "도쿄 신주쿠 여행",
+        title = detailState.content?.tripPlan?.title
+            ?: title?.takeIf(String::isNotBlank)
+            ?: if (isServerTripPlan) "일정 상세" else "도쿄 신주쿠 여행",
         onIntent = viewModel::onIntent,
         onBack = onBack,
         focusedPlaceId = focusedPlaceId,
+        detailState = detailState,
+        onSelectDay = { detailViewModel.onIntent(TripDetailIntent.SelectDay(it)) },
+        onRetry = {
+            tripPlanId?.let { detailViewModel.onIntent(TripDetailIntent.Load(it, focusedPlaceId)) }
+        },
     )
 }
 
@@ -108,13 +136,17 @@ fun ScheduleTripDetailContent(
     focusedPlaceId: String? = null,
     onBack: () -> Unit = {},
     modifier: Modifier = Modifier,
+    detailState: TripDetailUiState? = null,
+    onSelectDay: (Int) -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
-    if (uiState.showTripMapPreview && uiState.tripDetailTab == TripDetailTab.ITINERARY) {
+    if (tripPlanId == null && uiState.showTripMapPreview && uiState.tripDetailTab == TripDetailTab.ITINERARY) {
         ScheduleSelectedMapPreview(modifier = modifier, onBack = onBack)
         return
     }
     val displayTitle = uiState.renamedTripPlanTitle
         ?.takeIf { uiState.renamedTripPlanId == tripPlanId }
+        ?: detailState?.content?.tripPlan?.title
         ?: title
 
     Box(
@@ -152,9 +184,35 @@ fun ScheduleTripDetailContent(
                     selected = uiState.tripDetailTab,
                     onSelect = { onIntent(ScheduleIntent.SelectTripDetailTab(it)) },
                 )
-                when (uiState.tripDetailTab) {
-                    TripDetailTab.ITINERARY -> ItineraryContent(focusedPlaceId = focusedPlaceId)
-                    TripDetailTab.SUMMARY -> SummaryContent()
+                if (tripPlanId != null) {
+                    val state = detailState ?: TripDetailUiState()
+                    when {
+                        state.isLoading -> Box(
+                            Modifier.fillMaxWidth().padding(48.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(
+                                color = LinkItTheme.color.semantic.primary.normal,
+                                modifier = Modifier.size(32.dp).testTag("trip-detail-loading"),
+                            )
+                        }
+                        state.content == null -> TripDetailMessage(
+                            text = state.errorMessage ?: "일정을 찾을 수 없어요.",
+                            onRetry = onRetry,
+                        )
+                        uiState.tripDetailTab == TripDetailTab.ITINERARY -> ServerItineraryContent(
+                            content = state.content,
+                            selectedDay = state.selectedDay,
+                            focusedPlaceId = focusedPlaceId,
+                            onSelectDay = onSelectDay,
+                        )
+                        else -> ServerSummaryContent(state.content, onRetry)
+                    }
+                } else {
+                    when (uiState.tripDetailTab) {
+                        TripDetailTab.ITINERARY -> ItineraryContent(focusedPlaceId = focusedPlaceId)
+                        TripDetailTab.SUMMARY -> SummaryContent()
+                    }
                 }
             }
         }
@@ -545,6 +603,134 @@ private fun TripTab(text: String, selected: Boolean, modifier: Modifier, onClick
 }
 
 @Composable
+private fun TripDetailMessage(text: String, onRetry: (() -> Unit)? = null) {
+    Column(
+        Modifier.fillMaxWidth().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(text, color = LinkItTheme.color.semantic.label.alternative)
+        if (onRetry != null) LinkItButton(onClick = onRetry, text = "다시 시도", size = ButtonSize.Medium)
+    }
+}
+
+@Composable
+private fun ServerItineraryContent(
+    content: TripPlanContent,
+    selectedDay: Int,
+    focusedPlaceId: String?,
+    onSelectDay: (Int) -> Unit,
+) {
+    val items = content.tripPlan.items
+    if (items.isEmpty()) {
+        TripDetailMessage("등록된 일정이 없어요.")
+        return
+    }
+    val days = items.map { it.day }.distinct()
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        SectionTitle(content.periodLabel())
+        DayChips(days, selectedDay, onSelectDay, preview = false)
+        SectionTitle("${selectedDay}일차")
+        items.filter { it.day == selectedDay }.forEachIndexed { index, item ->
+            val focused = focusedPlaceId != null &&
+                (item.place?.id == focusedPlaceId || item.id == focusedPlaceId)
+            val requester = remember(item.id) { BringIntoViewRequester() }
+            var isPlaced by remember(item.id) { mutableStateOf(false) }
+            LaunchedEffect(focused, selectedDay, isPlaced) {
+                if (focused && isPlaced) requester.bringIntoView()
+            }
+            ItineraryTimelineNode(index + 1)
+            ItineraryPlaceCard(
+                title = item.name.ifBlank { item.place?.name.orEmpty() },
+                categories = item.category.detailLabel(),
+                description = item.description,
+                address = item.place?.address.orEmpty(),
+                tips = item.tips,
+                preview = false,
+                focused = focused,
+                modifier = Modifier
+                    .bringIntoViewRequester(requester)
+                    .onGloballyPositioned { isPlaced = true }
+                    .testTag("trip-detail-item-${item.id}"),
+            )
+        }
+        Spacer(Modifier.height(28.dp))
+    }
+}
+
+@Composable
+private fun ServerSummaryContent(content: TripPlanContent, onRetry: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
+    val analysis = content.analysis
+    val youtubeUrl = analysis?.youtubeUrl?.takeIf(String::isNotBlank)
+        ?: content.summary?.youtubeUrl?.takeIf(String::isNotBlank)
+    val openVideo: (String) -> Unit = { url -> runCatching { uriHandler.openUri(url) } }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        if (youtubeUrl != null) VideoHero(
+            preview = false,
+            thumbnailUrl = content.metadata?.thumbnailUrl,
+            onClick = { openVideo(youtubeUrl) },
+        )
+        content.metadata?.title?.takeIf(String::isNotBlank)?.let { SectionTitle(it) }
+        when {
+            analysis == null -> TripDetailMessage("영상 요약을 불러오지 못했어요.", onRetry)
+            analysis.isInProgress -> TripDetailMessage("영상 분석이 아직 진행 중이에요.", onRetry)
+            analysis.summary.isNotBlank() -> AiSummaryBox(analysis.summary)
+            else -> TripDetailMessage("등록된 영상 요약이 없어요.")
+        }
+        val hashtags = content.summary?.hashtags.orEmpty().filter(String::isNotBlank)
+        if (hashtags.isNotEmpty()) {
+            SectionTitle("관련 태그")
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                hashtags.forEach { Tag(if (it.startsWith("#")) it else "#$it") }
+            }
+        }
+        SectionTitle("여행 정보")
+        TravelInfoRow("▣", "여행 기간", content.periodLabel())
+        analysis?.detailCostLabel()?.let { TravelInfoRow("▤", "예상 비용", it) }
+        analysis?.timelines?.takeIf(List<VideoTimeline>::isNotEmpty)?.let { timelines ->
+            SectionTitle("영상 타임라인")
+            Timeline(items = timelines, onOpen = openVideo)
+        }
+        Spacer(Modifier.height(48.dp))
+    }
+}
+
+private fun TripPlanContent.periodLabel(): String {
+    val summary = summary
+    return if (summary != null && summary.days > 0) {
+        "${summary.nights}박 ${summary.days}일"
+    } else {
+        tripPlan.items.maxOfOrNull { it.day }?.let { "${it}일 일정" } ?: "기간 정보 없음"
+    }
+}
+
+private fun PlaceCategory.detailLabel(): String = when (this) {
+    PlaceCategory.EAT -> "음식점"
+    PlaceCategory.ATTRACTION -> "관광지"
+    PlaceCategory.SHOPPING -> "쇼핑"
+    PlaceCategory.TRANSPORTATION_HUB -> "교통 거점"
+    PlaceCategory.TRANSPORTATION_TRANSIT -> "이동"
+    PlaceCategory.UNKNOWN -> "기타"
+}
+
+internal fun VideoAnalysis.detailCostLabel(): String? {
+    val min = estimatedMinCost?.takeIf { it >= 0 }
+    val max = estimatedMaxCost?.takeIf { it >= 0 }
+    fun Int.won() = toString().reversed().chunked(3).joinToString(",").reversed() + "원"
+    return when {
+        min != null && max != null && min != max -> "${min.won()} ~ ${max.won()}"
+        min != null && max != null -> min.won()
+        min != null -> "최소 ${min.won()}"
+        max != null -> "최대 ${max.won()}"
+        else -> null
+    }
+}
+
+@Composable
 private fun ItineraryContent(focusedPlaceId: String? = null) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
         Text(
@@ -588,17 +774,23 @@ private fun ItineraryContent(focusedPlaceId: String? = null) {
 }
 
 @Composable
-private fun DayChips() {
+private fun DayChips(
+    days: List<Int> = (1..7).toList(),
+    selectedDay: Int = 1,
+    onSelectDay: (Int) -> Unit = {},
+    preview: Boolean = true,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 9.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 9.dp)
+            .then(if (preview) Modifier else Modifier.horizontalScroll(rememberScrollState())),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        (1..7).forEach { day ->
-            val enabled = day <= 4
-            val selected = day == 1
+        days.forEach { day ->
+            val enabled = !preview || day <= 4
+            val selected = day == selectedDay
             Column(
                 modifier = Modifier
-                    .weight(1f)
+                    .then(if (preview) Modifier.weight(1f) else Modifier.width(43.dp))
                     .height(52.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(if (selected) LinkItTheme.color.semantic.primary.light.copy(alpha = .18f) else LinkItTheme.color.semantic.background.normal.normal)
@@ -606,7 +798,9 @@ private fun DayChips() {
                         width = if (selected) 1.dp else 1.dp,
                         color = if (selected) LinkItTheme.color.semantic.primary.normal else LinkItTheme.color.semantic.line.normal.alternative,
                         shape = RoundedCornerShape(12.dp),
-                    ),
+                    )
+                    .clickable(enabled = enabled) { onSelectDay(day) }
+                    .testTag("trip-detail-day-$day"),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -634,12 +828,12 @@ private fun DayChips() {
 }
 
 @Composable
-private fun ItineraryTimelineNode() {
+private fun ItineraryTimelineNode(order: Int = 1) {
     Box(
         modifier = Modifier.padding(start = 1.dp, top = 8.dp).size(18.dp).clip(CircleShape).background(LinkItTheme.color.semantic.primary.normal),
         contentAlignment = Alignment.Center,
     ) {
-        Text("1", style = LinkItTheme.typography.caption2Medium, color = LinkItTheme.color.semantic.static.white)
+        Text("$order", style = LinkItTheme.typography.caption2Medium, color = LinkItTheme.color.semantic.static.white)
     }
 }
 
@@ -648,24 +842,39 @@ private fun ItineraryPlaceCard(
     title: String,
     categories: String,
     description: String,
+    address: String = "뤼 드 리볼리, 75001 파리",
+    tips: String = "",
+    preview: Boolean = true,
+    focused: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
+    var showTips by remember(title, tips, focused) { mutableStateOf(focused) }
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(start = 28.dp)
             .offset(y = (-14).dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(LinkItTheme.color.semantic.background.normal.alternative)
+            .then(
+                if (focused) Modifier.border(
+                    1.dp,
+                    LinkItTheme.color.semantic.primary.normal,
+                    RoundedCornerShape(14.dp),
+                ) else Modifier,
+            )
             .padding(14.dp),
     ) {
         Row {
-            Image(
-                painter = painterResource(Res.drawable.schedule_place_photo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(width = 72.dp, height = 64.dp).clip(RoundedCornerShape(8.dp)),
-            )
-            Column(Modifier.padding(start = 14.dp).weight(1f)) {
+            if (preview) {
+                Image(
+                    painter = painterResource(Res.drawable.schedule_place_photo),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(width = 72.dp, height = 64.dp).clip(RoundedCornerShape(8.dp)),
+                )
+            }
+            Column(Modifier.padding(start = if (preview) 14.dp else 0.dp).weight(1f)) {
                 Text(
                     text = categories,
                     style = LinkItTheme.typography.caption1Medium,
@@ -677,8 +886,8 @@ private fun ItineraryPlaceCard(
                     color = LinkItTheme.color.semantic.label.strong,
                     modifier = Modifier.padding(top = 5.dp),
                 )
-                Text(
-                    text = "⌾ 뤼 드 리볼리, 75001 파리",
+                if (address.isNotBlank()) Text(
+                    text = "⌾ $address",
                     style = LinkItTheme.typography.caption1Regular,
                     color = LinkItTheme.color.semantic.label.assistive,
                     maxLines = 1,
@@ -686,17 +895,23 @@ private fun ItineraryPlaceCard(
                 )
             }
         }
-        Text(
+        if (description.isNotBlank()) Text(
             text = description,
             style = LinkItTheme.typography.caption1Regular,
             color = LinkItTheme.color.semantic.label.neutral,
             modifier = Modifier.padding(top = 12.dp),
         )
-        Text(
-            text = "자세히 보기 ›",
+        if (showTips && tips.isNotBlank()) Text(
+            text = tips,
+            style = LinkItTheme.typography.caption1Regular,
+            color = LinkItTheme.color.semantic.label.neutral,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        if (preview || tips.isNotBlank()) Text(
+            text = if (showTips && !preview) "접기 ‹" else "자세히 보기 ›",
             style = LinkItTheme.typography.body2NormalMedium,
             color = LinkItTheme.color.semantic.primary.normal,
-            modifier = Modifier.padding(top = 10.dp),
+            modifier = Modifier.padding(top = 10.dp).clickable { showTips = !showTips },
         )
     }
     Spacer(Modifier.height(16.dp))
@@ -754,26 +969,41 @@ private fun SummaryContent() {
 }
 
 @Composable
-private fun VideoHero() {
+private fun VideoHero(
+    preview: Boolean = true,
+    thumbnailUrl: String? = null,
+    onClick: () -> Unit = {},
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(170.dp)
-            .clip(RoundedCornerShape(10.dp)),
+            .clip(RoundedCornerShape(10.dp))
+            .background(LinkItTheme.color.semantic.background.normal.alternative)
+            .clickable(onClick = onClick),
     ) {
-        Image(
-            painter = painterResource(Res.drawable.schedule_summary_video),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-        )
+        if (preview) {
+            Image(
+                painter = painterResource(Res.drawable.schedule_summary_video),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else if (!thumbnailUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = thumbnailUrl,
+                contentDescription = "원본 영상 열기",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         Box(
             Modifier.align(Alignment.Center).size(44.dp).clip(CircleShape).background(LinkItTheme.color.semantic.material.dimmer),
             contentAlignment = Alignment.Center,
         ) {
             Text("▶", color = LinkItTheme.color.semantic.static.white)
         }
-        Text(
+        if (preview) Text(
             text = "12:45",
             style = LinkItTheme.typography.caption1Medium,
             color = LinkItTheme.color.semantic.static.white,
@@ -788,7 +1018,9 @@ private fun VideoHero() {
 }
 
 @Composable
-private fun AiSummaryBox() {
+private fun AiSummaryBox(
+    summary: String = "신주쿠에서 최고의 주말을 경험하세요. 이 영상은 숨겨진 라멘 명소, 고층에서 바라보는 도시 전경, 그리고 추억의 골목(오모이데 요코초)의 활기찬 야간 생활에 초점을 맞춥니다.",
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -800,7 +1032,7 @@ private fun AiSummaryBox() {
     ) {
         Text("✣  AI 요약정보", style = LinkItTheme.typography.body2NormalSemibold, color = LinkItTheme.color.semantic.label.strong)
         Text(
-            text = "신주쿠에서 최고의 주말을 경험하세요. 이 영상은 숨겨진 라멘 명소, 고층에서 바라보는 도시 전경, 그리고 추억의 골목(오모이데 요코초)의 활기찬 야간 생활에 초점을 맞춥니다.",
+            text = summary,
             style = LinkItTheme.typography.body2NormalRegular,
             color = LinkItTheme.color.semantic.label.neutral,
             modifier = Modifier.padding(top = 10.dp),
@@ -869,17 +1101,22 @@ private fun TravelInfoRow(icon: String, label: String, value: String) {
 }
 
 @Composable
-private fun Timeline() {
-    val items = List(7) { "0:00" to "인트로 & 시부야 도착" }
-    items.forEach { (time, description) ->
-        Row(Modifier.height(62.dp)) {
+private fun Timeline(
+    items: List<VideoTimeline> = List(7) { VideoTimeline(0, "0:00", "", "인트로 & 시부야 도착") },
+    onOpen: (String) -> Unit = {},
+) {
+    items.forEach { item ->
+        Row(
+            Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                .clickable(enabled = item.timestampUrl.isNotBlank()) { onOpen(item.timestampUrl) },
+        ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.size(6.dp).clip(CircleShape).background(LinkItTheme.color.semantic.primary.normal))
-                Box(Modifier.width(1.dp).weight(1f).background(LinkItTheme.color.semantic.line.solid.normal))
+                Box(Modifier.width(1.dp).height(44.dp).background(LinkItTheme.color.semantic.line.solid.normal))
             }
             Column(Modifier.padding(start = 12.dp)) {
-                Text(time, style = LinkItTheme.typography.body2NormalMedium, color = LinkItTheme.color.semantic.primary.normal)
-                Text(description, style = LinkItTheme.typography.body2NormalRegular, color = LinkItTheme.color.semantic.label.neutral)
+                Text(item.timestamp, style = LinkItTheme.typography.body2NormalMedium, color = LinkItTheme.color.semantic.primary.normal)
+                Text(item.description, style = LinkItTheme.typography.body2NormalRegular, color = LinkItTheme.color.semantic.label.neutral)
             }
         }
     }
