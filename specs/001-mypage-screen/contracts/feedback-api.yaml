@@ -1,0 +1,102 @@
+# [제안] 의견 전송 API — 서버 미구현. LinkTrip API v1 컨벤션(공통 래퍼, ExceptionResponse, Idempotency-Key)을 따른다.
+openapi: 3.0.1
+info:
+  title: LinkTrip API — Feedback (proposal)
+  version: v1-proposal
+servers:
+  - url: https://linktrip.cloud/api
+paths:
+  /feedback:
+    post:
+      tags: [Feedback]
+      summary: 의견 전송
+      description: |
+        로그인한 회원이 앱 의견을 전송합니다. 하루(서버 기준일, KST) 최대 5회로 제한하며,
+        초과 시 429 `FEEDBACK_DAILY_LIMIT_EXCEEDED`를 반환합니다.
+        앱 버전·OS·기기 정보는 클라이언트가 자동 첨부합니다.
+
+        **멱등성:** `Idempotency-Key` 헤더가 필수입니다. 동일 키 처리 중이면 409.
+        **인증:** `Authorization: Bearer` 필수.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: 멱등성 키 (UUID v4, non-GET 필수)
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeedbackRequest'
+      responses:
+        '200':
+          description: 전송 성공 (data 없음)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUnit'
+              example: { status: 200, message: OK }
+        '400':
+          description: 검증 실패 또는 멱등성 키 누락
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              examples:
+                content 누락:
+                  value: { code: BAD_REQUEST_VALIDATION, message: 요청 형식이 잘못되었습니다., cause: "content: 내용은 1자 이상 200자 이하여야 합니다.", timestamp: 1785390616431 }
+                type 불일치:
+                  value: { code: BAD_REQUEST_VALIDATION, message: 요청 형식이 잘못되었습니다., cause: "type: SUGGESTION, BUG, ETC 중 하나여야 합니다.", timestamp: 1785390616431 }
+                멱등성 키 누락:
+                  value: { code: BAD_REQUEST_MISSING_IDEMPOTENCY_KEY, message: Idempotency-Key 헤더는 필수입니다., timestamp: 1785390616431 }
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              example: { code: UNAUTHORIZED_AUTHENTICATION_FAILED, message: 인증 정보가 없습니다., timestamp: 1785390616431 }
+        '409':
+          description: 동일 멱등성 키 처리 중
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              example: { code: DUPLICATE_REQUEST, message: 이미 요청한 값입니다., timestamp: 1785390616431 }
+        '429':
+          description: 일일 전송 횟수(5회) 초과
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              example: { code: FEEDBACK_DAILY_LIMIT_EXCEEDED, message: 오늘 보낼 수 있는 의견 횟수를 모두 사용했어요., timestamp: 1785390616431 }
+components:
+  schemas:
+    CreateFeedbackRequest:
+      type: object
+      required: [type, content, appVersion, os, osVersion, deviceModel]
+      properties:
+        type:
+          type: string
+          enum: [SUGGESTION, BUG, ETC]
+          description: 의견 유형. 클라이언트가 미선택이면 ETC로 보낸다.
+        content:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: 의견 본문 (trim 후 1자 이상)
+        appVersion: { type: string, example: "1.0" }
+        os: { type: string, enum: [ANDROID, IOS] }
+        osVersion: { type: string, example: "15" }
+        deviceModel: { type: string, example: "Pixel 8" }
+    ApiResponseUnit:
+      type: object
+      required: [status, message]
+      properties:
+        status: { type: integer, example: 200 }
+        message: { type: string, example: OK }
+    ExceptionResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        cause: { type: string }
+        timestamp: { type: integer, format: int64 }
