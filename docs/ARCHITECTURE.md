@@ -6,6 +6,7 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-09-21 | 마이페이지 데이터 연동: AppSettings/Member/Feedback/Terms/AppInfo 저장소, IntroNavigator 추가 (이슈 #41/#45) |
 | 2026-04-06 | Feature 모듈 간 Navigator 패턴 추가 (이슈 #21) |
 | 2026-04-03 | 멀티 액티비티 구조, Navigation3 멀티 백스택, Metro DI ViewModel 연동 반영 |
 
@@ -109,13 +110,17 @@ core:navigation/androidMain/navigator/
 ├── Navigator              ← base interface (navigate, navigateWithLauncher)
 └── feature/
     ├── HomeNavigator      ← interface : Navigator (마커)
-    └── ScheduleNavigator  ← interface : Navigator (마커)
+    ├── ScheduleNavigator  ← interface : Navigator (마커)
+    └── IntroNavigator     ← interface : Navigator (마커, 앱 초기화 후 온보딩 복귀)
 
 feature:home/androidMain/navigator/
 └── HomeNavigatorImpl      ← HomeNavigator 구현 (HomeActivity 직접 참조)
 
 feature:schedule/androidMain/navigator/
 └── ScheduleNavigatorImpl  ← ScheduleNavigator 구현 (ScheduleActivity 직접 참조)
+
+feature:intro/androidMain/navigator/
+└── IntroNavigatorImpl     ← IntroNavigator 구현 (IntroActivity 직접 참조, NEW_TASK|CLEAR_TASK + 완료 토스트 extra)
 ```
 
 - **인터페이스**는 `core:navigation`에 정의 → 모든 feature 모듈에서 의존 가능

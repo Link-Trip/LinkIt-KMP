@@ -1,11 +1,12 @@
 # Navigation3 구조 정리
 
-> 최종 업데이트: 2026-04-06
+> 최종 업데이트: 2026-09-21
 
 ## 변경 이력
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-09-21 | 마이페이지 라우트(MyPage, Terms, TermsDetail) 및 앱 초기화용 IntroNavigator 추가 (이슈 #41/#45) |
 | 2026-04-06 | Navigator 패턴 추가 (이슈 #21): Feature 모듈 간 Activity 전환 추상화 |
 | 2026-04-03 | 멀티 백스택 구조, 멀티 액티비티 구조, Entry Provider 패턴 반영 |
 
@@ -117,11 +118,13 @@ graph LR
     Intro -->|"HomeNavigator.navigate()"| Home
     Home -->|"ScheduleNavigator.navigate()"| Schedule
     Schedule -->|"finish()"| Home
+    Home -->|"IntroNavigator.navigate() (앱 초기화, CLEAR_TASK)"| Intro
 ```
 
 - `IntroActivity`는 `HomeNavigator`를 Metro DI로 주입받아 `HomeActivity`로 전환
 - `HomeActivity`는 `ScheduleNavigator`를 Metro DI로 주입받아 `ScheduleActivity`로 전환
 - `ScheduleActivity`는 `finish()`로 직접 종료하여 `HomeActivity`로 복귀
+- `HomeActivity`는 앱 초기화 완료 시 `IntroNavigator`로 `IntroActivity`에 진입하고 `finish()`한다. `IntroNavigatorImpl`이 `FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK`와 `EXTRA_SHOW_RESET_TOAST`를 붙이므로 뒤로가기로 마이페이지·메인 지도에 복귀할 수 없다
 
 ### HomeActivity 내부 탭 전환
 
@@ -207,6 +210,12 @@ interface LinkItNavKey : NavKey {
 
     // Sub-route
     data object ScheduleEdit : LinkItNavKey
+
+    // Map 탭 서브 라우트 (feature:map MapEntry가 등록, 마이페이지 화면군은 하단 탭 숨김)
+    data class PlaceDetail(...) : LinkItNavKey
+    data object MyPage : LinkItNavKey
+    data object Terms : LinkItNavKey
+    data class TermsDetail(val type: String) : LinkItNavKey   // TermsDocumentType.name
 }
 ```
 
@@ -219,6 +228,10 @@ private val linkItSerializersModule = SerializersModule {
         subclass(LinkItNavKey.Storage::class, LinkItNavKey.Storage.serializer())
         subclass(LinkItNavKey.Explore::class, LinkItNavKey.Explore.serializer())
         subclass(LinkItNavKey.ScheduleEdit::class, LinkItNavKey.ScheduleEdit.serializer())
+        subclass(LinkItNavKey.MyPage::class, LinkItNavKey.MyPage.serializer())
+        subclass(LinkItNavKey.Terms::class, LinkItNavKey.Terms.serializer())
+        subclass(LinkItNavKey.TermsDetail::class, LinkItNavKey.TermsDetail.serializer())
+        // ... 그 외 서브 라우트도 같은 방식으로 등록
     }
 }
 
@@ -335,6 +348,7 @@ graph TB
         Navigator["Navigator<br/>(base interface)"]
         HomeNav["HomeNavigator : Navigator"]
         ScheduleNav["ScheduleNavigator : Navigator"]
+        IntroNav["IntroNavigator : Navigator"]
     end
 
     subgraph ":feature:home (androidMain)"
@@ -345,10 +359,16 @@ graph TB
         ScheduleImpl["ScheduleNavigatorImpl<br/>@ContributesBinding"]
     end
 
+    subgraph ":feature:intro (androidMain)"
+        IntroImpl["IntroNavigatorImpl<br/>@ContributesBinding<br/>NEW_TASK | CLEAR_TASK"]
+    end
+
     HomeImpl -->|implements| HomeNav
     ScheduleImpl -->|implements| ScheduleNav
+    IntroImpl -->|implements| IntroNav
     HomeNav -->|extends| Navigator
     ScheduleNav -->|extends| Navigator
+    IntroNav -->|extends| Navigator
 ```
 
 - **인터페이스**: `core:navigation/androidMain`에 정의 → 모든 feature 모듈에서 의존 가능

@@ -34,8 +34,9 @@ data/src/
 ├── commonMain/kotlin/com/linkit/company/data/
 │   ├── api/                  # Ktorfit API 인터페이스
 │   ├── core/                 # KtorConfig (HttpClient 공통 설정·공통 헤더·에러 변환),
-│   │                         # DataStoreFactory (DataStore 생성), DeviceIdProvider (플랫폼별 기기 식별자)
-│   ├── dto/                  # 서버 응답/요청 DTO (@Serializable) — 도메인별 하위 패키지(auth/, tripplan/, video/)로 그룹화
+│   │                         # DataStoreFactory (DataStore 생성), DeviceIdProvider (플랫폼별 기기 식별자),
+│   │                         # AppInfoProvider (플랫폼별 앱 버전·OS·기기 모델)
+│   ├── dto/                  # 서버 응답/요청 DTO (@Serializable) — 도메인별 하위 패키지(auth/, tripplan/, video/, member/, feedback/)로 그룹화
 │   │                         # 공통 래퍼(ApiResponse, ErrorResponse)는 dto/ 루트에 둔다
 │   ├── mapper/               # DTO → Domain 모델 변환 확장 함수
 │   ├── datasource/
@@ -76,6 +77,7 @@ data/src/
 
 - `DataStore<Preferences>` — 플랫폼별 파일 경로로 `createLinkItDataStore` 호출 ([DataStore 규칙](#datastore-규칙) 참고)
 - `DeviceIdProvider` — Android는 `Settings.Secure.ANDROID_ID`, iOS는 `UIDevice.identifierForVendor` (nil이면 생성 UUID)
+- `AppInfoProvider` — 의견 전송에 첨부하는 앱 버전·플랫폼(`ANDROID`/`IOS`)·OS 버전·기기 모델. Android는 `PackageManager`/`Build`, iOS는 `NSBundle`/`UIDevice`
 
 data 모듈에는 iosMain 소스셋이 없으므로, iOS 쪽 바인딩은 `IosAppGraph`에서 직접 제공한다. iOS DI 관련 제약은 [docs/METRO_INSTRUCTION.md](../docs/METRO_INSTRUCTION.md) 참고.
 
@@ -194,12 +196,20 @@ API 인스턴스는 DataSourceImpl에서 `ktorfit.create<LinkApi>()`로 생성�
 | 400 | `BAD_REQUEST_YOUTUBE_URL` | 유효하지 않은 YouTube URL | `POST /video/analyze` |
 | 400 | `BAD_REQUEST_VIDEO` | 자막을 추출할 수 없는 영상 | `POST /video/analyze` |
 | 400 | `BAD_REQUEST_DISCOVER_QUERY` | `country`/`region` 동시 사용 불가 | `GET /video/discover/category` |
-| 401 | `UNAUTHORIZED_AUTHENTICATION_FAILED` | 인증 실패 | 인증 필요 API 전체 |
+| 400 | `BAD_REQUEST_FEEDBACK_TYPE` | 지원하지 않는 의견 유형 | `POST /feedback` |
+| 400 | `BAD_REQUEST_PLATFORM` | 지원하지 않는 플랫폼(`IOS`/`ANDROID` 외) | `POST /feedback`, `PUT /members/me/fcm-token` |
+| 401 | `UNAUTHORIZED_AUTHENTICATION_FAILED` | 인증 실패(토큰 없음) | 인증 필요 API 전체 |
+| 401 | `UNAUTHORIZED_TOKEN_EXPIRED` | 만료된 토큰 | 인증 필요 API 전체 |
+| 401 | `UNAUTHORIZED_TOKEN_INVALID` | 위조·손상된 토큰 | 인증 필요 API 전체 |
 | 403 | `FORBIDDEN_TRIP_PLAN` | 본인의 여행 계획이 아님 | `GET/PUT/DELETE /trip-plans/{id}` |
 | 404 | `NOT_FOUND_TRIP_PLAN` | 존재하지 않는 여행 계획 | `GET/PUT/DELETE /trip-plans/{id}` |
 | 404 | `NOT_FOUND_VIDEO_ANALYSIS_TASK` | 존재하지 않는 영상 분석 결과 | `GET /video/schedule/{id}` |
+| 404 | `NOT_FOUND_MEMBER` | 회원을 찾을 수 없음(탈퇴 등) | `PUT /members/me/notification`, `DELETE /members/me` |
 | 409 | `DUPLICATE_REQUEST` | 동일 멱등성 키의 요청이 이미 처리 중 | 멱등성 키 필수 API 전체 |
-| 429 | `TOO_MANY_REQUESTS` | API 요청 횟수 초과 | `POST /video/analyze` |
+| 429 | `TOO_MANY_REQUESTS` | API 요청 횟수 초과(rate limit) | `POST /video/analyze`, `POST /feedback` 등 |
+| 429 | `FEEDBACK_DAILY_LIMIT_EXCEEDED` | 하루(KST) 의견 전송 5회 초과 | `POST /feedback` |
+
+> 같은 429라도 `FEEDBACK_DAILY_LIMIT_EXCEEDED`와 `TOO_MANY_REQUESTS`는 사용자 안내가 다르므로 HTTP 상태가 아닌 `errorCode`로 분기한다.
 
 ### Kotlin 표현 가이드
 
@@ -244,7 +254,7 @@ non-GET 요청은 `Idempotency-Key` 헤더가 **필수**다 (UUID v4 권장).
 
 | 대상 API | 누락 시 | 동일 키 중복 요청 시 |
 | --- | --- | --- |
-| `POST /auth/login`, `POST /video/analyze`, `PUT/DELETE /trip-plans/{id}` | 400 `BAD_REQUEST_MISSING_IDEMPOTENCY_KEY` | 409 `DUPLICATE_REQUEST` |
+| `POST /auth/login`, `POST /video/analyze`, `PUT/DELETE /trip-plans/{id}`, `POST /feedback`, `PUT /members/me/notification`, `DELETE /members/me` | 400 `BAD_REQUEST_MISSING_IDEMPOTENCY_KEY` | 409 `DUPLICATE_REQUEST` |
 
 클라이언트에서는 `defaultKtorConfig`의 공통 헤더 플러그인(`LinkTripHeaders`)이 자동 처리하므로, **API·DataSource에서 헤더를 직접 다루지 않는다**.
 
@@ -414,6 +424,7 @@ class LinkLocalDataSourceImpl(
 - `DataStore<Preferences>`를 생성자 주입받는다 — 인스턴스 생성은 `core/DataStoreFactory.kt`의 `createLinkItDataStore(producePath)`로만 하며, 플랫폼별 파일 경로는 각 플랫폼 그래프(`AndroidDataGraph`/`IosAppGraph`)가 주입한다
 - **동일 파일에 DataStore 인스턴스가 2개 이상 생기면 런타임 예외**가 발생하므로, DataStore를 제공하는 `@Provides`에는 반드시 `@SingleIn(DataScope::class)`을 지정한다
 - 저장 키(`stringPreferencesKey` 등)는 Impl의 `companion object`에 정의한다
+- 현재 키: `access_token`, `device_id`(`AuthLocalDataSourceImpl`), `map_display_type`, `onboarding_completed`, `notification_prompted`(`AppSettingsLocalDataSourceImpl`). 앱 초기화는 `AppSettingsLocalDataSource.clearAll()`로 뒤 세 키만 지우고, 토큰은 `AuthRepository.logout()`이 지운다. `device_id`는 유지한다
 
 ### Metro 바인딩 등록
 
