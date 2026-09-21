@@ -4,6 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.linkit.company.core.common.AppGraph
 import com.linkit.company.data.DataScope
+import com.linkit.company.data.core.AppInfoProvider
+import com.linkit.company.data.core.AppInfoValue
 import com.linkit.company.data.core.DATA_STORE_FILE_NAME
 import com.linkit.company.data.core.DeviceIdProvider
 import com.linkit.company.data.core.createLinkItDataStore
@@ -13,14 +15,30 @@ import com.linkit.company.data.datasource.auth.AuthLocalDataSource
 import com.linkit.company.data.datasource.auth.AuthLocalDataSourceImpl
 import com.linkit.company.data.datasource.auth.AuthRemoteDataSource
 import com.linkit.company.data.datasource.auth.AuthRemoteDataSourceImpl
+import com.linkit.company.data.datasource.feedback.FeedbackRemoteDataSource
+import com.linkit.company.data.datasource.feedback.FeedbackRemoteDataSourceImpl
+import com.linkit.company.data.datasource.member.MemberRemoteDataSource
+import com.linkit.company.data.datasource.member.MemberRemoteDataSourceImpl
+import com.linkit.company.data.datasource.settings.AppSettingsLocalDataSource
+import com.linkit.company.data.datasource.settings.AppSettingsLocalDataSourceImpl
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSourceImpl
 import com.linkit.company.data.datasource.video.VideoRemoteDataSource
 import com.linkit.company.data.datasource.video.VideoRemoteDataSourceImpl
+import com.linkit.company.data.repository.AppInfoRepositoryImpl
+import com.linkit.company.data.repository.AppSettingsRepositoryImpl
 import com.linkit.company.data.repository.AuthRepositoryImpl
+import com.linkit.company.data.repository.FeedbackRepositoryImpl
+import com.linkit.company.data.repository.MemberRepositoryImpl
+import com.linkit.company.data.repository.TermsRepositoryImpl
 import com.linkit.company.data.repository.TripPlanRepositoryImpl
 import com.linkit.company.data.repository.VideoRepositoryImpl
+import com.linkit.company.domain.repository.AppInfoRepository
+import com.linkit.company.domain.repository.AppSettingsRepository
 import com.linkit.company.domain.repository.AuthRepository
+import com.linkit.company.domain.repository.FeedbackRepository
+import com.linkit.company.domain.repository.MemberRepository
+import com.linkit.company.domain.repository.TermsRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import androidx.lifecycle.ViewModel
@@ -45,6 +63,7 @@ import kotlinx.serialization.json.Json
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
+import platform.Foundation.NSBundle
 import platform.UIKit.UIDevice
 
 /**
@@ -90,6 +109,30 @@ interface IosAppGraph : AppGraph {
     @Binds
     val VideoRepositoryImpl.bind: VideoRepository
 
+    @Binds
+    val AppSettingsLocalDataSourceImpl.bind: AppSettingsLocalDataSource
+
+    @Binds
+    val AppSettingsRepositoryImpl.bind: AppSettingsRepository
+
+    @Binds
+    val AppInfoRepositoryImpl.bind: AppInfoRepository
+
+    @Binds
+    val MemberRemoteDataSourceImpl.bind: MemberRemoteDataSource
+
+    @Binds
+    val MemberRepositoryImpl.bind: MemberRepository
+
+    @Binds
+    val FeedbackRemoteDataSourceImpl.bind: FeedbackRemoteDataSource
+
+    @Binds
+    val FeedbackRepositoryImpl.bind: FeedbackRepository
+
+    @Binds
+    val TermsRepositoryImpl.bind: TermsRepository
+
     @Provides
     fun provideJson(): Json = defaultJson()
 
@@ -99,6 +142,19 @@ interface IosAppGraph : AppGraph {
         return DeviceIdProvider {
             UIDevice.currentDevice.identifierForVendor?.UUIDString
                 ?: Uuid.random().toString()
+        }
+    }
+
+    @Provides
+    fun provideAppInfoProvider(): AppInfoProvider {
+        return AppInfoProvider {
+            val bundle = NSBundle.mainBundle
+            AppInfoValue(
+                appVersion = bundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as? String ?: "unknown",
+                platform = "IOS",
+                osVersion = UIDevice.currentDevice.systemVersion,
+                deviceModel = UIDevice.currentDevice.model,
+            )
         }
     }
 
