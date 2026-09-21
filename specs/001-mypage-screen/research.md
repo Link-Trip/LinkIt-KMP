@@ -4,17 +4,19 @@
 
 Technical Context에 NEEDS CLARIFICATION은 없었다. 아래는 Swagger(`https://linktrip.cloud/api/v3/api-docs`, LinkTrip API v1)와 기존 data 레이어를 대조해 내린 결정이다.
 
+> **2026-09-21 재조회**: 2026-09-18에 제안했던 `POST /feedback`과 `DELETE /members/me`가 서버에 배포되었다. 의견 API는 요청 필드 `os`→`platform`으로, 회원 API는 "데이터 초기화"가 아닌 **회원 탈퇴**(serialNumber 마스킹, 재로그인 시 새 회원)로 구현되었다. 아래 표·R3·R4를 그에 맞춰 고쳤다.
+
 ## Swagger 대조 결과
 
 | 스펙 요구 | 서버 API 현황 | 결론 |
 |---|---|---|
-| 의견 전송(FR-015~018) | 없음 | **신규 제안** `POST /feedback` → [contracts/feedback-api.yaml](contracts/feedback-api.yaml) |
-| 앱 초기화 서버 데이터 삭제(FR-025) | `DELETE /trip-plans/{tripPlanId}` 단건만 존재, 회원 삭제 없음 | 단건 삭제 반복으로 구현 + **신규 제안** `DELETE /members/me` → [contracts/member-reset-api.yaml](contracts/member-reset-api.yaml) |
+| 의견 전송(FR-015~018) | `POST /feedback` 존재 (2026-09-21 확인) | 서버 계약대로 구현 → [contracts/feedback-api.yaml](contracts/feedback-api.yaml). 요청 `platform: IOS\|ANDROID`, 429는 `FEEDBACK_DAILY_LIMIT_EXCEEDED`/`TOO_MANY_REQUESTS` 두 코드 |
+| 앱 초기화 서버 데이터 삭제(FR-025) | `DELETE /members/me` 회원 탈퇴 존재 (2026-09-21 확인) — 일정 전체 소프트 삭제·FCM 제거·serialNumber 마스킹을 단일 트랜잭션으로 처리 | 회원 탈퇴 1회 호출로 구현 → [contracts/member-withdraw-api.md](contracts/member-withdraw-api.md). 단건 삭제 반복 폐기 |
 | 알림 상태(FR-008~011) | `PUT /members/me/notification {enabled}` 존재, `PUT /members/me/fcm-token` 존재 | 기기 권한값을 서버에 best-effort 동기화 → [contracts/member-notification-api.md](contracts/member-notification-api.md). FCM 토큰 등록은 앱에 FCM 미도입이라 범위 밖 |
 | 이용약관(FR-020~022) | 없음 | 운영 웹페이지 URL을 앱이 보유(Q3 확정). 서버 API 불필요 |
 | 지도 설정(FR-004~007) | 해당 없음(로컬 설정) | DataStore |
 
-서버 에러 코드 중 클라이언트 enum(`LinkTripErrorCode`)에 없는 것: `NOT_FOUND_MEMBER`, `UNAUTHORIZED_TOKEN_EXPIRED`, `BAD_REQUEST_PLATFORM`. 이번에 `NOT_FOUND_MEMBER`, `UNAUTHORIZED_TOKEN_EXPIRED`와 제안 코드 `FEEDBACK_DAILY_LIMIT_EXCEEDED`를 추가한다.
+서버 에러 코드 중 클라이언트 enum(`LinkTripErrorCode`)에 없는 것(2026-09-21): `FEEDBACK_DAILY_LIMIT_EXCEEDED`, `BAD_REQUEST_FEEDBACK_TYPE`, `BAD_REQUEST_PLATFORM`, `NOT_FOUND_MEMBER`, `UNAUTHORIZED_TOKEN_EXPIRED`, `UNAUTHORIZED_TOKEN_INVALID`. 이번에 6종 모두 추가한다(매칭 실패는 `UNKNOWN` 폴백이라 누락돼도 파싱은 깨지지 않지만, 분기·문서 정합을 위해 맞춘다).
 
 ## R1. 지도 설정 저장과 전파
 
@@ -30,15 +32,15 @@ Technical Context에 NEEDS CLARIFICATION은 없었다. 아래는 Swagger(`https:
 
 ## R3. 의견 보내기 API와 클라이언트 구조
 
-- **Decision**: `POST /feedback` 계약 제안(인증 필수, Idempotency-Key 필수, 요청 `{type, content, appVersion, os, osVersion, deviceModel}`, 성공 200 `ApiResponse<Unit>`, 초과 429 `FEEDBACK_DAILY_LIMIT_EXCEEDED`, 검증 실패 400). 클라이언트는 `FeedbackApi` → `FeedbackRemoteDataSource(type: String, content: String, appVersion, os, osVersion, deviceModel)` → `FeedbackRepository.sendFeedback(type: FeedbackType, content: String, appInfo: AppInfo)` → `SendFeedbackUseCase(type: FeedbackType?, content: String)`가 `ensureAuthenticated()` 후 `type ?: ETC`, `content.trim()`, `AppInfoRepository.getAppInfo()`를 조합한다. ViewModel은 `LinkTripApiException.errorCode`로 초과/실패 토스트를 분기한다(429면 초과, 그 외 실패).
+- **Decision**: 서버 `POST /feedback`(인증 필수, Idempotency-Key 필수, 요청 `{type, content, appVersion, platform, osVersion, deviceModel}`, 성공 200 `ApiResponse<Unit>`, 초과 429 `FEEDBACK_DAILY_LIMIT_EXCEEDED`, 검증 실패 400 `BAD_REQUEST_VALIDATION`/`BAD_REQUEST_FEEDBACK_TYPE`/`BAD_REQUEST_PLATFORM`) 계약을 그대로 쓴다. 클라이언트는 `FeedbackApi` → `FeedbackRemoteDataSource(type: String, content: String, appVersion, platform, osVersion, deviceModel)` → `FeedbackRepository.sendFeedback(type: FeedbackType, content: String, appInfo: AppInfo)` → `SendFeedbackUseCase(type: FeedbackType?, content: String)`가 `ensureAuthenticated()` 후 `type ?: ETC`, `content.trim()`, `AppInfoRepository.getAppInfo()`를 조합한다. 문자열 상한(appVersion·osVersion 20, deviceModel 50)은 RepositoryImpl에서 잘라 400을 예방한다. ViewModel은 `LinkTripApiException.errorCode`로 분기한다: `FEEDBACK_DAILY_LIMIT_EXCEEDED`면 초과 토스트, 그 외(같은 429라도 `TOO_MANY_REQUESTS` rate limit 포함)는 실패 토스트.
 - **Rationale**: 디자인 설명이 "전송 시 앱 버전·OS·기기 정보 자동 첨부, 차단은 서버가 수행"으로 명시했다. 유형 기본값·트림·정보 첨부는 비즈니스 규칙이므로 UseCase에 둔다(domain/README). 하루 5회의 "하루" 경계는 서버 기준일(스펙 Assumptions).
-- **Alternatives considered**: 이메일/외부 폼 열기 — 기존 spec v0.1.2의 TBD였으나 Figma가 인앱 바텀시트로 확정. 서버 API 확정 전까지 로컬 저장 후 전송 — 스펙에 없는 오프라인 큐라 탈락.
+- **Alternatives considered**: 이메일/외부 폼 열기 — 기존 spec v0.1.2의 TBD였으나 Figma가 인앱 바텀시트로 확정. 로컬 저장 후 전송 — 스펙에 없는 오프라인 큐라 탈락. (2026-09-18 시점에는 서버 API가 없어 계약을 제안했으나 2026-09-21 배포 확인으로 제안 단계는 종료.)
 
 ## R4. 앱 초기화 실행 순서와 원자성
 
-- **Decision**: `ResetAppUseCase`: (1) `ensureAuthenticated()` (2) `TripPlanRepository.getTripPlans(cursor)`로 전체 페이지 수집(기존 `GetSavedTripPlansForMapUseCase`의 커서 루프와 같은 방식) (3) 각 id에 `deleteTripPlan(id)`, `NOT_FOUND_TRIP_PLAN`은 성공으로 간주 (4) 모두 성공하면 `AppSettingsRepository.clearAll()`(map_display_type, onboarding_completed, notification_prompted 제거) (5) `AuthRepository.logout()`(access_token 제거). `device_id`는 유지한다. 원격 단계에서 예외가 나면 로컬은 손대지 않고 예외를 올려 ViewModel이 실패 토스트(`앱 초기화에 실패했습니다. 다시 시도해주세요.`)를 띄운다.
-- **Rationale**: 회원 삭제 API가 없어 단건 삭제 반복이 유일한 방법이다. 삭제는 소프트 삭제이고 404를 성공으로 보면 재시도가 멱등하다. FR-027(부분 상태 노출 금지)은 "로컬 초기화는 원격 완료 후"로 만족한다. device_id를 지우면 Android는 ANDROID_ID로 어차피 같은 값을 다시 얻으므로 의미가 없고, iOS는 새 UUID가 생겨 서버에 유령 회원이 남는다.
-- **Alternatives considered**: 로컬 먼저 지우고 원격 삭제 — 실패 시 온보딩으로 갔다가 재로그인하면 옛 일정이 되살아나 스펙 위배. 서버 `DELETE /members/me` 제안 채택 시 (2)(3)을 한 번의 호출로 교체한다.
+- **Decision** (2026-09-21 개정): `ResetAppUseCase`: (1) `ensureAuthenticated()` (2) `MemberRepository.withdraw()` = `DELETE /members/me` 회원 탈퇴. `NOT_FOUND_MEMBER`는 성공으로 간주, 401은 `forceRefresh` 후 1회 재시도 (3) 성공하면 `AppSettingsRepository.clearAll()`(map_display_type, onboarding_completed, notification_prompted 제거) (4) `AuthRepository.logout()`(access_token 제거 — 서버가 "탈퇴 성공 시 토큰 폐기"를 요구). `device_id`는 유지한다. 원격 단계에서 예외가 나면 로컬은 손대지 않고 예외를 올려 ViewModel이 실패 토스트(`앱 초기화에 실패했습니다. 다시 시도해주세요.`)를 띄운다.
+- **Rationale**: 서버가 여행 계획 소프트 삭제·FCM 제거·serialNumber 마스킹을 단일 트랜잭션으로 처리하므로 FR-027(원자성)을 서버가 보장한다. 이미 탈퇴한 회원에 재호출해도 200이라 재시도가 멱등하다. 탈퇴 후 같은 기기로 재로그인하면 새 회원이 되는데, 스펙의 "첫 설치 상태로 되돌린다"와 정확히 일치한다(의견 일일 횟수도 새 회원 기준으로 초기화됨). device_id를 유지해도 서버가 옛 serialNumber를 마스킹했으므로 옛 회원과 다시 연결되지 않는다.
+- **Alternatives considered**: `GET /trip-plans` 커서 루프 + `DELETE /trip-plans/{id}` 반복(2026-09-18 결정) — 회원 탈퇴 API 부재 시의 대안이었고, 여러 요청에 걸쳐 부분 삭제가 남을 수 있어 FR-027을 약하게만 만족했다. 배포 확인으로 폐기. 로컬 먼저 지우고 원격 삭제 — 실패 시 온보딩으로 갔다가 재로그인하면 옛 일정이 되살아나 스펙 위배.
 - **저장 장소·보관함 저장항목**: 현재 코드베이스에 여행 계획 외 별도 저장소가 없다(보관함 화면은 목업 상태, 장소는 여행 계획 아이템). 따라서 여행 계획 삭제로 스펙의 삭제 범위를 충족하며, 향후 보관함 저장소가 생기면 `ResetAppUseCase`에 합류시킨다.
 
 ## R5. 온보딩 상태와 알림 안내 노출 이력
