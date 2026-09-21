@@ -23,6 +23,8 @@ class IntroActivity(
         enableEdgeToEdgeConfig()
         super.onCreate(savedInstanceState)
 
+        val showResetCompletedToast = intent.getBooleanExtra(EXTRA_SHOW_RESET_TOAST, false)
+
         setContent {
             LinkItTheme {
                 IntroScreen(
@@ -30,8 +32,14 @@ class IntroActivity(
                         homeNavigator.navigate(this@IntroActivity)
                         finish()
                     },
+                    showResetCompletedToast = showResetCompletedToast,
                 )
             }
         }
+    }
+
+    companion object {
+        /** 앱 초기화 완료 후 진입 시 `true` 로 전달하면 완료 토스트를 표시한다. */
+        const val EXTRA_SHOW_RESET_TOAST = "extra_show_reset_toast"
     }
 }
