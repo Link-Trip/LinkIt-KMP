@@ -12,9 +12,9 @@
 
 - **지도 설정 영속화**: DataStore에 저장하고 `Flow`로 관찰해 메인 지도·장소 상세 등 모든 지도 화면이 같은 값을 쓴다. 변경 토스트를 표시한다.
 - **알림 상태**: 기기 알림 허용 여부를 읽어 안내 카드·토글을 표시하고, 탭 시 기기 알림 설정 화면으로 이동한다. 복귀 시 갱신하며, 서버 `PUT /members/me/notification`에 best-effort로 동기화한다.
-- **의견 보내기**: 바텀시트(유형 칩·200자 입력·보내기)와 완료/초과/실패 토스트. 서버에 API가 없으므로 `POST /feedback` 계약을 제안하고 클라이언트를 그 계약에 맞춰 구현한다.
+- **의견 보내기**: 바텀시트(유형 칩·200자 입력·보내기)와 완료/초과/실패 토스트. 서버 `POST /feedback`(2026-09-21 배포 확인) 계약대로 구현한다.
 - **이용약관**: 목록 화면과 상세 웹뷰 화면(expect/actual). 로딩·실패·재시도 상태를 가진다.
-- **앱 초기화**: 서버 여행 계획 전체 삭제(단건 DELETE 반복) → 로컬 DataStore 초기화 → 로그아웃 → 온보딩 시작 화면으로 이동 + 완료 토스트. 원자성을 위해 `DELETE /members/me` 계약을 제안한다.
+- **앱 초기화**: 서버 `DELETE /members/me` 회원 탈퇴(2026-09-21 배포 확인, 일정 전체 소프트 삭제 포함 단일 트랜잭션) → 로컬 DataStore 초기화 → 로그아웃(토큰 폐기) → 온보딩 시작 화면으로 이동 + 완료 토스트. 재로그인 시 새 회원으로 시작한다.
 
 기술 접근은 프로젝트 문서(ARCHITECTURE, data/README, domain/README, METRO_INSTRUCTION, NAVIGATION_STRUCTURE)를 그대로 따른다. API 상세 판단은 [research.md](research.md), 계약은 [contracts/](contracts/)에 있다.
 
@@ -34,9 +34,9 @@
 
 **Performance Goals**: 지도 설정 반영 1초 이내(SC-001), 알림 상태 복귀 갱신 2초 이내(SC-006), 약관 웹페이지 3초 이내 표시(SC-007)
 
-**Constraints**: feature→domain만 의존(data 직접 의존 금지), Repository 시그니처에 DTO 금지, non-GET API는 Idempotency-Key 자동 첨부(재시도 시 키 고정 주의), iOS는 `IosAppGraph` 수동 바인딩 필수, DataStore `@SingleIn(DataScope::class)`, 서버 의견 API·회원 초기화 API 미구현(계약 제안 상태)
+**Constraints**: feature→domain만 의존(data 직접 의존 금지), Repository 시그니처에 DTO 금지, non-GET API는 Idempotency-Key 자동 첨부(재시도 시 키 고정 주의), iOS는 `IosAppGraph` 수동 바인딩 필수, DataStore `@SingleIn(DataScope::class)`, 의견 전송 문자열 상한(appVersion·osVersion 20자, deviceModel 50자)은 클라이언트가 잘라 전송
 
-**Scale/Scope**: 화면 4개(마이페이지, 의견 바텀시트, 약관 목록, 약관 상세) + 지도 화면 2곳 수정 + 온보딩 진입 연결. API: 기존 2개 사용(알림 설정, 여행 계획 삭제/목록), 신규 제안 2개(의견 전송, 회원 데이터 초기화)
+**Scale/Scope**: 화면 4개(마이페이지, 의견 바텀시트, 약관 목록, 약관 상세) + 지도 화면 2곳 수정 + 온보딩 진입 연결. API: 3개 사용(알림 설정 PUT, 의견 전송 POST, 회원 탈퇴 DELETE) — 2026-09-21 Swagger 기준 모두 배포됨
 
 ## Constitution Check
 
@@ -69,8 +69,8 @@ specs/001-mypage-screen/
 ├── data-model.md        # Phase 1: 도메인 모델·DataStore 키·상태 전이
 ├── quickstart.md        # Phase 1: 검증 시나리오·명령
 ├── contracts/
-│   ├── feedback-api.yaml            # [제안] POST /feedback
-│   ├── member-reset-api.yaml        # [제안] DELETE /members/me
+│   ├── feedback-api.yaml            # [기존] POST /feedback (2026-09-21 배포 확인, platform 필드)
+│   ├── member-withdraw-api.md       # [기존] DELETE /members/me 회원 탈퇴 사용 계약 (구 member-reset-api.yaml 제안 대체)
 │   ├── member-notification-api.md   # [기존] PUT /members/me/notification 사용 계약
 │   └── domain-contracts.md          # Repository/UseCase/MVI/Route/expect-actual 시그니처
 ├── checklists/requirements.md
@@ -85,7 +85,7 @@ domain/src/commonMain/kotlin/com/linkit/company/domain/
 ├── model/feedback/FeedbackType.kt                    # 신규 enum SUGGESTION/BUG/ETC
 ├── model/terms/TermsDocument.kt                      # 신규 (type, title, url) + TermsDocumentType
 ├── model/member/NotificationSetting.kt               # 신규 (enabled)
-├── model/app/AppInfo.kt                              # 신규 (appVersion, os, osVersion, deviceModel)
+├── model/app/AppInfo.kt                              # 신규 (appVersion, platform, osVersion, deviceModel)
 ├── repository/AppSettingsRepository.kt               # 신규 지도 설정·온보딩·알림 안내 이력·전체 초기화
 ├── repository/FeedbackRepository.kt                  # 신규
 ├── repository/TermsRepository.kt                     # 신규
@@ -94,16 +94,17 @@ domain/src/commonMain/kotlin/com/linkit/company/domain/
 ├── exception/LinkTripException.kt                    # 수정 에러 코드 추가(FEEDBACK_DAILY_LIMIT_EXCEEDED, NOT_FOUND_MEMBER, UNAUTHORIZED_TOKEN_EXPIRED)
 └── usecase/
     ├── SendFeedbackUseCase.kt                        # 신규 유형 기본값·트림·앱 정보 첨부·인증 보장
-    ├── ResetAppUseCase.kt                            # 신규 서버 삭제 → 로컬 초기화 → 로그아웃
+    ├── ResetAppUseCase.kt                            # 신규 회원 탈퇴(DELETE /members/me) → 로컬 초기화 → 로그아웃
     └── SyncNotificationSettingUseCase.kt             # 신규 기기 권한값을 서버에 best-effort 반영
 
 data/src/commonMain/kotlin/com/linkit/company/data/
 ├── api/FeedbackApi.kt                                # 신규 POST feedback
-├── api/MemberApi.kt                                  # 신규 PUT members/me/notification
+├── api/MemberApi.kt                                  # 신규 PUT members/me/notification, DELETE members/me
 ├── core/AppInfoProvider.kt                           # 신규 fun interface (플랫폼 그래프가 제공)
 ├── dto/feedback/CreateFeedbackRequest.kt             # 신규 internal
 ├── dto/member/NotificationSettingRequest.kt          # 신규 internal
 ├── dto/member/NotificationSettingResponse.kt         # 신규 public
+├── dto/member/WithdrawMemberResponse.kt              # 신규 public (deletedTripPlanCount)
 ├── mapper/MemberMapper.kt                            # 신규
 ├── datasource/settings/AppSettingsLocalDataSource.kt (+Impl)   # 신규 DataStore 키
 ├── datasource/feedback/FeedbackRemoteDataSource.kt (+Impl)     # 신규
@@ -170,8 +171,9 @@ feature/schedule/src/androidMain/.../navigation/ScheduleNavDisplay.kt   # 수정
 
 | 리스크 | 대응 |
 |---|---|
-| 서버 `POST /feedback` 미구현 | 계약 확정 전까지 `FeedbackRemoteDataSourceImpl`은 계약대로 구현하고 MockEngine 테스트로 검증. 서버 배포 전 QA는 실패 토스트 경로만 확인 가능 |
-| 회원 데이터 일괄 초기화 API 부재 → 여행 계획 N건 순차 삭제 | 삭제는 멱등(404는 성공 취급). 중단 시 재시도로 이어서 삭제되며 로컬 초기화는 원격 완료 후에만 수행(FR-027). `DELETE /members/me` 제안으로 후속 단순화 |
-| 초기화 후 같은 기기 ID로 재로그인 시 동일 회원 재사용 | 서버 데이터를 먼저 지우므로 사용자 관점 첫 설치 상태와 동일. 회원 자체 삭제는 서버 API 제안에 위임 |
+| 의견 전송 429가 두 코드(`FEEDBACK_DAILY_LIMIT_EXCEEDED`, `TOO_MANY_REQUESTS`)로 온다 | HTTP 상태가 아니라 `errorCode`로 분기. rate limit은 일반 실패 토스트로 처리 |
+| 의견 문자열 상한(appVersion·osVersion 20, deviceModel 50) 초과 시 400 | `FeedbackRepositoryImpl`에서 `take(n)`으로 잘라 전송, MockEngine 테스트로 검증 |
+| 앱 초기화가 회원 탈퇴이므로 되돌릴 수 없음 | 스펙 팝업 문구(`앱을 초기화하면 다시 복구할 수 없어요`)와 일치. 초기화 중(`isResetInProgress`) 팝업 조작 차단, 실패 시 로컬 미변경 |
+| 탈퇴 직후 재로그인이 새 회원을 만든다 | 스펙의 "첫 설치 상태"와 일치. `device_id`는 유지해도 서버가 옛 serialNumber를 마스킹하므로 옛 회원과 재연결되지 않음 |
 | iOS 알림 권한 조회가 비동기 | `suspend` 기반 expect/actual로 통일, 초기값은 "미확인"으로 두고 카드 숨김(Edge Case 반영) |
 | Idempotency-Key 재생성으로 재시도 멱등성 무력화 | 이번 범위에 `HttpRequestRetry` 도입 금지. 의견 재시도는 사용자 명시 탭에만 의존 |

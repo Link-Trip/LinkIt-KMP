@@ -25,6 +25,7 @@ interface TermsRepository {
 
 interface MemberRepository {
     suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting
+    suspend fun withdraw(): Int                                 // DELETE /members/me, 삭제된 여행 계획 수 반환
 }
 
 interface AppInfoRepository {
@@ -32,7 +33,7 @@ interface AppInfoRepository {
 }
 ```
 
-기존 `AuthRepository.logout()`, `TripPlanRepository.getTripPlans/deleteTripPlan`은 그대로 사용한다.
+기존 `AuthRepository.logout()`은 그대로 사용한다. (2026-09-21) 서버 `DELETE /members/me` 배포로 `TripPlanRepository` 단건 삭제 반복은 쓰지 않는다.
 
 ## 2. UseCase (domain/usecase)
 
@@ -47,13 +48,13 @@ interface AppInfoRepository {
 
 @Inject class ResetAppUseCase(
     ensureAuthenticated: EnsureAuthenticatedUseCase,
-    tripPlanRepository: TripPlanRepository,
+    memberRepository: MemberRepository,
     appSettingsRepository: AppSettingsRepository,
     authRepository: AuthRepository,
 ) { suspend operator fun invoke() }
-// 순서: 인증 → 전체 일정 id 수집(커서 루프, 중복 커서 방어) → 각 deleteTripPlan (NOT_FOUND_TRIP_PLAN 무시)
+// 순서: 인증 → memberRepository.withdraw() (NOT_FOUND_MEMBER는 성공 취급, 401은 forceRefresh 후 1회 재시도)
 //      → appSettingsRepository.clearAll() → authRepository.logout()
-// 원격 단계 예외는 로컬 변경 없이 전파
+// 원격 단계 예외는 로컬 변경 없이 전파 — contracts/member-withdraw-api.md
 
 @Inject class SyncNotificationSettingUseCase(
     ensureAuthenticated: EnsureAuthenticatedUseCase,
@@ -67,19 +68,27 @@ interface AppInfoRepository {
 // api
 internal interface FeedbackApi { @POST("feedback") @Headers("Content-Type: application/json")
     suspend fun createFeedback(@Body request: CreateFeedbackRequest): ApiResponse<Unit> }
-internal interface MemberApi { @PUT("members/me/notification") @Headers("Content-Type: application/json")
-    suspend fun updateNotificationSetting(@Body request: NotificationSettingRequest): ApiResponse<NotificationSettingResponse> }
+internal interface MemberApi {
+    @PUT("members/me/notification") @Headers("Content-Type: application/json")
+    suspend fun updateNotificationSetting(@Body request: NotificationSettingRequest): ApiResponse<NotificationSettingResponse>
+    @DELETE("members/me")
+    suspend fun withdraw(): ApiResponse<WithdrawMemberResponse>
+}
 
 // dto
 @Serializable internal data class CreateFeedbackRequest(val type: String, val content: String,
-    val appVersion: String, val os: String, val osVersion: String, val deviceModel: String)
+    val appVersion: String, val platform: String, val osVersion: String, val deviceModel: String)   // platform: IOS|ANDROID
 @Serializable internal data class NotificationSettingRequest(val enabled: Boolean)
 @Serializable data class NotificationSettingResponse(val enabled: Boolean)   // public: DataSource 시그니처 노출
+@Serializable data class WithdrawMemberResponse(val deletedTripPlanCount: Int)   // public
 
 // datasource
 interface FeedbackRemoteDataSource { suspend fun createFeedback(type: String, content: String,
-    appVersion: String, os: String, osVersion: String, deviceModel: String) }
-interface MemberRemoteDataSource { suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse }
+    appVersion: String, platform: String, osVersion: String, deviceModel: String) }
+interface MemberRemoteDataSource {
+    suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse
+    suspend fun withdraw(): WithdrawMemberResponse
+}
 interface AppSettingsLocalDataSource {
     fun observeMapDisplayType(): Flow<String?>
     suspend fun saveMapDisplayType(value: String)
@@ -89,7 +98,8 @@ interface AppSettingsLocalDataSource {
 }
 
 // core
-fun interface AppInfoProvider { fun getAppInfo(): AppInfoValue }   // AppInfoValue(appVersion, os, osVersion, deviceModel) — data 내부 값 객체
+fun interface AppInfoProvider { fun getAppInfo(): AppInfoValue }   // AppInfoValue(appVersion, platform, osVersion, deviceModel) — data 내부 값 객체
+// 서버 상한: appVersion·osVersion 20자, deviceModel 50자 — FeedbackRepositoryImpl에서 take(n)으로 자른다
 ```
 
 ## 4. MVI 계약 (feature/map/mypage)
