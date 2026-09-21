@@ -17,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +33,7 @@ import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.domain.model.terms.TermsDocument
 import com.linkit.company.domain.model.terms.TermsDocumentType
 import com.linkit.company.feature.map.mypage.MyPageStrings
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 /** 이용약관 목록(Figma `18287:116697`). 4개 문서를 순서대로 나열한다. */
 @Composable
@@ -38,7 +41,23 @@ fun TermsListScreen(
     onBack: () -> Unit,
     onOpenDocument: (TermsDocumentType) -> Unit,
     modifier: Modifier = Modifier,
-    documents: List<TermsDocument> = TermsDocuments.all,
+    viewModel: TermsViewModel = metroViewModel(),
+) {
+    val documents by viewModel.documents.collectAsState()
+    TermsListContent(
+        documents = documents,
+        onBack = onBack,
+        onOpenDocument = onOpenDocument,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun TermsListContent(
+    documents: List<TermsDocument>,
+    onBack: () -> Unit,
+    onOpenDocument: (TermsDocumentType) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier

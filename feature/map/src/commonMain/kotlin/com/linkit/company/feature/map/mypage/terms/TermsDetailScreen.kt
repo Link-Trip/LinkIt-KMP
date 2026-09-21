@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +34,7 @@ import com.linkit.company.domain.model.terms.TermsDocument
 import com.linkit.company.domain.model.terms.TermsDocumentType
 import com.linkit.company.feature.map.mypage.MyPageStrings
 import com.linkit.company.feature.map.mypage.platform.PlatformWebView
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 /** 웹뷰 로딩 상태. 화면 로컬 상태로 관리한다. */
 enum class TermsLoadState {
@@ -47,8 +49,10 @@ fun TermsDetailScreen(
     type: TermsDocumentType,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: TermsViewModel = metroViewModel(),
 ) {
-    val document = remember(type) { TermsDocuments.find(type) }
+    val documents by viewModel.documents.collectAsState()
+    val document = remember(documents, type) { documents.firstOrNull { it.type == type } } ?: return
     var loadState by rememberSaveable { mutableStateOf(TermsLoadState.LOADING) }
     var reloadToken by rememberSaveable { mutableIntStateOf(0) }
 

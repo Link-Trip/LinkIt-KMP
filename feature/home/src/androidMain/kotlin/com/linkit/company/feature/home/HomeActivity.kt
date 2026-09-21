@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.linkit.company.core.common.extension.enableEdgeToEdgeConfig
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.core.navigation.LinkItSavedStateConfiguration
+import com.linkit.company.core.navigation.navigator.feature.IntroNavigator
 import com.linkit.company.core.navigation.navigator.feature.ScheduleNavigator
 import com.linkit.company.feature.home.navigation.HomeNavDisplay
 import dev.zacsweers.metro.AppScope
@@ -25,6 +26,7 @@ import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 class HomeActivity(
     private val viewModelFactory: MetroViewModelFactory,
     private val scheduleNavigator: ScheduleNavigator,
+    private val introNavigator: IntroNavigator,
 ) : ComponentActivity() {
 
     override val defaultViewModelProviderFactory: ViewModelProvider.Factory
@@ -49,6 +51,11 @@ class HomeActivity(
                                 focusedPlaceId?.let { putExtra(ExtraFocusedPlaceId, it) }
                                 this
                             }
+                        },
+                        onAppReset = {
+                            // 초기화 완료: 태스크를 비우고 온보딩 시작 화면으로 (뒤로가기 복귀 불가)
+                            introNavigator.navigate(this@HomeActivity)
+                            finish()
                         },
                     )
                 }

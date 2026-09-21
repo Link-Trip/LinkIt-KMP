@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,8 @@ import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LinkItNavigator
 import com.linkit.company.core.navigation.LinkItSavedStateConfiguration
 import com.linkit.company.core.navigation.rememberNavigationState
+import com.linkit.company.feature.schedule.NotificationPromptViewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 @Composable
 fun ScheduleNavDisplay(
@@ -30,27 +33,27 @@ fun ScheduleNavDisplay(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val notificationPreferences = remember(context) {
-        context.getSharedPreferences(NotificationPreferencesName, 0)
+    // 알림 안내 노출 이력은 앱 설정 저장소(DataStore)에 두어 앱 초기화 시 함께 지워진다
+    val notificationPromptViewModel: NotificationPromptViewModel = metroViewModel()
+    val isNotificationPrompted by notificationPromptViewModel.isPrompted.collectAsState()
+    val isNotificationPermissionMissing = remember(context) {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) != PackageManager.PERMISSION_GRANTED
     }
-    var showNotificationPermissionSheet by rememberSaveable {
-        mutableStateOf(
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                ) != PackageManager.PERMISSION_GRANTED &&
-                !notificationPreferences.getBoolean(NotificationPromptedKey, false),
-        )
-    }
+    var isNotificationSheetDismissed by rememberSaveable { mutableStateOf(false) }
+    val showNotificationPermissionSheet =
+        isNotificationPermissionMissing && isNotificationPrompted == false && !isNotificationSheetDismissed
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
-        showNotificationPermissionSheet = false
+        isNotificationSheetDismissed = true
     }
     val allowNotifications = {
-        notificationPreferences.edit().putBoolean(NotificationPromptedKey, true).apply()
-        showNotificationPermissionSheet = false
+        notificationPromptViewModel.markPrompted()
+        isNotificationSheetDismissed = true
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
@@ -62,8 +65,8 @@ fun ScheduleNavDisplay(
         }
     }
     val dismissNotificationPrompt = {
-        notificationPreferences.edit().putBoolean(NotificationPromptedKey, true).apply()
-        showNotificationPermissionSheet = false
+        notificationPromptViewModel.markPrompted()
+        isNotificationSheetDismissed = true
     }
 
     val navigationState = rememberNavigationState(
@@ -115,6 +118,3 @@ fun ScheduleNavDisplay(
         entryProvider = entryProvider,
     )
 }
-
-private const val NotificationPreferencesName = "schedule_notification_preferences"
-private const val NotificationPromptedKey = "notification_prompted"

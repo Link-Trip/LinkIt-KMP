@@ -19,6 +19,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.core.navigation.LinkItNavKey
+import com.linkit.company.domain.model.settings.MapDisplayType
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.map_place_photo
 import org.jetbrains.compose.resources.painterResource
@@ -35,6 +39,23 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun MapPlaceDetailScreen(
     route: LinkItNavKey.PlaceDetail,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: MapPlaceDetailViewModel = metroViewModel(),
+) {
+    val mapType by viewModel.mapDisplayType.collectAsState()
+    MapPlaceDetailContent(
+        route = route,
+        mapType = mapType,
+        onBack = onBack,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun MapPlaceDetailContent(
+    route: LinkItNavKey.PlaceDetail,
+    mapType: MapDisplayType,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -125,7 +146,7 @@ fun MapPlaceDetailScreen(
                         .clip(RoundedCornerShape(14.dp)),
                 ) {
                     PlatformMapBackground(
-                        mapType = MapType.DEFAULT,
+                        mapType = mapType,
                         modifier = Modifier.fillMaxSize(),
                         markers = listOf(
                             MapMarkerUiModel(
