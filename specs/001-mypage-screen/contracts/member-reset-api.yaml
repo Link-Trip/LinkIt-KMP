@@ -1,0 +1,59 @@
+# [제안] 회원 데이터 초기화 API — 서버 미구현. 채택 전까지 클라이언트는 GET /trip-plans + DELETE /trip-plans/{id} 반복으로 대체한다.
+openapi: 3.0.1
+info:
+  title: LinkTrip API — Member reset (proposal)
+  version: v1-proposal
+servers:
+  - url: https://linktrip.cloud/api
+paths:
+  /members/me:
+    delete:
+      tags: [Member]
+      summary: 내 데이터 전체 초기화
+      description: |
+        로그인한 회원의 여행 계획(및 연결된 일정 아이템), 알림 설정, FCM 토큰을 모두 삭제(소프트 삭제)합니다.
+        회원 레코드 자체는 유지되어 동일 serialNumber로 재로그인 시 빈 상태의 같은 회원으로 이어집니다.
+        하나의 트랜잭션으로 처리되어 부분 삭제 상태가 남지 않습니다.
+
+        **멱등성:** `Idempotency-Key` 헤더 필수. 이미 초기화된 회원에 다시 호출해도 200.
+        **인증:** `Authorization: Bearer` 필수.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: 초기화 성공 (삭제된 여행 계획 수 반환)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, message]
+                properties:
+                  status: { type: integer, example: 200 }
+                  message: { type: string, example: OK }
+                  data:
+                    type: object
+                    properties:
+                      deletedTripPlanCount: { type: integer, example: 3 }
+        '400':
+          description: 멱등성 키 누락
+          content:
+            application/json:
+              example: { code: BAD_REQUEST_MISSING_IDEMPOTENCY_KEY, message: Idempotency-Key 헤더는 필수입니다. }
+        '401':
+          description: 인증 실패
+          content:
+            application/json:
+              example: { code: UNAUTHORIZED_AUTHENTICATION_FAILED, message: 인증 정보가 없습니다. }
+        '404':
+          description: 회원 없음
+          content:
+            application/json:
+              example: { code: NOT_FOUND_MEMBER, message: 회원을 찾을 수 없습니다. }
+        '409':
+          description: 동일 멱등성 키 처리 중
+          content:
+            application/json:
+              example: { code: DUPLICATE_REQUEST, message: 이미 요청한 값입니다. }
