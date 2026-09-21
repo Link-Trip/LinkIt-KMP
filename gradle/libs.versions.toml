@@ -26,9 +26,9 @@ google-maps-compose = "8.3.0"
 coil = "3.3.0"
 
 kotlinxSerializationCore = "1.9.0"
+kotlinxCoroutines = "1.10.2"
 kotlinxCollectionsImmutable = "0.4.0"
 kotlinxDatetime = "0.7.1"
-kotlinxCoroutines = "1.10.2"
 
 metro = "0.10.2"
 ktor = "3.2.1"
@@ -79,9 +79,9 @@ ktorfitLib = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = 
 androidxDataStorePreferencesCore = { module = "androidx.datastore:datastore-preferences-core", version.ref = "androidxDataStore" }
 
 kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationCore" }
+kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinxCollectionsImmutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 kotlinxDatetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
-kotlinxCoroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
 roborazzi-core = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { module = "io.github.takahirom.roborazzi:roborazzi-compose", version.ref = "roborazzi" }

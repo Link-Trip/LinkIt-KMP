@@ -60,6 +60,7 @@ fun HomeNavDisplay(
     navigateToSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit = { _, _, _ ->
         navigateToScheduleEdit()
     },
+    onAppReset: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val navigationState =
@@ -71,12 +72,18 @@ fun HomeNavDisplay(
 
     val navigator = remember(navigationState) { LinkItNavigator(navigationState) }
     var isMapPlaceSelected by remember { mutableStateOf(false) }
+    // 마이페이지 화면군(Figma 17789-52610)은 하단 내비게이션 없이 전체 화면으로 표시한다.
+    val isFullScreenRoute = navigationState.currentRoute.let { route ->
+        route is LinkItNavKey.MyPage || route is LinkItNavKey.Terms || route is LinkItNavKey.TermsDetail
+    }
+    val hideBottomBar = isMapPlaceSelected || isFullScreenRoute
 
     val entryProvider = entryProvider {
         mapEntry(
             onOpenSchedule = navigateToSchedule,
             navigateToScheduleEdit = navigateToScheduleEdit,
             onPlaceSelectionChanged = { isMapPlaceSelected = it },
+            onAppReset = onAppReset,
         )
         storageEntry()
         exploreEntry(navigator)
@@ -96,7 +103,7 @@ fun HomeNavDisplay(
                 ),
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
-                if (!isMapPlaceSelected) {
+                if (!hideBottomBar) {
                     LinkItNavigationBar(
                         currentTab = navigationState.currentTopLevelRoute,
                         onTabSelected = { key -> navigator.navigate(key) },

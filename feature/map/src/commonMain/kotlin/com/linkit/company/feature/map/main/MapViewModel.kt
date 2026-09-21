@@ -7,7 +7,9 @@ import com.linkit.company.core.common.architecture.MviContext
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.model.map.TripPlanMapData
+import com.linkit.company.domain.model.settings.MapDisplayType
 import com.linkit.company.domain.model.video.VideoScheduleCreationState
+import com.linkit.company.domain.repository.AppSettingsRepository
 import com.linkit.company.domain.usecase.AcknowledgeVideoScheduleCreationUseCase
 import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
@@ -33,6 +35,7 @@ class MapViewModel(
     private val deleteTripPlan: DeleteTripPlanUseCase,
     private val observeVideoScheduleCreation: ObserveVideoScheduleCreationUseCase,
     private val acknowledgeVideoScheduleCreation: AcknowledgeVideoScheduleCreationUseCase,
+    private val appSettingsRepository: AppSettingsRepository,
 ) : ViewModel() {
     private val container = MviContainer<MapIntent, MapSideEffect, MapUiState>(
         initialState = MapUiState(),
@@ -47,6 +50,10 @@ class MapViewModel(
     private var scheduleActionFeedbackId: Int = 0
 
     val uiState = container.uiState
+
+    init {
+        observeMapDisplayType()
+    }
 
     fun onIntent(intent: MapIntent) = container.intent(intent)
 
@@ -173,9 +180,7 @@ class MapViewModel(
             MapIntent.DismissComingSoonDialog -> reduce {
                 copy(isComingSoonDialogVisible = false)
             }
-            MapIntent.ToggleMapType -> reduce {
-                copy(mapType = if (mapType == MapType.DEFAULT) MapType.SATELLITE else MapType.DEFAULT)
-            }
+            MapIntent.ToggleMapType -> toggleMapDisplayType()
             is MapIntent.ToggleFilter -> reduce {
                 copy(
                     expandedFilter = intent.filter.takeUnless { it == expandedFilter },
@@ -231,6 +236,23 @@ class MapViewModel(
                 }
             }
         }
+    }
+
+    /** 지도 설정은 앱 전역 값이라 저장소를 관찰해 반영한다 (마이페이지 변경·앱 초기화 포함). */
+    private fun observeMapDisplayType() {
+        viewModelScope.launch {
+            appSettingsRepository.observeMapDisplayType().collect { type ->
+                container.mviContext.reduce { copy(mapType = type) }
+            }
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.toggleMapDisplayType() {
+        val next = when (currentState.mapType) {
+            MapDisplayType.DEFAULT -> MapDisplayType.SATELLITE
+            MapDisplayType.SATELLITE -> MapDisplayType.DEFAULT
+        }
+        viewModelScope.launch { appSettingsRepository.setMapDisplayType(next) }
     }
 
     private fun MviContext<MapUiState, MapSideEffect>.showScheduleDialog(

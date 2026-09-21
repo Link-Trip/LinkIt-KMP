@@ -1,0 +1,121 @@
+# [기존] 의견 전송 API — 2026-09-21 Swagger(https://linktrip.cloud/api/v3/api-docs) 재조회로 서버 배포 확인.
+# 2026-09-18 제안 계약과의 차이: 요청 필드 `os` → `platform`, 문자열 길이 상한 추가, 400 코드 `BAD_REQUEST_FEEDBACK_TYPE`·`BAD_REQUEST_PLATFORM`,
+# 429는 `FEEDBACK_DAILY_LIMIT_EXCEEDED`(일일 5회) 외에 `TOO_MANY_REQUESTS`(rate limit)도 내려온다.
+openapi: 3.0.1
+info:
+  title: LinkTrip API — Feedback
+  version: v1
+servers:
+  - url: https://linktrip.cloud/api
+paths:
+  /feedback:
+    post:
+      tags: [Feedback]
+      summary: 의견 전송
+      description: |
+        로그인한 회원이 앱 의견을 전송합니다. 하루(KST 기준) 최대 5회로 제한하며,
+        초과 시 429 `FEEDBACK_DAILY_LIMIT_EXCEEDED`를 반환합니다.
+        앱 버전·플랫폼·OS 버전·기기 모델은 클라이언트가 자동 첨부합니다.
+
+        **멱등성:** `Idempotency-Key` 헤더가 필수입니다. 동일 키 처리 중이면 409.
+        **인증:** `Authorization: Bearer` 필수.
+      operationId: createFeedback
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: 멱등성 키 (UUID v4 권장, non-GET 요청 필수)
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeedbackRequest'
+      responses:
+        '200':
+          description: 전송 성공 (data 없음)
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseUnit'
+              example: { status: 200, message: OK }
+        '400':
+          description: 잘못된 요청
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              examples:
+                content 누락 (validation 실패):
+                  value: { code: BAD_REQUEST_VALIDATION, message: 요청 형식이 잘못되었습니다., cause: "content: 내용은 필수입니다.", timestamp: 1785390616431 }
+                지원하지 않는 의견 유형:
+                  value: { code: BAD_REQUEST_FEEDBACK_TYPE, message: 지원하지 않는 의견 유형입니다., timestamp: 1785390616431 }
+                지원하지 않는 플랫폼:
+                  value: { code: BAD_REQUEST_PLATFORM, message: 지원하지 않는 플랫폼입니다., timestamp: 1785390616431 }
+                멱등성 키 누락:
+                  value: { code: BAD_REQUEST_MISSING_IDEMPOTENCY_KEY, message: Idempotency-Key 헤더는 필수입니다., timestamp: 1785390616431 }
+        '401':
+          description: 인증 실패 (토큰 없음/만료/위조)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              example: { code: UNAUTHORIZED_AUTHENTICATION_FAILED, message: 인증 정보가 없습니다., timestamp: 1785390616431 }
+        '409':
+          description: 동일 멱등성 키 처리 중
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              example: { code: DUPLICATE_REQUEST, message: 이미 요청한 값입니다., timestamp: 1785390616431 }
+        '429':
+          description: 일일 전송 횟수(5회) 초과 또는 요청 횟수 초과
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExceptionResponse' }
+              examples:
+                일일 의견 횟수 초과:
+                  value: { code: FEEDBACK_DAILY_LIMIT_EXCEEDED, message: 오늘 보낼 수 있는 의견 횟수를 모두 사용했습니다., timestamp: 1785390616431 }
+                요청 횟수 초과 (rate limit):
+                  value: { code: TOO_MANY_REQUESTS, message: 요청이 너무 많습니다. 잠시 후 다시 시도해주세요., timestamp: 1785390616431 }
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    CreateFeedbackRequest:
+      type: object
+      required: [type, content, appVersion, platform, osVersion, deviceModel]
+      properties:
+        type:
+          type: string
+          enum: [SUGGESTION, BUG, ETC]
+          description: 의견 유형. 클라이언트가 미선택이면 ETC로 보낸다.
+        content:
+          type: string
+          minLength: 0
+          maxLength: 200
+          description: 의견 본문 (trim 후 1자 이상 200자 이하)
+        appVersion: { type: string, maxLength: 20, example: "1.0" }
+        platform: { type: string, enum: [IOS, ANDROID], description: 플랫폼 }
+        osVersion: { type: string, maxLength: 20, example: "15" }
+        deviceModel: { type: string, maxLength: 50, example: "Pixel 8" }
+    ApiResponseUnit:
+      type: object
+      required: [status, message]
+      properties:
+        status: { type: integer, example: 200 }
+        message: { type: string, example: OK }
+    ExceptionResponse:
+      type: object
+      required: [timestamp]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        cause: { type: string, nullable: true }
+        timestamp: { type: integer, format: int64 }
+
+# 클라이언트 처리 (contracts/domain-contracts.md §2·§3)
+#   FeedbackApi.createFeedback(@Body CreateFeedbackRequest): ApiResponse<Unit>
+#   FeedbackRemoteDataSource.createFeedback(type, content, appVersion, platform, osVersion, deviceModel)
+#   FeedbackRepository.sendFeedback(type: FeedbackType, content: String, appInfo: AppInfo)
+#   SendFeedbackUseCase(type: FeedbackType?, content: String) — 401(httpStatus)이면 forceRefresh 후 1회 재시도
+#   ViewModel 분기: 429 FEEDBACK_DAILY_LIMIT_EXCEEDED → 초과 토스트 / 그 외(TOO_MANY_REQUESTS 포함) → 실패 토스트(시트 유지)
+#   deviceModel·appVersion·osVersion은 서버 상한(50/20/20)에 맞춰 클라이언트가 잘라 보낸다.

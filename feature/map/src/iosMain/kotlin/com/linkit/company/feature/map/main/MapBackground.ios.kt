@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.Dp
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
+import com.linkit.company.domain.model.settings.MapDisplayType
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.get
@@ -53,7 +54,7 @@ private const val MinimumMapRectPadding = 2_500.0
 @Suppress("DEPRECATION")
 @Composable
 internal actual fun PlatformMapBackground(
-    mapType: MapType,
+    mapType: MapDisplayType,
     modifier: Modifier,
     markers: List<MapMarkerUiModel>,
     selectedArea: MapAreaUiModel?,
@@ -82,8 +83,8 @@ internal actual fun PlatformMapBackground(
             if (delegate.lastMapType != mapType) {
                 delegate.lastMapType = mapType
                 mapView.mapType = when (mapType) {
-                    MapType.DEFAULT -> MKMapTypeStandard
-                    MapType.SATELLITE -> MKMapTypeSatellite
+                    MapDisplayType.DEFAULT -> MKMapTypeStandard
+                    MapDisplayType.SATELLITE -> MKMapTypeSatellite
                 }
             }
             if (delegate.lastContentPaddingBottom != contentPaddingBottom) {
@@ -177,7 +178,7 @@ private class PingoMapViewDelegate : NSObject(), MKMapViewDelegateProtocol {
     var lastScheduleBoundsId: String? = null
     var lastSelectedPlaceId: String? = null
     var lastLocationFocusRequest: Int = 0
-    var lastMapType: MapType? = null
+    var lastMapType: MapDisplayType? = null
     var lastContentPaddingBottom: Dp? = null
     var lastShowsUserLocation: Boolean? = null
     var lastMarkers: List<MapMarkerUiModel>? = null

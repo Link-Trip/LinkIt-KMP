@@ -3,10 +3,12 @@ package com.linkit.company.feature.map.main
 import android.os.Looper
 import com.linkit.company.domain.model.auth.Auth
 import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.settings.MapDisplayType
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.repository.AuthRepository
+import com.linkit.company.domain.repository.AppSettingsRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import com.linkit.company.domain.model.video.DiscoverChannel
@@ -25,6 +27,7 @@ import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
 import com.linkit.company.domain.usecase.RenameTripPlanUseCase
+import com.linkit.company.feature.map.testing.FakeAppSettingsRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -36,6 +39,33 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class MapViewModelTest {
+    @Test
+    fun mapDisplayTypeStaysObservedOnceAcrossScreenResumesAndTogglePersistsIt() {
+        val settings = FakeAppSettingsRepository(initial = MapDisplayType.SATELLITE)
+        val viewModel = createViewModel(appSettingsRepository = settings)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(MapDisplayType.SATELLITE, viewModel.uiState.value.mapType)
+
+        repeat(2) {
+            viewModel.onScreenResumed()
+            shadowOf(Looper.getMainLooper()).idle()
+            viewModel.onScreenPaused()
+        }
+        assertEquals(1, settings.mapDisplayType.subscriptionCount.value)
+
+        settings.mapDisplayType.value = MapDisplayType.DEFAULT
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(MapDisplayType.DEFAULT, viewModel.uiState.value.mapType)
+
+        viewModel.onScreenResumed()
+        viewModel.onIntent(MapIntent.ToggleMapType)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(MapDisplayType.SATELLITE, viewModel.uiState.value.mapType)
+        assertEquals(listOf(MapDisplayType.SATELLITE), settings.savedMapDisplayTypes)
+        assertEquals(1, settings.mapDisplayType.subscriptionCount.value)
+        viewModel.onScreenPaused()
+    }
+
     @Test
     fun returningToMapReloadsServerChangesWithoutMovingCameraOrLosingSelection() {
         val repository = RecordingTripPlanRepository().apply {
@@ -268,6 +298,7 @@ class MapViewModelTest {
     private fun createViewModel(
         tripPlanRepository: TripPlanRepository = RecordingTripPlanRepository(),
         videoRepository: VideoRepository = EmptyVideoRepository(),
+        appSettingsRepository: AppSettingsRepository = FakeAppSettingsRepository(),
     ): MapViewModel {
         val authRepository = EmptyAuthRepository()
         val ensureAuthenticated = EnsureAuthenticatedUseCase(authRepository)
@@ -290,6 +321,7 @@ class MapViewModelTest {
                 ensureAuthenticated, videoRepository, tripPlanRepository,
             ),
             acknowledgeVideoScheduleCreation = AcknowledgeVideoScheduleCreationUseCase(videoRepository),
+            appSettingsRepository = appSettingsRepository,
         )
     }
 }

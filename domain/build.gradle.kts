@@ -10,7 +10,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core.common)
-            implementation(libs.kotlinxCoroutinesCore)
+            api(libs.kotlinxCoroutinesCore)
         }
     }
 }

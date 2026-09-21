@@ -3,16 +3,12 @@ package com.linkit.company.feature.map.main
 import com.linkit.company.core.common.architecture.contract.UiState
 import com.linkit.company.domain.model.video.CostBasis
 import com.linkit.company.domain.model.video.VideoScheduleCreationState
+import com.linkit.company.domain.model.settings.MapDisplayType
 
 enum class MapSelection {
     NONE,
     SCHEDULE,
     PLACE,
-}
-
-enum class MapType {
-    DEFAULT,
-    SATELLITE,
 }
 
 enum class MapLoadState {
@@ -132,7 +128,7 @@ data class MapUiState(
     val isComingSoonDialogVisible: Boolean = false,
     val videoCreationState: VideoScheduleCreationState = VideoScheduleCreationState.Idle,
     val isCreationInProgressDialogVisible: Boolean = false,
-    val mapType: MapType = MapType.DEFAULT,
+    val mapType: MapDisplayType = MapDisplayType.DEFAULT,
     val expandedFilter: MapFilterType? = null,
     val selectedRegion: String? = null,
     val selectedStyle: MapTravelStyleFilter? = null,
