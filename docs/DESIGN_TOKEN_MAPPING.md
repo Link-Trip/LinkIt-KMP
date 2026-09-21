@@ -137,4 +137,5 @@ Figma 디자인을 Compose로 구현할 때 이 문서를 참고하여 기존 �
 | `LinkItScheduleListItem` | 일정 목록 아이템 |
 | `LinkItFolderCard` | 폴더 카드 |
 | `LinkItVideoCard` | 영상 카드 |
-| `LinkItDialog` | 제목·설명·단일 확인 액션의 모달 다이얼로그 |
+| `LinkItDialog` | 제목·설명·확인 액션(+선택적 보조 액션)의 모달 다이얼로그 |
+| `LinkItSwitch` | 스위치(토글). `onCheckedChange = null`이면 읽기 전용 표시 |
