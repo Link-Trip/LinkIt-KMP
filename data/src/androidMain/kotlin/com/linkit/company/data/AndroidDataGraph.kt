@@ -1,9 +1,12 @@
 package com.linkit.company.data
 
 import android.content.Context
+import android.os.Build
 import android.provider.Settings
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.linkit.company.data.core.AppInfoProvider
+import com.linkit.company.data.core.AppInfoValue
 import com.linkit.company.data.core.DATA_STORE_FILE_NAME
 import com.linkit.company.data.core.DeviceIdProvider
 import com.linkit.company.data.core.createLinkItDataStore
@@ -44,6 +47,21 @@ interface AndroidDataGraph {
         return DeviceIdProvider {
             Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
                 ?: Uuid.random().toString()
+        }
+    }
+
+    @Provides
+    fun provideAppInfoProvider(context: Context): AppInfoProvider {
+        return AppInfoProvider {
+            val versionName = runCatching {
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName
+            }.getOrNull()
+            AppInfoValue(
+                appVersion = versionName ?: "unknown",
+                platform = "ANDROID",
+                osVersion = Build.VERSION.RELEASE ?: "unknown",
+                deviceModel = Build.MODEL ?: "unknown",
+            )
         }
     }
 }
