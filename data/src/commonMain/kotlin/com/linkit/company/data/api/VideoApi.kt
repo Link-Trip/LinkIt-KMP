@@ -2,6 +2,7 @@ package com.linkit.company.data.api
 
 import com.linkit.company.data.dto.ApiResponse
 import com.linkit.company.data.dto.video.DiscoverChannelResponses
+import com.linkit.company.data.dto.video.DiscoverCountryResponses
 import com.linkit.company.data.dto.video.DiscoverVideoCursorResponse
 import com.linkit.company.data.dto.video.DiscoverVideoResponses
 import com.linkit.company.data.dto.video.VideoAnalyzeRequest
@@ -32,6 +33,9 @@ internal interface VideoApi {
 
     @GET("video/discover/channels")
     suspend fun getDiscoverChannels(): ApiResponse<DiscoverChannelResponses>
+
+    @GET("video/discover/countries")
+    suspend fun getDiscoverCountries(): ApiResponse<DiscoverCountryResponses>
 
     @GET("video/discover/category")
     suspend fun getDiscoverVideosByCategory(

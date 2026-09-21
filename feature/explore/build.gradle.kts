@@ -18,6 +18,8 @@ kotlin {
             implementation(libs.metrox.viewmodel)
             implementation(libs.metrox.viewmodel.compose)
             implementation(libs.bundles.jetbrainsNavigation3)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
         }
     }
 }

@@ -12,7 +12,7 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
     onCreateSchedule: (videoTitle: String?, thumbnailUrl: String?) -> Unit,
     onOpenExistingSchedule: (tripPlanId: String, title: String) -> Unit,
     onReturnHome: () -> Unit,
-    showNotificationPermissionSheet: Boolean,
+    showNotificationPermissionSheet: () -> Boolean,
     onAllowNotifications: () -> Unit,
     onDismissNotificationPrompt: () -> Unit,
     onConfirmAnalysis: () -> Unit,
@@ -32,7 +32,8 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
             thumbnailUrl = route.thumbnailUrl,
             onBack = onBack,
             onReturnHome = onReturnHome,
-            showNotificationPermissionSheet = showNotificationPermissionSheet,
+            // Navigation3 caches entries while the back stack stays unchanged; read state here.
+            showNotificationPermissionSheet = showNotificationPermissionSheet(),
             onAllowNotifications = onAllowNotifications,
             onDismissNotificationPrompt = onDismissNotificationPrompt,
         )

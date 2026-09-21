@@ -7,6 +7,7 @@ import com.linkit.company.core.common.architecture.MviContext
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
 import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
+import com.linkit.company.domain.usecase.GetExploreVideosUseCase
 import com.linkit.company.domain.usecase.RenameTripPlanUseCase
 import com.linkit.company.domain.usecase.StartVideoScheduleCreationResult
 import com.linkit.company.domain.usecase.StartVideoScheduleCreationUseCase
@@ -25,12 +26,14 @@ class ScheduleViewModel(
     private val startVideoScheduleCreation: StartVideoScheduleCreationUseCase,
     private val renameTripPlan: RenameTripPlanUseCase,
     private val deleteTripPlan: DeleteTripPlanUseCase,
+    private val getExploreVideos: GetExploreVideosUseCase,
 ) : ViewModel() {
     private val container = MviContainer<ScheduleIntent, ScheduleSideEffect, ScheduleUiState>(
         initialState = ScheduleUiState(),
         onIntent = { handleIntent(it) },
     )
     private var submissionJob: Job? = null
+    private var recommendationsJob: Job? = null
 
     val uiState = container.uiState
     val sideEffect = container.sideEffect
@@ -39,8 +42,12 @@ class ScheduleViewModel(
 
     private fun MviContext<ScheduleUiState, ScheduleSideEffect>.handleIntent(intent: ScheduleIntent) {
         when (intent) {
+            ScheduleIntent.LoadRecommendedVideos -> loadRecommendedVideos()
+            ScheduleIntent.ToggleRecommendedVideos -> reduce {
+                copy(areRecommendedVideosExpanded = !areRecommendedVideosExpanded)
+            }
             is ScheduleIntent.UpdateVideoLink -> {
-                submissionJob?.cancel()
+                if (currentState.isSubmittingVideoLink || submissionJob?.isActive == true) return
                 reduce {
                     copy(
                         videoLink = intent.link,
@@ -109,6 +116,30 @@ class ScheduleViewModel(
             ScheduleIntent.ConfirmTripDetailRename -> confirmTripDetailRename()
             ScheduleIntent.ConfirmTripDetailDelete -> confirmTripDetailDelete()
             ScheduleIntent.DismissTripDetailDialog -> dismissTripDetailDialog()
+        }
+    }
+
+    private fun loadRecommendedVideos() {
+        if (recommendationsJob?.isActive == true) return
+        container.mviContext.reduce {
+            copy(isLoadingRecommendedVideos = true, recommendedVideosError = null)
+        }
+        recommendationsJob = viewModelScope.launch {
+            try {
+                val videos = getExploreVideos().items
+                container.mviContext.reduce {
+                    copy(recommendedVideos = videos, isLoadingRecommendedVideos = false)
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                container.mviContext.reduce {
+                    copy(
+                        isLoadingRecommendedVideos = false,
+                        recommendedVideosError = "추천 영상을 불러오지 못했어요.",
+                    )
+                }
+            }
         }
     }
 
@@ -266,6 +297,7 @@ class ScheduleViewModel(
 
     override fun onCleared() {
         submissionJob?.cancel()
+        recommendationsJob?.cancel()
         container.close()
         super.onCleared()
     }

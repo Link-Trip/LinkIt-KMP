@@ -14,6 +14,10 @@ class MemberRepositoryImpl(
     private val memberRemoteDataSource: MemberRemoteDataSource,
 ) : MemberRepository {
 
+    override suspend fun registerFcmToken(fcmToken: String, platform: String) {
+        memberRemoteDataSource.registerFcmToken(fcmToken, platform)
+    }
+
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting {
         return memberRemoteDataSource.updateNotificationSetting(enabled).toDomain()
     }

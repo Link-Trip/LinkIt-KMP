@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-08-25T10:55:05.626Z",
+  "updatedAt": "2026-09-21T13:23:20.064Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -640,7 +640,7 @@
     },
     "main:SHEET_DRAG": {
       "featureUid": "main:SHEET_DRAG",
-      "workStatus": "in_review",
+      "workStatus": "implemented",
       "developer": "fbghgus123",
       "issue": null,
       "pr": "#43",
@@ -648,7 +648,7 @@
       "testStatus": "passed",
       "screenshotStatus": "passed",
       "blockedReason": null,
-      "notes": "3단 앵커 드래그, 50% 최근접 정착, 속도 기반 전환, 정착 중 재드래그, 여행 미리보기 공통 호스트 구현. 일정 리스트가 보이는 시트 높이를 초과할 때만 내부 스크롤을 허용하고, 펼쳐 모든 아이템이 보이면 스크롤 범위를 0으로 제한. Android/iOS 컴파일, map 단위·제스처 테스트, Roborazzi 및 앱 빌드 통과.",
+      "notes": "기존 3단 앵커와 제스처 동작 유지. 빈 일정도 실제 보이는 시트 높이로 측정하고 내부 본문만 스크롤하여 작은 화면 생성 버튼 잘림 보완. map 105개 테스트(시트 제스처 19개 포함), 375x640 회귀와 API35 AVD의 내부 스크롤·버튼 전체 노출·클릭 검증 통과. 영상 분석 성공·FCM·다른 API 기능 완료 상태를 의미하지 않음. 상세 근거 docs/API_E2E_VALIDATION.md.",
       "workPlan": {
         "status": "done",
         "summary": "메인 지도 바텀시트를 Collapsed/Resting/Expanded anchor로 연속 드래그하고 가장 가까운 상태에 정착시키며 여행 선택 프리뷰를 동일 host에 통합",
@@ -691,7 +691,7 @@
           "createdBy": "fbghgus123"
         }
       ],
-      "updatedAt": "2026-08-18T10:29:37.516Z",
+      "updatedAt": "2026-09-21T13:23:20.063Z",
       "updatedBy": "yuhohyeon"
     },
     "main:SHEET_COLLAPSE_ON_PLACE_SELECT": {

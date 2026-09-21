@@ -1,6 +1,7 @@
 package com.linkit.company.feature.schedule
 
 import com.linkit.company.core.common.architecture.contract.UiState
+import com.linkit.company.domain.model.video.DiscoverVideo
 
 enum class TripDetailTab {
     ITINERARY,
@@ -24,6 +25,10 @@ data class ExistingScheduleUiModel(
 )
 
 data class ScheduleUiState(
+    val recommendedVideos: List<DiscoverVideo> = emptyList(),
+    val isLoadingRecommendedVideos: Boolean = true,
+    val recommendedVideosError: String? = null,
+    val areRecommendedVideosExpanded: Boolean = false,
     val videoLink: String = "",
     val videoLinkError: VideoLinkError? = null,
     val isSubmittingVideoLink: Boolean = false,

@@ -307,6 +307,7 @@ private class FixedAppInfoRepository : AppInfoRepository {
 private class ScriptedMemberRepository(
     withdrawResults: List<Any> = listOf(0),
 ) : MemberRepository {
+    override suspend fun registerFcmToken(fcmToken: String, platform: String) = error("Not used in this test")
     val events = mutableListOf<String>()
     val notificationCalls = mutableListOf<Boolean>()
     private val withdrawQueue = ArrayDeque(withdrawResults)

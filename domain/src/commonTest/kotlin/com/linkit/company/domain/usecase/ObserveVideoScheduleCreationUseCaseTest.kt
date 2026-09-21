@@ -8,6 +8,7 @@ import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
@@ -207,6 +208,8 @@ private fun runTrackingTest(block: suspend () -> Unit) = runBlocking {
 }
 
 private class TrackingVideoRepositoryFake : VideoRepository {
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
     val pending = MutableStateFlow<String?>("task")
     val states = mutableListOf<VideoAnalysis>()
     var failure: Exception? = null

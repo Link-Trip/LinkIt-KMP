@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-list.v1.1",
-  "generatedAt": "2026-08-25T10:55:05.570Z",
+  "generatedAt": "2026-09-21T13:23:19.869Z",
   "project": {
     "name": "Pingo",
     "figmaFile": "Pingo v3.0.3",
@@ -84,8 +84,8 @@
       "title": "마이페이지",
       "area": "MyPage",
       "path": "mypage-screen.md",
-      "specVersion": "v0.1.2",
-      "figmaSection": "15091:151966",
+      "specVersion": "v0.2.1",
+      "figmaSection": "17789:52610",
       "accent": "#ea580c",
       "reviewStatus": "Pass with Comments"
     },
@@ -381,10 +381,10 @@
       "imageId": "IMG-01",
       "screenSlug": "mypage",
       "path": "assets/mypage/mypage-default.png",
-      "description": "마이페이지 기본",
+      "description": "이전 마이페이지 기본 디자인 근거",
       "source": {
         "path": "mypage-screen.md",
-        "line": 83
+        "line": 79
       }
     },
     {
@@ -392,10 +392,10 @@
       "imageId": "IMG-02",
       "screenSlug": "mypage",
       "path": "assets/mypage/mypage-preference-edit.png",
-      "description": "앱 초기화 확인",
+      "description": "이전 앱 초기화 확인 디자인 근거",
       "source": {
         "path": "mypage-screen.md",
-        "line": 84
+        "line": 80
       }
     },
     {
@@ -403,10 +403,10 @@
       "imageId": "IMG-03",
       "screenSlug": "mypage",
       "path": "assets/mypage/mypage-map-preview.png",
-      "description": "지도 설정 결과 후보",
+      "description": "이전 지도 설정 결과 후보",
       "source": {
         "path": "mypage-screen.md",
-        "line": 85
+        "line": 81
       }
     },
     {
@@ -910,62 +910,37 @@
       }
     },
     {
-      "uid": "mypage:TBD-01",
-      "tbdId": "TBD-01",
+      "uid": "mypage:TBD-04",
+      "tbdId": "TBD-04",
       "screenSlug": "mypage",
-      "title": "지도 타입 저장 범위",
-      "description": "기본/위성 선택이 즉시 지도에 반영되는지, 앱 설정으로 저장되는지 확인 필요",
+      "title": "약관 웹페이지 주소",
+      "description": "운영 측 확정 전 자리 표시 주소 사용 중. `https://linktrip.cloud/terms/` 아래 `service`, `privacy`, `oss`, `location` 경로",
       "status": "open",
       "resolver": "PM",
       "impact": {
         "featureRefs": [
-          "mypage:MYPAGE_OPEN",
-          "mypage:MAP_TYPE_DEFAULT",
-          "mypage:MAP_TYPE_SATELLITE"
+          "mypage:TERMS_OPEN"
         ]
       },
       "source": {
         "path": "mypage-screen.md",
-        "line": 91
+        "line": 99
       }
     },
     {
-      "uid": "mypage:TBD-02",
-      "tbdId": "TBD-02",
+      "uid": "mypage:TBD-05",
+      "tbdId": "TBD-05",
       "screenSlug": "mypage",
-      "title": "피드백/버그 신고 채널",
-      "description": "인앱 화면인지 외부 메일/폼인지 확인 필요",
+      "title": "온보딩 완료 플래그 기록 시점",
+      "description": "DataStore 키 `onboarding_completed`와 초기화는 준비됨. `true`를 쓰는 시점은 온보딩 플로우 스펙(002)에서 확정",
       "status": "open",
       "resolver": "PM",
       "impact": {
-        "featureRefs": [
-          "mypage:FEEDBACK_OPEN",
-          "mypage:BUG_REPORT_OPEN"
-        ]
+        "featureRefs": []
       },
       "source": {
         "path": "mypage-screen.md",
-        "line": 92
-      }
-    },
-    {
-      "uid": "mypage:TBD-03",
-      "tbdId": "TBD-03",
-      "screenSlug": "mypage",
-      "title": "앱 초기화 범위",
-      "description": "초기화 시 삭제되는 데이터와 유지되는 데이터 범위 확인 필요",
-      "status": "open",
-      "resolver": "PM",
-      "impact": {
-        "featureRefs": [
-          "mypage:RESET_CONFIRM_OPEN",
-          "mypage:RESET_CANCEL",
-          "mypage:RESET_CONFIRM"
-        ]
-      },
-      "source": {
-        "path": "mypage-screen.md",
-        "line": 93
+        "line": 100
       }
     },
     {
@@ -4717,8 +4692,8 @@
       "featureId": "MYPAGE_OPEN",
       "title": "마이페이지 진입",
       "behavior": {
-        "trigger": "프로필/마이페이지 액션",
-        "response": "마이페이지 기본 표시"
+        "trigger": "메인 프로필 버튼 선택",
+        "response": "하단 탭을 숨기고 마이페이지 표시"
       },
       "classification": {
         "screenSlug": "mypage",
@@ -4731,14 +4706,14 @@
           "navigation",
           "confirmed",
           "not_started",
-          "sitemap_based"
+          "figma_confirmed"
         ]
       },
       "status": {
         "spec": "confirmed",
-        "evidence": "sitemap_based",
+        "evidence": "figma_confirmed",
         "delivery": "not_started",
-        "raw": "sitemap 기반"
+        "raw": "확정"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -4755,9 +4730,7 @@
         "imageRefs": [
           "mypage:IMG-01"
         ],
-        "tbdRefs": [
-          "mypage:TBD-01"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:MAP_TYPE_DEFAULT",
@@ -4767,9 +4740,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 69,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 67,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4778,7 +4751,7 @@
       "title": "기본 지도 옵션",
       "behavior": {
         "trigger": "`기본` 선택",
-        "response": "기본 지도 옵션 제공 및 선택 가능"
+        "response": "기본 지도 설정 저장, 모든 지도에 반영 및 토스트 표시"
       },
       "classification": {
         "screenSlug": "mypage",
@@ -4789,16 +4762,16 @@
           "mypage",
           "map_setting",
           "map_interaction",
-          "partial",
+          "confirmed",
           "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
-        "spec": "partial",
+        "spec": "confirmed",
         "evidence": "figma_confirmed",
         "delivery": "not_started",
-        "raw": "옵션 확정/반영 정책 필요"
+        "raw": "확정"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -4815,9 +4788,7 @@
         "imageRefs": [
           "mypage:IMG-01"
         ],
-        "tbdRefs": [
-          "mypage:TBD-01"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:MYPAGE_OPEN",
@@ -4827,9 +4798,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 70,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 68,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -4838,7 +4809,7 @@
       "title": "위성 지도 옵션",
       "behavior": {
         "trigger": "`위성` 선택",
-        "response": "위성 지도 옵션 제공. 별도 위성 선택 상태 프레임은 확인 필요"
+        "response": "위성 지도 설정 저장, 모든 지도에 반영 및 토스트 표시"
       },
       "classification": {
         "screenSlug": "mypage",
@@ -4849,16 +4820,16 @@
           "mypage",
           "map_setting",
           "map_interaction",
-          "partial",
+          "confirmed",
           "not_started",
           "figma_confirmed"
         ]
       },
       "status": {
-        "spec": "partial",
+        "spec": "confirmed",
         "evidence": "figma_confirmed",
         "delivery": "not_started",
-        "raw": "옵션 확정/반영 정책 필요"
+        "raw": "확정"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -4875,9 +4846,7 @@
         "imageRefs": [
           "mypage:IMG-01"
         ],
-        "tbdRefs": [
-          "mypage:TBD-01"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:MYPAGE_OPEN",
@@ -4887,18 +4856,18 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 71,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 69,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
       "uid": "mypage:FEEDBACK_OPEN",
       "featureId": "FEEDBACK_OPEN",
-      "title": "피드백 보내기",
+      "title": "의견 보내기",
       "behavior": {
-        "trigger": "피드백 항목 선택",
-        "response": "피드백 화면/외부 채널 진입"
+        "trigger": "의견 보내기 행 선택",
+        "response": "유형과 내용을 입력하는 의견 바텀시트 표시"
       },
       "classification": {
         "screenSlug": "mypage",
@@ -4909,16 +4878,16 @@
           "mypage",
           "support",
           "navigation",
-          "needs_policy",
+          "confirmed",
           "not_started",
-          "mixed"
+          "figma_confirmed"
         ]
       },
       "status": {
-        "spec": "needs_policy",
-        "evidence": "mixed",
+        "spec": "confirmed",
+        "evidence": "figma_confirmed",
         "delivery": "not_started",
-        "raw": "정책 필요"
+        "raw": "확정"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -4935,9 +4904,7 @@
         "imageRefs": [
           "mypage:IMG-01"
         ],
-        "tbdRefs": [
-          "mypage:TBD-02"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:MYPAGE_OPEN",
@@ -4947,18 +4914,18 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 72,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 70,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
       "uid": "mypage:BUG_REPORT_OPEN",
       "featureId": "BUG_REPORT_OPEN",
-      "title": "버그 신고하기",
+      "title": "오류·버그 의견",
       "behavior": {
-        "trigger": "버그 신고 항목 선택",
-        "response": "버그 신고 화면/외부 채널 진입"
+        "trigger": "의견 시트에서 오류·버그 유형 선택",
+        "response": "동일 의견 전송 API를 사용하며 별도 신고 화면은 제공하지 않음"
       },
       "classification": {
         "screenSlug": "mypage",
@@ -4968,66 +4935,6 @@
         "tags": [
           "mypage",
           "support",
-          "navigation",
-          "needs_policy",
-          "not_started",
-          "mixed"
-        ]
-      },
-      "status": {
-        "spec": "needs_policy",
-        "evidence": "mixed",
-        "delivery": "not_started",
-        "raw": "정책 필요"
-      },
-      "assignment": {
-        "developer": "Unassigned",
-        "issue": null,
-        "pr": null,
-        "branch": null
-      },
-      "verification": {
-        "testStatus": "not_started",
-        "screenshotStatus": "not_started",
-        "notes": ""
-      },
-      "links": {
-        "imageRefs": [
-          "mypage:IMG-01"
-        ],
-        "tbdRefs": [
-          "mypage:TBD-02"
-        ],
-        "dependsOn": [],
-        "relatedFeatureRefs": [
-          "mypage:MYPAGE_OPEN",
-          "mypage:MAP_TYPE_DEFAULT",
-          "mypage:MAP_TYPE_SATELLITE",
-          "mypage:FEEDBACK_OPEN",
-          "mypage:TERMS_OPEN"
-        ],
-        "specPath": "mypage-screen.md",
-        "sourceLine": 73,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
-      }
-    },
-    {
-      "uid": "mypage:TERMS_OPEN",
-      "featureId": "TERMS_OPEN",
-      "title": "이용약관",
-      "behavior": {
-        "trigger": "이용약관 선택",
-        "response": "이용약관 화면 진입"
-      },
-      "classification": {
-        "screenSlug": "mypage",
-        "area": "MyPage",
-        "subarea": "terms",
-        "type": "navigation",
-        "tags": [
-          "mypage",
-          "terms",
           "navigation",
           "confirmed",
           "not_started",
@@ -5062,12 +4969,72 @@
           "mypage:MAP_TYPE_DEFAULT",
           "mypage:MAP_TYPE_SATELLITE",
           "mypage:FEEDBACK_OPEN",
+          "mypage:TERMS_OPEN"
+        ],
+        "specPath": "mypage-screen.md",
+        "sourceLine": 71,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
+      }
+    },
+    {
+      "uid": "mypage:TERMS_OPEN",
+      "featureId": "TERMS_OPEN",
+      "title": "이용약관",
+      "behavior": {
+        "trigger": "이용약관 행 선택",
+        "response": "4종 목록에서 상세 웹뷰 진입. 운영 URL 확정 필요"
+      },
+      "classification": {
+        "screenSlug": "mypage",
+        "area": "MyPage",
+        "subarea": "terms",
+        "type": "navigation",
+        "tags": [
+          "mypage",
+          "terms",
+          "navigation",
+          "partial",
+          "not_started",
+          "figma_confirmed"
+        ]
+      },
+      "status": {
+        "spec": "partial",
+        "evidence": "figma_confirmed",
+        "delivery": "not_started",
+        "raw": "화면 확정/정책 필요"
+      },
+      "assignment": {
+        "developer": "Unassigned",
+        "issue": null,
+        "pr": null,
+        "branch": null
+      },
+      "verification": {
+        "testStatus": "not_started",
+        "screenshotStatus": "not_started",
+        "notes": ""
+      },
+      "links": {
+        "imageRefs": [
+          "mypage:IMG-01"
+        ],
+        "tbdRefs": [
+          "mypage:TBD-04"
+        ],
+        "dependsOn": [],
+        "relatedFeatureRefs": [
+          "mypage:MYPAGE_OPEN",
+          "mypage:MAP_TYPE_DEFAULT",
+          "mypage:MAP_TYPE_SATELLITE",
+          "mypage:FEEDBACK_OPEN",
           "mypage:BUG_REPORT_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 74,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 72,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -5075,7 +5042,7 @@
       "featureId": "RESET_CONFIRM_OPEN",
       "title": "초기화 확인",
       "behavior": {
-        "trigger": "앱 초기화 선택",
+        "trigger": "앱 초기화 행 선택",
         "response": "초기화 확인 팝업 표시"
       },
       "classification": {
@@ -5113,18 +5080,16 @@
         "imageRefs": [
           "mypage:IMG-02"
         ],
-        "tbdRefs": [
-          "mypage:TBD-03"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:RESET_CANCEL",
           "mypage:RESET_CONFIRM"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 75,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 73,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -5132,8 +5097,8 @@
       "featureId": "RESET_CANCEL",
       "title": "초기화 취소",
       "behavior": {
-        "trigger": "이전으로 돌아가기 선택",
-        "response": "팝업 닫힘"
+        "trigger": "돌아가기 또는 닫기 선택",
+        "response": "초기화 요청 전 팝업만 닫음"
       },
       "classification": {
         "screenSlug": "mypage",
@@ -5170,18 +5135,16 @@
         "imageRefs": [
           "mypage:IMG-02"
         ],
-        "tbdRefs": [
-          "mypage:TBD-03"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:RESET_CONFIRM_OPEN",
           "mypage:RESET_CONFIRM"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 76,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 74,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {
@@ -5189,28 +5152,28 @@
       "featureId": "RESET_CONFIRM",
       "title": "초기화 실행",
       "behavior": {
-        "trigger": "초기화 선택",
-        "response": "앱 초기화 실행. 초기화 범위 확인 필요"
+        "trigger": "초기화 확인 선택",
+        "response": "서버 회원 탈퇴 성공 후 로컬 설정 초기화 및 온보딩 이동. 실패 시 기존 상태 유지"
       },
       "classification": {
         "screenSlug": "mypage",
         "area": "MyPage",
         "subarea": "reset",
-        "type": "modal_dialog",
+        "type": "navigation",
         "tags": [
           "mypage",
           "reset",
-          "modal_dialog",
-          "needs_policy",
+          "navigation",
+          "confirmed",
           "not_started",
-          "mixed"
+          "figma_confirmed"
         ]
       },
       "status": {
-        "spec": "needs_policy",
-        "evidence": "mixed",
+        "spec": "confirmed",
+        "evidence": "figma_confirmed",
         "delivery": "not_started",
-        "raw": "정책 필요"
+        "raw": "확정"
       },
       "assignment": {
         "developer": "Unassigned",
@@ -5227,18 +5190,16 @@
         "imageRefs": [
           "mypage:IMG-02"
         ],
-        "tbdRefs": [
-          "mypage:TBD-03"
-        ],
+        "tbdRefs": [],
         "dependsOn": [],
         "relatedFeatureRefs": [
           "mypage:RESET_CONFIRM_OPEN",
           "mypage:RESET_CANCEL"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 77,
-        "figmaSection": "15091:151966",
-        "specVersion": "v0.1.2"
+        "sourceLine": 75,
+        "figmaSection": "17789:52610",
+        "specVersion": "v0.2.1"
       }
     },
     {

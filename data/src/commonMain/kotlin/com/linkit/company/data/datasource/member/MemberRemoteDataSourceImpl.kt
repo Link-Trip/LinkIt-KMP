@@ -2,6 +2,7 @@ package com.linkit.company.data.datasource.member
 
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.api.MemberApi
+import com.linkit.company.data.dto.member.FcmTokenRequest
 import com.linkit.company.data.dto.member.NotificationSettingRequest
 import com.linkit.company.data.dto.member.NotificationSettingResponse
 import com.linkit.company.data.dto.member.WithdrawMemberResponse
@@ -16,6 +17,10 @@ class MemberRemoteDataSourceImpl(
 ) : MemberRemoteDataSource {
 
     private val api = ktorfit.create<MemberApi>()
+
+    override suspend fun registerFcmToken(fcmToken: String, platform: String) {
+        api.registerFcmToken(FcmTokenRequest(fcmToken = fcmToken, platform = platform))
+    }
 
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse {
         val response = api.updateNotificationSetting(NotificationSettingRequest(enabled = enabled))

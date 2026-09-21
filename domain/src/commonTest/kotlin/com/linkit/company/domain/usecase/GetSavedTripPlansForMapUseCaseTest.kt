@@ -11,6 +11,7 @@ import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.model.video.CostBasis
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
@@ -212,8 +213,8 @@ class GetSavedTripPlansForMapUseCaseTest {
         assertEquals(listOf("https://youtube.com/watch?v=trip-1"), videoRepository.requestedUrls)
         result.forEach { schedule ->
             assertEquals("제주 여행 요약", schedule.analysisSummary)
-            assertEquals(100_000, schedule.estimatedMinCost)
-            assertEquals(200_000, schedule.estimatedMaxCost)
+            assertEquals(100_000L, schedule.estimatedMinCost)
+            assertEquals(200_000L, schedule.estimatedMaxCost)
             assertEquals(CostBasis.VIDEO_MENTIONED, schedule.costBasis)
             assertEquals("https://i.ytimg.com/vi/video/hqdefault.jpg", schedule.thumbnailUrl)
             assertEquals(1, schedule.places.size)
@@ -283,7 +284,7 @@ class GetSavedTripPlansForMapUseCaseTest {
         assertEquals(1, videoRepository.requestedUrls.size)
         result.forEach { schedule ->
             assertEquals(1, schedule.places.size)
-            assertEquals(100_000, schedule.estimatedMinCost)
+            assertEquals(100_000L, schedule.estimatedMinCost)
             assertEquals("제주 여행 요약", schedule.analysisSummary)
             assertNull(schedule.thumbnailUrl)
         }
@@ -326,6 +327,8 @@ private class MapVideoRepositoryFake(
     private val analysisError: Throwable? = null,
     private val metadataError: Throwable? = null,
 ) : VideoRepository {
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
     val requestedTaskIds = mutableListOf<String>()
     val requestedUrls = mutableListOf<String>()
 

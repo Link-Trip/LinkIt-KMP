@@ -27,17 +27,17 @@ class ExploreScreenshotTest {
 
     @Test
     fun initialCountryExplore() {
-        capture(ExploreUiState(), 979.dp)
+        capture(exploreFixtureState(), 979.dp)
     }
 
     @Test
     fun japanCountryExplore() {
-        capture(ExploreUiState(selectedCountry = ExploreCountry.JAPAN), 1416.dp)
+        capture(exploreFixtureState().copy(selectedCountry = "일본"), 1416.dp)
     }
 
     @Test
     fun themeExplore() {
-        capture(ExploreUiState(selectedTab = ExploreTab.THEME), 979.dp)
+        capture(exploreFixtureState().copy(selectedTab = ExploreTab.THEME), 979.dp)
     }
 
     private fun capture(state: ExploreUiState, height: androidx.compose.ui.unit.Dp) {

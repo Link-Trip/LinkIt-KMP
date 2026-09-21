@@ -44,9 +44,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -501,10 +503,12 @@ private fun MapTopAction(
     icon: ImageVector,
     description: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 22.dp,
 ) {
     val shape = RoundedCornerShape(10.dp)
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(40.dp)
             .shadow(2.dp, shape)
             .clip(shape)
@@ -517,7 +521,7 @@ private fun MapTopAction(
             imageVector = icon,
             contentDescription = description,
             tint = LinkItTheme.color.semantic.label.strong,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
@@ -667,11 +671,14 @@ private fun BoxScope.MapBottomSheetHost(
                     stateDescription = draggableState.settledValue.name
                 },
         ) {
-            MapLocationPill(locationLabel)
+            MapLocationPill(
+                text = locationLabel,
+                onCurrentLocation = { onIntent(MapIntent.RequestCurrentLocation) },
+            )
             val sheetSurfaceSizeModifier = if (
                 content == MapSheetContent.SavedSchedules &&
-                uiState.loadState == MapLoadState.CONTENT &&
-                uiState.filteredSchedules.isNotEmpty()
+                (uiState.loadState == MapLoadState.EMPTY ||
+                    uiState.loadState == MapLoadState.CONTENT && uiState.filteredSchedules.isNotEmpty())
             ) {
                 Modifier
                     .fillMaxWidth()
@@ -1097,20 +1104,28 @@ private fun <T> FilterOptions(
 }
 
 @Composable
-private fun EmptyScheduleSheetContent(
+private fun ColumnScope.EmptyScheduleSheetContent(
     onCreateSchedule: () -> Unit,
 ) {
-    ScheduleSummaryRow(scheduleCount = 0)
-    Spacer(Modifier.height(4.dp))
-    ScheduleStateContent(
-        title = "아직 등록된 일정이 없습니다.",
-        actionLabel = "일정 생성하기",
-        onAction = onCreateSchedule,
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        visual = { EmptyScheduleIllustration() },
-    )
+            .weight(1f)
+            .verticalScroll(rememberScrollState())
+            .testTag("map-empty-schedules-scroll"),
+    ) {
+        ScheduleSummaryRow(scheduleCount = 0)
+        Spacer(Modifier.height(4.dp))
+        ScheduleStateContent(
+            title = "아직 등록된 일정이 없습니다.",
+            actionLabel = "일정 생성하기",
+            onAction = onCreateSchedule,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            visual = { EmptyScheduleIllustration() },
+        )
+    }
 }
 
 @Composable
@@ -1362,7 +1377,7 @@ private fun ColumnScope.ScheduleList(
 }
 
 @Composable
-private fun MapLocationPill(text: String) {
+private fun MapLocationPill(text: String, onCurrentLocation: () -> Unit) {
     val nanumSquare = rememberNanumSquareFontFamily()
     Box(
         modifier = Modifier.fillMaxWidth().height(MapLocationPillHeight),
@@ -1383,6 +1398,16 @@ private fun MapLocationPill(text: String) {
                 .background(LinkItTheme.color.semantic.static.white.copy(alpha = .75f))
                 .border(1.dp, LinkItTheme.color.semantic.static.white, RoundedCornerShape(100.dp))
                 .padding(horizontal = 14.dp, vertical = 8.dp),
+        )
+        MapTopAction(
+            icon = LinkItIcon.Location.MyLocation,
+            description = "현재 위치로 이동",
+            onClick = onCurrentLocation,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 16.dp)
+                .testTag("map-current-location"),
+            iconSize = 20.dp,
         )
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.linkit.company.core.designsystem.component.action.LinkItActionArea
 import com.linkit.company.core.designsystem.component.button.ButtonColor
 import com.linkit.company.core.designsystem.component.button.ButtonSize
@@ -46,13 +48,10 @@ import com.linkit.company.core.designsystem.component.navigation.TopNavigationDe
 import com.linkit.company.core.designsystem.component.textarea.LinkItTextArea
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.domain.model.video.DiscoverVideo
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import linkitcompany.feature.schedule.generated.resources.Res
-import linkitcompany.feature.schedule.generated.resources.schedule_video_1
-import linkitcompany.feature.schedule.generated.resources.schedule_video_2
-import linkitcompany.feature.schedule.generated.resources.schedule_video_3
 import linkitcompany.feature.schedule.generated.resources.schedule_video_link_hero
-import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -63,6 +62,10 @@ fun ScheduleEditScreen(
     viewModel: ScheduleViewModel = metroViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(viewModel) {
+        viewModel.onIntent(ScheduleIntent.LoadRecommendedVideos)
+    }
 
     LaunchedEffect(viewModel) {
         viewModel.sideEffect.collect { effect ->
@@ -114,6 +117,10 @@ fun ScheduleEditContent(
             ) {
                 VideoLinkHero()
                 RecommendedVideos(
+                    uiState = uiState,
+                    onRetry = { onIntent(ScheduleIntent.LoadRecommendedVideos) },
+                    onToggleExpanded = { onIntent(ScheduleIntent.ToggleRecommendedVideos) },
+                    onSelect = { onIntent(ScheduleIntent.UpdateVideoLink(it)) },
                     onCopy = { youtubeUrl ->
                         clipboardManager.setText(AnnotatedString(youtubeUrl))
                     },
@@ -158,8 +165,9 @@ private fun VideoLinkHero() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = 20.dp)
             .height(180.dp)
+            .testTag("video-link-hero")
             .clip(RoundedCornerShape(20.dp))
             .background(LinkItTheme.color.semantic.background.normal.alternative),
         contentAlignment = Alignment.Center,
@@ -175,12 +183,16 @@ private fun VideoLinkHero() {
 
 @Composable
 private fun RecommendedVideos(
+    uiState: ScheduleUiState,
+    onRetry: () -> Unit,
+    onToggleExpanded: () -> Unit,
+    onSelect: (youtubeUrl: String) -> Unit,
     onCopy: (youtubeUrl: String) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, top = 12.dp, end = 20.dp),
+            .padding(start = 20.dp, top = 24.dp, end = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -189,48 +201,99 @@ private fun RecommendedVideos(
             style = LinkItTheme.typography.label1NormalMedium,
             color = LinkItTheme.color.semantic.label.strong,
         )
-        Text(
-            text = "더보기",
+        if (uiState.recommendedVideos.size > RecommendedPreviewCount) Text(
+            text = if (uiState.areRecommendedVideosExpanded) "접기" else "더보기",
             style = LinkItTheme.typography.caption1Bold,
             color = LinkItTheme.color.semantic.primary.normal,
+            modifier = Modifier.clickable(onClick = onToggleExpanded)
+                .testTag("recommended-video-expand"),
         )
     }
 
-    LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp)
-            .testTag(RecommendedVideoListTestTag),
-        contentPadding = PaddingValues(horizontal = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(
-            items = RecommendedVideoItems,
-            key = { video -> video.youtubeUrl },
-        ) { video ->
-            RecommendedVideoCard(
-                video = video,
-                onCopy = { onCopy(video.youtubeUrl) },
+    when {
+        uiState.isLoadingRecommendedVideos -> Box(
+            Modifier.fillMaxWidth().height(130.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator(
+                color = LinkItTheme.color.semantic.primary.normal,
+                modifier = Modifier.size(24.dp).testTag("recommended-video-loading"),
             )
+        }
+        uiState.recommendedVideosError != null -> Column(
+            Modifier.fillMaxWidth().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                uiState.recommendedVideosError,
+                style = LinkItTheme.typography.caption1Regular,
+                color = LinkItTheme.color.semantic.label.alternative,
+            )
+            LinkItButton(onClick = onRetry, text = "다시 시도", size = ButtonSize.Small)
+        }
+        uiState.recommendedVideos.isEmpty() -> Text(
+            text = "추천 영상이 아직 없어요.",
+            style = LinkItTheme.typography.caption1Regular,
+            color = LinkItTheme.color.semantic.label.alternative,
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+        )
+        uiState.areRecommendedVideosExpanded -> Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)
+                .testTag(RecommendedVideoListTestTag),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            uiState.recommendedVideos.chunked(2).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { video ->
+                        RecommendedVideoCard(
+                            video = video,
+                            selectionEnabled = !uiState.isSubmittingVideoLink,
+                            onSelect = { onSelect(video.videoUrl) },
+                            onCopy = { onCopy(video.videoUrl) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+        else -> LazyRow(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+                .testTag(RecommendedVideoListTestTag),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(uiState.recommendedVideos.take(RecommendedPreviewCount), key = { it.videoId }) { video ->
+                RecommendedVideoCard(
+                    video = video,
+                    selectionEnabled = !uiState.isSubmittingVideoLink,
+                    onSelect = { onSelect(video.videoUrl) },
+                    onCopy = { onCopy(video.videoUrl) },
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun RecommendedVideoCard(
-    video: RecommendedVideo,
+    video: DiscoverVideo,
+    selectionEnabled: Boolean,
+    onSelect: () -> Unit,
     onCopy: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column(Modifier.width(160.dp)) {
+    Column(modifier.width(160.dp).clickable(enabled = selectionEnabled, onClick = onSelect).testTag("recommended-video-${video.videoId}")) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(90.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .clickable(onClick = onCopy),
+                .background(LinkItTheme.color.semantic.background.normal.alternative),
         ) {
-            Image(
-                painter = painterResource(video.thumbnail),
+            AsyncImage(
+                model = video.thumbnailUrl,
                 contentDescription = video.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
@@ -238,22 +301,24 @@ private fun RecommendedVideoCard(
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(6.dp)
+                    .padding(8.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .background(LinkItTheme.color.semantic.material.dimmer)
-                    .padding(horizontal = 5.dp, vertical = 3.dp),
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    .clickable(onClick = onCopy)
+                    .testTag("recommended-video-copy-${video.videoId}")
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     imageVector = LinkItIcon.Control.Copy,
                     contentDescription = null,
                     tint = LinkItTheme.color.semantic.static.white,
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(16.dp),
                 )
                 Text(
                     text = "링크복사",
-                    style = LinkItTheme.typography.caption2Medium,
+                    style = LinkItTheme.typography.caption1Medium,
                     color = LinkItTheme.color.semantic.static.white,
                 )
             }
@@ -264,13 +329,14 @@ private fun RecommendedVideoCard(
             color = LinkItTheme.color.semantic.label.strong,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 6.dp),
+            modifier = Modifier.padding(top = 12.dp),
         )
         Text(
-            text = video.viewCount,
+            text = "조회수 ${video.viewCount.toString().reversed().chunked(3).joinToString(",").reversed()}회",
             style = LinkItTheme.typography.caption1Medium,
             color = LinkItTheme.color.semantic.label.alternative,
             maxLines = 1,
+            modifier = Modifier.padding(top = 3.dp),
         )
     }
 }
@@ -282,15 +348,17 @@ private fun VideoLinkInput(
     onValueChange: (String) -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(start = 20.dp, top = 20.dp, end = 20.dp),
+        modifier = Modifier.padding(start = 20.dp, top = 24.dp, end = 20.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.Start,
     ) {
         LinkItButton(
             onClick = onPaste,
             text = "복사한 링크 붙여넣기",
+            enabled = !uiState.isSubmittingVideoLink,
             size = ButtonSize.Small,
             color = ButtonColor.Assistive,
+            modifier = Modifier.padding(vertical = 10.dp),
         )
         LinkItTextArea(
             value = uiState.videoLink,
@@ -382,32 +450,6 @@ private val VideoLinkError.supportingText: String
         VideoLinkError.ALREADY_IN_PROGRESS -> "이미 생성 중인 일정이 있어요. 메인 화면에서 진행 상태를 확인해 주세요."
     }
 
-private data class RecommendedVideo(
-    val title: String,
-    val viewCount: String,
-    val youtubeUrl: String,
-    val thumbnail: DrawableResource,
-)
-
-private val RecommendedVideoItems = listOf(
-    RecommendedVideo(
-        title = "유부남과 함께 오사카 좋은 놀이공원 가보기 【오사카上】",
-        viewCount = "조회수 113만회",
-        youtubeUrl = "https://youtu.be/OrGmEVTD04I",
-        thumbnail = Res.drawable.schedule_video_1,
-    ),
-    RecommendedVideo(
-        title = "\"갸루들이 안 보이네요..?\" 24년 만의 도쿄 방문기",
-        viewCount = "조회수 93만회",
-        youtubeUrl = "https://youtu.be/zt1UffHle7o",
-        thumbnail = Res.drawable.schedule_video_2,
-    ),
-    RecommendedVideo(
-        title = "유명 신혼 여행지에 혼자 당당히 여행가는 사람【몰디브】",
-        viewCount = "조회수 81만회",
-        youtubeUrl = "https://youtu.be/X4JVeFd19fU",
-        thumbnail = Res.drawable.schedule_video_3,
-    ),
-)
+private const val RecommendedPreviewCount = 3
 
 internal const val RecommendedVideoListTestTag = "recommended-video-list"

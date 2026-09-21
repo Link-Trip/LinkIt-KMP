@@ -3,6 +3,8 @@ package com.linkit.company.feature.schedule
 import com.linkit.company.core.common.architecture.contract.Intent
 
 sealed interface ScheduleIntent : Intent {
+    data object LoadRecommendedVideos : ScheduleIntent
+    data object ToggleRecommendedVideos : ScheduleIntent
     data class UpdateVideoLink(val link: String) : ScheduleIntent
     data object SubmitVideoLink : ScheduleIntent
     data object CreateDuplicateVideoSchedule : ScheduleIntent

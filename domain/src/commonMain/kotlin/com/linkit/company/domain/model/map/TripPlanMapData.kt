@@ -12,8 +12,8 @@ data class TripPlanMapData(
     /** 지도에 표시할 수 있는 장소가 없으면 null이다. */
     val center: GeoCoordinate?,
     val analysisSummary: String? = null,
-    val estimatedMinCost: Int? = null,
-    val estimatedMaxCost: Int? = null,
+    val estimatedMinCost: Long? = null,
+    val estimatedMaxCost: Long? = null,
     val costBasis: CostBasis? = null,
     val thumbnailUrl: String? = null,
 )

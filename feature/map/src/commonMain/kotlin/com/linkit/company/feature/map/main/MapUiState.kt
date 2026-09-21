@@ -90,8 +90,8 @@ data class MapScheduleUiModel(
     val centerLongitude: Double?,
     val places: List<MapPlaceUiModel>,
     val analysisSummary: String? = null,
-    val estimatedMinCost: Int? = null,
-    val estimatedMaxCost: Int? = null,
+    val estimatedMinCost: Long? = null,
+    val estimatedMaxCost: Long? = null,
     val costBasis: CostBasis? = null,
     val thumbnailUrl: String? = null,
 )

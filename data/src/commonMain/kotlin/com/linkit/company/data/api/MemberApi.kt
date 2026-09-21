@@ -1,6 +1,7 @@
 package com.linkit.company.data.api
 
 import com.linkit.company.data.dto.ApiResponse
+import com.linkit.company.data.dto.member.FcmTokenRequest
 import com.linkit.company.data.dto.member.NotificationSettingRequest
 import com.linkit.company.data.dto.member.NotificationSettingResponse
 import com.linkit.company.data.dto.member.WithdrawMemberResponse
@@ -10,6 +11,10 @@ import de.jensklingenberg.ktorfit.http.Headers
 import de.jensklingenberg.ktorfit.http.PUT
 
 internal interface MemberApi {
+
+    @PUT("members/me/fcm-token")
+    @Headers("Content-Type: application/json")
+    suspend fun registerFcmToken(@Body request: FcmTokenRequest): ApiResponse<Unit>
 
     @PUT("members/me/notification")
     @Headers("Content-Type: application/json")

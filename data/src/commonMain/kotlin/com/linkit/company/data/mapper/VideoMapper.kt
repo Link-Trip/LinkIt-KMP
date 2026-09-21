@@ -1,6 +1,7 @@
 package com.linkit.company.data.mapper
 
 import com.linkit.company.data.dto.video.DiscoverChannelResponse
+import com.linkit.company.data.dto.video.DiscoverCountryResponse
 import com.linkit.company.data.dto.video.DiscoverVideoCursorResponse
 import com.linkit.company.data.dto.video.DiscoverVideoResponse
 import com.linkit.company.data.dto.video.RecentVideoResponse
@@ -11,6 +12,7 @@ import com.linkit.company.data.dto.video.YouTubeOEmbedResponse
 import com.linkit.company.domain.model.video.CostBasis
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.place.PlaceCategory
 import com.linkit.company.domain.model.place.PlaceStatus
@@ -106,6 +108,11 @@ internal fun DiscoverChannelResponse.toDomain(): DiscoverChannel {
         recentVideos = recentVideos.map { it.toDomain() },
     )
 }
+
+internal fun DiscoverCountryResponse.toDomain(): DiscoverCountry = DiscoverCountry(
+    country = country,
+    tripPlanCount = tripPlanCount,
+)
 
 internal fun RecentVideoResponse.toDomain(): RecentVideo {
     return RecentVideo(

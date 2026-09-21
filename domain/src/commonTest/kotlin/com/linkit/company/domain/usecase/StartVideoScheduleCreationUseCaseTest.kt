@@ -8,6 +8,7 @@ import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
@@ -287,6 +288,8 @@ private class VideoRepositoryFake(
     private val status: VideoAnalysisStatus = VideoAnalysisStatus.PENDING,
     private val analysisErrors: MutableList<LinkTripApiException> = mutableListOf(),
 ) : VideoRepository {
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
     val analyzedUrls = mutableListOf<String>()
     val metadataUrls = mutableListOf<String>()
     val pendingTask = MutableStateFlow<String?>(null)

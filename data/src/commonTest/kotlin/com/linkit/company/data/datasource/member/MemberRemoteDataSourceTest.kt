@@ -18,6 +18,43 @@ import kotlinx.coroutines.runBlocking
 class MemberRemoteDataSourceTest {
 
     @Test
+    fun registerFcmTokenSendsAuthenticatedJsonAndAcceptsOmittedData() = runBlocking<Unit> {
+        var captured: HttpRequestData? = null
+        val dataSource = MemberRemoteDataSourceImpl(
+            mockKtorfit { request ->
+                captured = request
+                respondJson("""{"status":200,"message":"OK"}""")
+            },
+        )
+
+        dataSource.registerFcmToken(fcmToken = "device-token", platform = "ANDROID")
+
+        val request = checkNotNull(captured)
+        assertEquals(HttpMethod.Put, request.method)
+        assertEquals("/api/members/me/fcm-token", request.url.encodedPath)
+        assertEquals("Bearer access-token", request.headers["Authorization"])
+        assertNotNull(request.headers["Idempotency-Key"])
+        assertEquals(
+            """{"fcmToken":"device-token","platform":"ANDROID"}""",
+            (request.body as TextContent).text,
+        )
+    }
+
+    @Test
+    fun registerFcmTokenPropagatesServerValidationError() = runBlocking<Unit> {
+        val dataSource = MemberRemoteDataSourceImpl(
+            mockKtorfit { respondJson(errorBody("BAD_REQUEST_PLATFORM"), HttpStatusCode.BadRequest) },
+        )
+
+        val error = assertFailsWith<LinkTripApiException> {
+            dataSource.registerFcmToken(fcmToken = "device-token", platform = "OTHER")
+        }
+
+        assertEquals(LinkTripErrorCode.BAD_REQUEST_PLATFORM, error.errorCode)
+        assertEquals(400, error.httpStatus)
+    }
+
+    @Test
     fun withdrawReturnsDeletedTripPlanCount() = runBlocking<Unit> {
         var captured: HttpRequestData? = null
         val dataSource = MemberRemoteDataSourceImpl(

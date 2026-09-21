@@ -10,6 +10,7 @@ import com.linkit.company.domain.model.tripplan.TripPlanItem
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
@@ -132,6 +133,8 @@ private class DetailTripsFake : TripPlanRepository {
 }
 
 private class DetailVideosFake : VideoRepository {
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
     var analysisError: Exception? = null
     var metadataError: Exception? = null
     var failAnalysisOnce = false

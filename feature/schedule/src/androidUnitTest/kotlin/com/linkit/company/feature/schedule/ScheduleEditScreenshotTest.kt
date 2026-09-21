@@ -7,7 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTopPositionInRootIsEqualTo
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -37,6 +39,15 @@ class ScheduleEditScreenshotTest {
 
     @Test
     fun emptyVideoLink() = capture(ScheduleUiState())
+
+    @Test
+    fun heroStartsImmediatelyBelowNavigationAndKeepsDesignHeight() {
+        setScheduleContent(ScheduleUiState())
+
+        composeRule.onNodeWithTag("video-link-hero")
+            .assertTopPositionInRootIsEqualTo(56.dp)
+            .assertHeightIsEqualTo(180.dp)
+    }
 
     @Test
     fun filledVideoLink() = capture(
@@ -105,7 +116,13 @@ class ScheduleEditScreenshotTest {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, 812.dp)) {
-                        ScheduleEditContent(uiState = state, onIntent = {})
+                        ScheduleEditContent(
+                            uiState = state.copy(
+                                recommendedVideos = ScheduleRecommendationFixtures.take(3),
+                                isLoadingRecommendedVideos = false,
+                            ),
+                            onIntent = {},
+                        )
                     }
                 }
             }

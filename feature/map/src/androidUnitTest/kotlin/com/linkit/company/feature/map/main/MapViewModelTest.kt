@@ -12,6 +12,7 @@ import com.linkit.company.domain.repository.AppSettingsRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
@@ -39,6 +40,26 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class MapViewModelTest {
+    @Test
+    fun currentLocationRequestRetriesAfterPermissionFailureAndFocusesResolvedCoordinate() {
+        val viewModel = createViewModel()
+
+        viewModel.onIntent(MapIntent.RequestCurrentLocation)
+        assertEquals(1, viewModel.uiState.value.locationRequestToken)
+        viewModel.onIntent(MapIntent.CurrentLocationUnavailable("위치 권한을 확인해 주세요."))
+        assertEquals("위치 권한을 확인해 주세요.", viewModel.uiState.value.locationMessage)
+
+        viewModel.onIntent(MapIntent.RequestCurrentLocation)
+        assertEquals(2, viewModel.uiState.value.locationRequestToken)
+        assertNull(viewModel.uiState.value.locationMessage)
+        viewModel.onIntent(MapIntent.CurrentLocationResolved(35.6812, 139.7671))
+
+        assertEquals(35.6812, viewModel.uiState.value.currentLocationLatitude!!, 0.0)
+        assertEquals(139.7671, viewModel.uiState.value.currentLocationLongitude!!, 0.0)
+        assertEquals(1, viewModel.uiState.value.focusCurrentLocationRequest)
+        assertNull(viewModel.uiState.value.locationMessage)
+    }
+
     @Test
     fun mapDisplayTypeStaysObservedOnceAcrossScreenResumesAndTogglePersistsIt() {
         val settings = FakeAppSettingsRepository(initial = MapDisplayType.SATELLITE)
@@ -382,6 +403,8 @@ private class RecordingTripPlanRepository : TripPlanRepository {
 }
 
 private class EmptyVideoRepository : VideoRepository {
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
     val pending = MutableStateFlow<String?>(null)
     var analysis: VideoAnalysis? = null
     override fun observePendingVideoAnalysisTaskId() = pending

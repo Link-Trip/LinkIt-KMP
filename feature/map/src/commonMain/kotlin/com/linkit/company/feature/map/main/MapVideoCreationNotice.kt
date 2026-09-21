@@ -99,9 +99,9 @@ internal fun MapScheduleUiModel.estimatedCostLabel(): String {
     val minimum = estimatedMinCost?.takeIf { it >= 0 }
     val maximum = estimatedMaxCost?.takeIf { it >= 0 }
     if (minimum == null && maximum == null) return "비용 정보 없음"
-    val useTenThousand = listOfNotNull(minimum, maximum).all { it >= 10_000 && it % 10_000 == 0 }
+    val useTenThousand = listOfNotNull(minimum, maximum).all { it >= 10_000 && it % 10_000 == 0L }
     val unit = if (useTenThousand) "만원" else "원"
-    fun Int.amount() = (if (useTenThousand) this / 10_000 else this).formatAmount()
+    fun Long.amount() = (if (useTenThousand) this / 10_000 else this).formatAmount()
     return when {
         minimum == null -> "최대 ${maximum!!.amount()}$unit"
         maximum == null -> "최소 ${minimum.amount()}$unit"
@@ -111,4 +111,4 @@ internal fun MapScheduleUiModel.estimatedCostLabel(): String {
     }
 }
 
-private fun Int.formatAmount(): String = toString().reversed().chunked(3).joinToString(",").reversed()
+private fun Long.formatAmount(): String = toString().reversed().chunked(3).joinToString(",").reversed()

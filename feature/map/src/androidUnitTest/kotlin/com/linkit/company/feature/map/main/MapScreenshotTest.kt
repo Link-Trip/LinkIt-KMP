@@ -7,11 +7,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertValueEquals
+import androidx.compose.ui.test.assertWidthIsEqualTo
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -19,14 +22,17 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import org.jetbrains.compose.resources.PreviewContextConfigurationEffect
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -373,6 +379,31 @@ class MapScreenshotTest {
     )
 
     @Test
+    fun compactEmptyMapCanScrollToEntireCreateButtonWithoutMovingSheet() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapUiState(loadState = MapLoadState.EMPTY, mapCenterLocationLabel = DefaultMapCenterLabel),
+            onIntent = intents::add,
+            height = 640.dp,
+        )
+        val button = composeRule.onNodeWithText("일정 생성하기")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .assertHeightIsEqualTo(40.dp)
+        val bounds = button.fetchSemanticsNode().boundsInRoot
+        val viewport = composeRule.onNodeWithTag("map-empty-schedules-scroll").fetchSemanticsNode().boundsInRoot
+        assertTrue(bounds.top >= viewport.top)
+        assertTrue(bounds.bottom <= viewport.bottom)
+        composeRule.onNodeWithTag("map-bottom-sheet").assertValueEquals("Resting")
+        composeRule.onRoot().captureRoboImage()
+
+        button.performTouchInput { click() }
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.ToggleCreateMenu), intents)
+        }
+    }
+
+    @Test
     fun errorMap() = capture(
         state = MapUiState(
             loadState = MapLoadState.ERROR,
@@ -406,7 +437,44 @@ class MapScreenshotTest {
 
         assertEquals(1, composeRule.onAllNodesWithContentDescription("마이페이지").fetchSemanticsNodes().size)
         assertEquals(1, composeRule.onAllNodesWithContentDescription("지도 종류 변경").fetchSemanticsNodes().size)
-        assertEquals(0, composeRule.onAllNodesWithContentDescription("현재 위치로 이동").fetchSemanticsNodes().size)
+        assertEquals(1, composeRule.onAllNodesWithContentDescription("현재 위치로 이동").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun emptyMapCurrentLocationButtonMatchesFigmaAndRequestsLocation() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapUiState(loadState = MapLoadState.EMPTY, mapCenterLocationLabel = DefaultMapCenterLabel),
+            onIntent = intents::add,
+        )
+
+        val button = composeRule.onNodeWithTag("map-current-location")
+            .assertIsDisplayed()
+            .assertWidthIsEqualTo(40.dp)
+            .assertHeightIsEqualTo(40.dp)
+            .assertContentDescriptionEquals("현재 위치로 이동")
+        val bounds = button.fetchSemanticsNode().boundsInRoot
+        val sheetBounds = composeRule.onNodeWithTag("map-bottom-sheet").fetchSemanticsNode().boundsInRoot
+        assertEquals(sheetBounds.right - 16f, bounds.right, 1f)
+        assertEquals(sheetBounds.top, bounds.top, 1f)
+
+        button.performClick()
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.RequestCurrentLocation), intents)
+        }
+    }
+
+    @Test
+    fun currentLocationButtonFollowsCollapsedSheetAndStillRequestsLocation() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(state = MapTestFixtures.contentState(), onIntent = intents::add)
+        settleSheet(SheetGesture.COLLAPSE)
+
+        composeRule.onNodeWithTag("map-current-location").assertIsDisplayed().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.RequestCurrentLocation), intents)
+        }
     }
 
     @Test
@@ -440,12 +508,13 @@ class MapScreenshotTest {
     private fun setMapContent(
         state: MapUiState,
         onIntent: (MapIntent) -> Unit = {},
+        height: Dp = 744.dp,
     ) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
-                    Box(Modifier.requiredSize(375.dp, 744.dp)) {
+                    Box(Modifier.requiredSize(375.dp, height)) {
                         MapContent(uiState = state, onIntent = onIntent)
                     }
                 }

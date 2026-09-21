@@ -44,8 +44,9 @@ fun ScheduleNavDisplay(
             ) != PackageManager.PERMISSION_GRANTED
     }
     var isNotificationSheetDismissed by rememberSaveable { mutableStateOf(false) }
-    val showNotificationPermissionSheet =
+    val showNotificationPermissionSheet = {
         isNotificationPermissionMissing && isNotificationPrompted == false && !isNotificationSheetDismissed
+    }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {

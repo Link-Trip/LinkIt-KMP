@@ -720,7 +720,7 @@ private fun PlaceCategory.detailLabel(): String = when (this) {
 internal fun VideoAnalysis.detailCostLabel(): String? {
     val min = estimatedMinCost?.takeIf { it >= 0 }
     val max = estimatedMaxCost?.takeIf { it >= 0 }
-    fun Int.won() = toString().reversed().chunked(3).joinToString(",").reversed() + "원"
+    fun Long.won() = toString().reversed().chunked(3).joinToString(",").reversed() + "원"
     return when {
         min != null && max != null && min != max -> "${min.won()} ~ ${max.won()}"
         min != null && max != null -> min.won()

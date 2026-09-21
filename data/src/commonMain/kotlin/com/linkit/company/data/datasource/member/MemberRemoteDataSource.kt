@@ -4,6 +4,7 @@ import com.linkit.company.data.dto.member.NotificationSettingResponse
 import com.linkit.company.data.dto.member.WithdrawMemberResponse
 
 interface MemberRemoteDataSource {
+    suspend fun registerFcmToken(fcmToken: String, platform: String)
     suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse
     suspend fun withdraw(): WithdrawMemberResponse
 }

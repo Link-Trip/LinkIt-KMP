@@ -2,6 +2,7 @@ package com.linkit.company.domain.repository
 
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.YouTubeVideoMetadata
@@ -34,6 +35,10 @@ interface VideoRepository {
     suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo>
 
     suspend fun getDiscoverChannels(): List<DiscoverChannel>
+
+    suspend fun getDiscoverCountries(): List<DiscoverCountry>
+
+    suspend fun getDiscoverVideos(): List<DiscoverVideo>
 
     // country와 region은 서버에서 동시 전달 시 400 에러 — 메서드를 분리해 시그니처로 차단한다
     suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo>

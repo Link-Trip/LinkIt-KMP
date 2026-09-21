@@ -3,6 +3,7 @@ package com.linkit.company.data.datasource.video
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.api.VideoApi
 import com.linkit.company.data.dto.video.DiscoverChannelResponse
+import com.linkit.company.data.dto.video.DiscoverCountryResponse
 import com.linkit.company.data.dto.video.DiscoverVideoCursorResponse
 import com.linkit.company.data.dto.video.DiscoverVideoResponse
 import com.linkit.company.data.dto.video.VideoAnalyzeRequest
@@ -52,6 +53,10 @@ class VideoRemoteDataSourceImpl(
 
     override suspend fun getDiscoverChannels(): List<DiscoverChannelResponse> {
         return api.getDiscoverChannels().data?.channels.orEmpty()
+    }
+
+    override suspend fun getDiscoverCountries(): List<DiscoverCountryResponse> {
+        return api.getDiscoverCountries().data?.countries.orEmpty()
     }
 
     override suspend fun getDiscoverVideosByCategory(
