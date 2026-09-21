@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.domain.model.terms.TermsDocument
 import com.linkit.company.domain.model.terms.TermsDocumentType
 import org.jetbrains.compose.resources.PreviewContextConfigurationEffect
 import org.junit.Rule
@@ -30,14 +31,14 @@ class TermsScreenshotTest {
     /** 18287:116697 — 약관 목록 4행 */
     @Test
     fun terms_list() = capture {
-        TermsListScreen(onBack = {}, onOpenDocument = {})
+        TermsListContent(documents = SampleDocuments, onBack = {}, onOpenDocument = {})
     }
 
     /** 18287:116612 — 상세 로딩 중(웹뷰는 인스펙션 모드에서 생략) */
     @Test
     fun terms_detailLoading() = capture {
         TermsDetailContent(
-            document = TermsDocuments.find(TermsDocumentType.SERVICE),
+            document = SampleDocuments.first(),
             loadState = TermsLoadState.LOADING,
             onBack = {},
             onRetry = {},
@@ -48,10 +49,20 @@ class TermsScreenshotTest {
     @Test
     fun terms_detailError() = capture {
         TermsDetailContent(
-            document = TermsDocuments.find(TermsDocumentType.SERVICE),
+            document = SampleDocuments.first(),
             loadState = TermsLoadState.ERROR,
             onBack = {},
             onRetry = {},
+        )
+    }
+
+    private companion object {
+        /** TermsRepositoryImpl과 동일한 4종. 스크린샷은 data 모듈에 의존하지 않도록 여기서 정의한다. */
+        val SampleDocuments = listOf(
+            TermsDocument(TermsDocumentType.SERVICE, "서비스 이용약관", "https://linktrip.cloud/terms/service"),
+            TermsDocument(TermsDocumentType.PRIVACY, "개인정보 처리방침", "https://linktrip.cloud/terms/privacy"),
+            TermsDocument(TermsDocumentType.OPEN_SOURCE, "오픈소스 라이센스 고지", "https://linktrip.cloud/terms/oss"),
+            TermsDocument(TermsDocumentType.LOCATION, "위치기반 서비스 이용약관", "https://linktrip.cloud/terms/location"),
         )
     }
 

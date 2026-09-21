@@ -27,6 +27,7 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
+import com.linkit.company.domain.model.settings.MapDisplayType
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlin.math.abs
@@ -36,7 +37,7 @@ private const val MaxZoom = 21f
 
 @Composable
 internal actual fun PlatformMapBackground(
-    mapType: MapType,
+    mapType: MapDisplayType,
     modifier: Modifier,
     markers: List<MapMarkerUiModel>,
     selectedArea: MapAreaUiModel?,
@@ -164,7 +165,7 @@ internal actual fun PlatformMapBackground(
         cameraPositionState = cameraPositionState,
         contentPadding = PaddingValues(bottom = contentPaddingBottom),
         properties = MapProperties(
-            mapType = if (mapType == MapType.SATELLITE) {
+            mapType = if (mapType == MapDisplayType.SATELLITE) {
                 GoogleMapType.SATELLITE
             } else {
                 GoogleMapType.NORMAL

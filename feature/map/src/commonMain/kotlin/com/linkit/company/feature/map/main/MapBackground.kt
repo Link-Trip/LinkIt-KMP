@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
+import com.linkit.company.domain.model.settings.MapDisplayType
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.map.generated.resources.Res
 import linkitcompany.feature.map.generated.resources.map_place_photo
@@ -76,7 +77,7 @@ internal val DefaultMapCamera = MapCameraUiModel(
 
 @Composable
 internal expect fun PlatformMapBackground(
-    mapType: MapType,
+    mapType: MapDisplayType,
     modifier: Modifier,
     markers: List<MapMarkerUiModel> = emptyList(),
     selectedArea: MapAreaUiModel? = null,

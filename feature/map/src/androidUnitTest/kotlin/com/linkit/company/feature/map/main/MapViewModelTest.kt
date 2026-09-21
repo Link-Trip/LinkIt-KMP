@@ -12,6 +12,7 @@ import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
 import com.linkit.company.domain.usecase.RenameTripPlanUseCase
+import com.linkit.company.feature.map.testing.FakeAppSettingsRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -165,6 +166,7 @@ class MapViewModelTest {
                 ensureAuthenticated = ensureAuthenticated,
                 tripPlanRepository = tripPlanRepository,
             ),
+            appSettingsRepository = FakeAppSettingsRepository(),
         )
     }
 }
