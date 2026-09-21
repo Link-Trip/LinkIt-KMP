@@ -6,6 +6,10 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.linkit.company.core.designsystem.component.button.ButtonColor
+import com.linkit.company.core.designsystem.component.button.ButtonColors
+import com.linkit.company.core.designsystem.component.button.ButtonDefaults
+import com.linkit.company.core.designsystem.component.button.ButtonVariant
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 
 /** Figma "Pingo v3.0.3 - Popup"의 공통 레이아웃과 색상 규격. */
@@ -19,6 +23,7 @@ object DialogDefaults {
         bottom = 4.dp,
     )
     val ActionPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 20.dp)
+    val ActionSpacing: Dp = 8.dp
     val ContentSpacing: Dp = 4.dp
     val CloseButtonInset: Dp = 12.dp
     val CloseButtonSize: Dp = 40.dp
@@ -49,4 +54,21 @@ object DialogDefaults {
         @Composable
         @ReadOnlyComposable
         get() = LinkItTheme.color.semantic.material.dimmer
+
+    /** 파괴적 확인 액션(예: 초기화) 색. Figma Popup 의 `status/negative` 솔리드 버튼. */
+    @Composable
+    @ReadOnlyComposable
+    fun negativeConfirmColors(): ButtonColors =
+        ButtonDefaults.colors(ButtonVariant.Solid, ButtonColor.Primary).copy(
+            containerColor = LinkItTheme.color.semantic.status.negative,
+            contentColor = LinkItTheme.color.semantic.static.white,
+        )
+
+    /** 보조 액션(Outlined) 색. Figma Popup 의 `Alternative Action`(텍스트 label/normal). */
+    @Composable
+    @ReadOnlyComposable
+    fun secondaryColors(): ButtonColors =
+        ButtonDefaults.colors(ButtonVariant.Outlined, ButtonColor.Assistive).copy(
+            contentColor = LinkItTheme.color.semantic.label.normal,
+        )
 }
