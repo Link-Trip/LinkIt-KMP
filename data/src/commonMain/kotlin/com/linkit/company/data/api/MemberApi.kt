@@ -6,10 +6,15 @@ import com.linkit.company.data.dto.member.NotificationSettingResponse
 import com.linkit.company.data.dto.member.WithdrawMemberResponse
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.DELETE
+import de.jensklingenberg.ktorfit.http.GET
 import de.jensklingenberg.ktorfit.http.Headers
 import de.jensklingenberg.ktorfit.http.PUT
 
 internal interface MemberApi {
+
+    /** 알림 수신 설정 조회. 한 번도 바꾸지 않은 회원도 `enabled=true`로 내려온다. */
+    @GET("members/me/notification")
+    suspend fun getNotificationSetting(): ApiResponse<NotificationSettingResponse>
 
     @PUT("members/me/notification")
     @Headers("Content-Type: application/json")

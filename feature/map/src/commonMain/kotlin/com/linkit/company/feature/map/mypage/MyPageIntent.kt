@@ -11,6 +11,9 @@ sealed interface MyPageIntent : Intent {
     data class RefreshNotificationStatus(val enabled: Boolean?) : MyPageIntent
     data object OpenNotificationSettings : MyPageIntent
 
+    /** 기기 권한이 켜진 상태에서 앱 알림 수신 설정을 반대 값으로 바꾼다. */
+    data object ToggleNotificationEnabled : MyPageIntent
+
     data object OpenFeedbackSheet : MyPageIntent
     data object CloseFeedbackSheet : MyPageIntent
     data class SelectFeedbackType(val type: FeedbackType) : MyPageIntent

@@ -13,6 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlinx.coroutines.runBlocking
 
 class MemberRemoteDataSourceTest {
@@ -46,6 +47,39 @@ class MemberRemoteDataSourceTest {
 
         assertEquals(LinkTripErrorCode.NOT_FOUND_MEMBER, error.errorCode)
         assertEquals(404, error.httpStatus)
+    }
+
+    @Test
+    fun getNotificationSettingReturnsEnabledWithoutIdempotencyKey() = runBlocking<Unit> {
+        var captured: HttpRequestData? = null
+        val dataSource = MemberRemoteDataSourceImpl(
+            mockKtorfit { request ->
+                captured = request
+                respondJson("""{"status":200,"message":"OK","data":{"enabled":false}}""")
+            },
+        )
+
+        val response = dataSource.getNotificationSetting()
+
+        assertEquals(false, response.enabled)
+        val request = checkNotNull(captured)
+        assertEquals(HttpMethod.Get, request.method)
+        assertEquals("/api/members/me/notification", request.url.encodedPath)
+        assertNull(request.headers["Idempotency-Key"])
+    }
+
+    @Test
+    fun getNotificationSettingUnauthorizedBecomesApiException() = runBlocking<Unit> {
+        val dataSource = MemberRemoteDataSourceImpl(
+            mockKtorfit {
+                respondJson(errorBody("UNAUTHORIZED_AUTHENTICATION_FAILED"), HttpStatusCode.Unauthorized)
+            },
+        )
+
+        val error = assertFailsWith<LinkTripApiException> { dataSource.getNotificationSetting() }
+
+        assertEquals(LinkTripErrorCode.UNAUTHORIZED_AUTHENTICATION_FAILED, error.errorCode)
+        assertEquals(401, error.httpStatus)
     }
 
     @Test

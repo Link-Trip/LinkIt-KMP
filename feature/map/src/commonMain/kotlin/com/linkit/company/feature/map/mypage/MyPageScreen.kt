@@ -190,17 +190,27 @@ fun MyPageContent(
                 }
 
                 Section(MyPageStrings.SectionNotification) {
+                    // 권한이 켜져 있으면 행 전체가 수신 설정 토글, 꺼져 있으면 기기 알림 설정으로 이동한다
                     SettingRow(
                         icon = LinkItIcon.Utility.Bell,
                         text = MyPageStrings.RowNotification,
-                        onClick = { onIntent(MyPageIntent.OpenNotificationSettings) },
+                        onClick = {
+                            onIntent(
+                                if (uiState.isNotificationSwitchEnabled) {
+                                    MyPageIntent.ToggleNotificationEnabled
+                                } else {
+                                    MyPageIntent.OpenNotificationSettings
+                                },
+                            )
+                        },
                         modifier = Modifier
                             .padding(horizontal = ContentHorizontalPadding)
                             .testTag("mypage-row-notification"),
                     ) {
                         LinkItSwitch(
-                            checked = uiState.notificationStatus == NotificationStatus.ENABLED,
+                            checked = uiState.isNotificationSwitchChecked,
                             onCheckedChange = null,
+                            enabled = uiState.isNotificationSwitchEnabled,
                         )
                     }
                 }

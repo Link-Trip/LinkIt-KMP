@@ -31,7 +31,7 @@ class MyPageScreenshotTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    /** 18197:40381 — 기기 알림 꺼짐: 안내 카드 + 토글 off */
+    /** 18197:40381 — 기기 알림 꺼짐: 안내 카드 + 토글 disabled·off */
     @Test
     fun myPage_notificationDisabled() = captureScreen(
         MyPageUiState(notificationStatus = NotificationStatus.DISABLED),
@@ -41,6 +41,12 @@ class MyPageScreenshotTest {
     @Test
     fun myPage_notificationEnabled() = captureScreen(
         MyPageUiState(notificationStatus = NotificationStatus.ENABLED),
+    )
+
+    /** 기기 알림 켜짐 + 앱 수신 설정 off: 카드 없음 + 토글 enabled·off (Figma 없음, 18197:41176의 off 변형) */
+    @Test
+    fun myPage_notificationReceiveOff() = captureScreen(
+        MyPageUiState(notificationStatus = NotificationStatus.ENABLED, isNotificationEnabled = false),
     )
 
     /** 위성 선택 상태 */

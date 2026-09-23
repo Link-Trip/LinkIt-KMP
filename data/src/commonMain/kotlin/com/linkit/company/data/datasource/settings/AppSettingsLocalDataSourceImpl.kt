@@ -35,15 +35,25 @@ class AppSettingsLocalDataSourceImpl(
         dataStore.edit { it[KEY_NOTIFICATION_PROMPTED] = value }
     }
 
+    override fun observeNotificationEnabled(): Flow<Boolean?> {
+        return dataStore.data.map { it[KEY_NOTIFICATION_ENABLED] }.distinctUntilChanged()
+    }
+
+    override suspend fun saveNotificationEnabled(value: Boolean) {
+        dataStore.edit { it[KEY_NOTIFICATION_ENABLED] = value }
+    }
+
     override suspend fun clearAll() {
         dataStore.edit { preferences ->
             preferences.remove(KEY_MAP_DISPLAY_TYPE)
             preferences.remove(KEY_NOTIFICATION_PROMPTED)
+            preferences.remove(KEY_NOTIFICATION_ENABLED)
         }
     }
 
     companion object {
         private val KEY_MAP_DISPLAY_TYPE = stringPreferencesKey("map_display_type")
         private val KEY_NOTIFICATION_PROMPTED = booleanPreferencesKey("notification_prompted")
+        private val KEY_NOTIFICATION_ENABLED = booleanPreferencesKey("notification_enabled")
     }
 }

@@ -4,6 +4,7 @@ import com.linkit.company.data.dto.member.NotificationSettingResponse
 import com.linkit.company.data.dto.member.WithdrawMemberResponse
 
 interface MemberRemoteDataSource {
+    suspend fun getNotificationSetting(): NotificationSettingResponse
     suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse
     suspend fun withdraw(): WithdrawMemberResponse
 }

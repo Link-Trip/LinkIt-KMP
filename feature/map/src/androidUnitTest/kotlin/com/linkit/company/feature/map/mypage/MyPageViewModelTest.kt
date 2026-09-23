@@ -13,9 +13,10 @@ import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.FeedbackRepository
 import com.linkit.company.domain.repository.MemberRepository
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
+import com.linkit.company.domain.usecase.FetchNotificationSettingUseCase
 import com.linkit.company.domain.usecase.ResetAppUseCase
 import com.linkit.company.domain.usecase.SendFeedbackUseCase
-import com.linkit.company.domain.usecase.SyncNotificationSettingUseCase
+import com.linkit.company.domain.usecase.UpdateNotificationSettingUseCase
 import com.linkit.company.feature.map.testing.FakeAppSettingsRepository
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
@@ -25,6 +26,7 @@ import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.feature.map.testing.FakeOnboardingRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -104,7 +106,7 @@ class MyPageViewModelTest {
         viewModel.onIntent(MyPageIntent.ConfirmReset)
         idle()
 
-        assertEquals(listOf("withdraw"), member.events)
+        assertEquals(listOf("withdraw"), member.events.filter { it != "getNotification" })
         assertEquals(1, settings.clearAllCount)
         assertFalse(viewModel.uiState.value.isResetInProgress)
         assertFalse(viewModel.uiState.value.isResetDialogVisible)
@@ -248,18 +250,170 @@ class MyPageViewModelTest {
     // ---- US4 알림 ----
 
     @Test
-    fun notificationStatusSyncsToServerOnlyWhenValueChanges() {
+    fun refreshNotificationStatusOnlyUpdatesStateWithoutServerCall() {
         val member = ScriptedMemberRepository()
         val viewModel = createViewModel(member = member)
 
         viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(false))
-        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(false))
+        idle()
+        assertEquals(NotificationStatus.DISABLED, viewModel.uiState.value.notificationStatus)
         viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(true))
+        idle()
+        assertEquals(NotificationStatus.ENABLED, viewModel.uiState.value.notificationStatus)
         viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(null))
         idle()
 
         assertEquals(NotificationStatus.UNKNOWN, viewModel.uiState.value.notificationStatus)
-        assertEquals(listOf(false, true), member.notificationCalls)
+        assertTrue(member.notificationCalls.isEmpty())
+    }
+
+    @Test
+    fun initialNotificationEnabledComesFromRepository() {
+        // 서버 조회가 응답 전(Hang)이면 로컬 캐시값이 그대로 표시된다
+        val settings = FakeAppSettingsRepository(notificationEnabled = false)
+        val viewModel = createViewModel(settings = settings, member = pendingFetchMember())
+        idle()
+
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+    }
+
+    @Test
+    fun switchIsDisabledAndOffUnlessPermissionEnabled() {
+        val viewModel = createViewModel(settings = FakeAppSettingsRepository(notificationEnabled = true))
+
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(false))
+        idle()
+        assertFalse(viewModel.uiState.value.isNotificationSwitchEnabled)
+        assertFalse(viewModel.uiState.value.isNotificationSwitchChecked)
+
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(true))
+        idle()
+        assertTrue(viewModel.uiState.value.isNotificationSwitchEnabled)
+        assertTrue(viewModel.uiState.value.isNotificationSwitchChecked)
+    }
+
+    @Test
+    fun entryFetchesServerSettingIntoLocalCache() {
+        val settings = FakeAppSettingsRepository(notificationEnabled = true)
+        val member = ScriptedMemberRepository(getNotificationResults = listOf(NotificationSetting(false)))
+        val viewModel = createViewModel(settings = settings, member = member)
+        idle()
+
+        assertEquals(listOf("getNotification"), member.events)
+        assertEquals(listOf(false), settings.savedNotificationEnabled)
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+        assertTrue(effects.isEmpty())
+    }
+
+    @Test
+    fun entryFetchFailureKeepsLocalValueWithoutToast() {
+        val settings = FakeAppSettingsRepository(notificationEnabled = false)
+        val member = ScriptedMemberRepository(
+            getNotificationResults = listOf(apiException(LinkTripErrorCode.NOT_FOUND_MEMBER, 404)),
+        )
+        val viewModel = createViewModel(settings = settings, member = member)
+        idle()
+
+        assertTrue(settings.savedNotificationEnabled.isEmpty())
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+        assertTrue(effects.isEmpty())
+    }
+
+    @Test
+    fun toggleUpdatesServerThenSavesLocally() {
+        val settings = FakeAppSettingsRepository(notificationEnabled = true)
+        val member = pendingFetchMember()
+        val viewModel = createViewModel(settings = settings, member = member)
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(true))
+        idle()
+
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        idle()
+
+        assertEquals(listOf(false), member.notificationCalls)
+        assertEquals(listOf(false), settings.savedNotificationEnabled)
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+        assertFalse(viewModel.uiState.value.isNotificationUpdating)
+        assertTrue(effects.isEmpty())
+    }
+
+    @Test
+    fun toggleFailureRevertsAndShowsErrorToast() {
+        val settings = FakeAppSettingsRepository(notificationEnabled = true)
+        val member = pendingFetchMember(
+            notificationResults = listOf(apiException(LinkTripErrorCode.TOO_MANY_REQUESTS, 429)),
+        )
+        val viewModel = createViewModel(settings = settings, member = member)
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(true))
+        idle()
+
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        idle()
+
+        assertEquals(listOf(false), member.notificationCalls)
+        assertTrue(settings.savedNotificationEnabled.isEmpty())
+        assertTrue(viewModel.uiState.value.isNotificationEnabled)
+        assertFalse(viewModel.uiState.value.isNotificationUpdating)
+        assertEquals(
+            listOf(MyPageSideEffect.ShowToast(MyPageStrings.ToastNotificationFailure, MyPageToastType.ERROR)),
+            effects,
+        )
+    }
+
+    @Test
+    fun toggleIsIgnoredWhileUpdating() {
+        // 첫 반영이 응답 대기 중(Hang)일 때 재탭은 무시되고 낙관적 반영값이 유지된다
+        val member = ScriptedMemberRepository(notificationResults = listOf(Hang))
+        val viewModel = createViewModel(member = member)
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(true))
+        idle()
+
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        idle()
+        assertTrue(viewModel.uiState.value.isNotificationUpdating)
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        idle()
+
+        assertEquals(listOf(false), member.notificationCalls)
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+    }
+
+    @Test
+    fun toggleIsIgnoredWhenPermissionIsNotEnabled() {
+        val member = ScriptedMemberRepository()
+        val viewModel = createViewModel(member = member)
+
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(false))
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        idle()
+
+        assertTrue(member.notificationCalls.isEmpty())
+        assertTrue(viewModel.uiState.value.isNotificationEnabled)
+        assertTrue(effects.isEmpty())
+    }
+
+    @Test
+    fun toggleDuringEntryFetchDiscardsFetchResult() {
+        // 서버 조회가 응답 전인 상태에서 토글하면 조회를 취소하고, 뒤늦게 도착한 값은 반영하지 않는다
+        val settings = FakeAppSettingsRepository(notificationEnabled = true)
+        val gate = CompletableDeferred<NotificationSetting>()
+        val member = ScriptedMemberRepository(getNotificationGate = gate)
+        val viewModel = createViewModel(settings = settings, member = member)
+        viewModel.onIntent(MyPageIntent.RefreshNotificationStatus(true))
+        idle()
+
+        viewModel.onIntent(MyPageIntent.ToggleNotificationEnabled)
+        idle()
+        gate.complete(NotificationSetting(true))
+        idle()
+
+        assertEquals(listOf(false), member.notificationCalls)
+        assertEquals(listOf(false), settings.savedNotificationEnabled)
+        assertFalse(viewModel.uiState.value.isNotificationEnabled)
+        assertTrue(effects.isEmpty())
     }
 
     @Test
@@ -292,7 +446,8 @@ class MyPageViewModelTest {
                 tripPlanRepository = NoopTripPlanRepository(),
                 authRepository = auth,
             ),
-            syncNotificationSetting = SyncNotificationSettingUseCase(ensureAuthenticated, member),
+            updateNotificationSetting = UpdateNotificationSettingUseCase(ensureAuthenticated, member, settings),
+            fetchNotificationSetting = FetchNotificationSettingUseCase(ensureAuthenticated, member, settings),
         )
         collectJob = CoroutineScope(Dispatchers.Main.immediate).launch {
             viewModel.sideEffect.collect { effects += it }
@@ -301,6 +456,10 @@ class MyPageViewModelTest {
     }
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
+
+    /** 진입 시 서버 조회가 응답 전(Hang)인 회원 저장소. 조회 결과가 로컬 캐시를 덮지 않는 상태를 만든다. */
+    private fun pendingFetchMember(notificationResults: List<Any> = listOf(Unit)) =
+        ScriptedMemberRepository(notificationResults = notificationResults, getNotificationResults = listOf(Hang))
 
     private fun apiException(code: LinkTripErrorCode, status: Int) =
         LinkTripApiException(errorCode = code, httpStatus = status, message = code.name)
@@ -344,13 +503,32 @@ private class FixedAppInfoRepository : AppInfoRepository {
 
 private class ScriptedMemberRepository(
     withdrawResults: List<Any> = listOf(0),
+    notificationResults: List<Any> = listOf(Unit),
+    getNotificationResults: List<Any> = listOf(NotificationSetting(true)),
+    /** 지정하면 GET 응답을 이 Deferred가 완료될 때까지 보류한다. */
+    private val getNotificationGate: CompletableDeferred<NotificationSetting>? = null,
 ) : MemberRepository {
     val events = mutableListOf<String>()
     val notificationCalls = mutableListOf<Boolean>()
     private val withdrawQueue = ArrayDeque(withdrawResults)
+    private val notificationQueue = ArrayDeque(notificationResults)
+    private val getNotificationQueue = ArrayDeque(getNotificationResults)
+
+    override suspend fun getNotificationSetting(): NotificationSetting {
+        events += "getNotification"
+        if (getNotificationGate != null) return getNotificationGate.await()
+        val result = getNotificationQueue.removeFirstOrNull() ?: NotificationSetting(true)
+        if (result === Hang) awaitCancellation()
+        if (result is Throwable) throw result
+        return result as NotificationSetting
+    }
 
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting {
+        events += "notification"
         notificationCalls += enabled
+        val result = notificationQueue.removeFirstOrNull() ?: Unit
+        if (result === Hang) awaitCancellation()
+        if (result is Throwable) throw result
         return NotificationSetting(enabled)
     }
 

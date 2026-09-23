@@ -17,6 +17,11 @@ class MemberRemoteDataSourceImpl(
 
     private val api = ktorfit.create<MemberApi>()
 
+    override suspend fun getNotificationSetting(): NotificationSettingResponse {
+        val response = api.getNotificationSetting()
+        return checkNotNull(response.data) { "members/me/notification 조회 응답에 data가 없습니다" }
+    }
+
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse {
         val response = api.updateNotificationSetting(NotificationSettingRequest(enabled = enabled))
         return checkNotNull(response.data) { "members/me/notification 응답에 data가 없습니다" }

@@ -37,11 +37,20 @@ internal class RecordingAuthRepository(
 internal class ScriptedMemberRepository(
     withdrawResults: List<Any> = listOf(0),
     notificationResults: List<Any> = listOf(Unit),
+    getNotificationResults: List<Any> = listOf(NotificationSetting(enabled = true)),
 ) : MemberRepository {
     val events = mutableListOf<String>()
     val notificationCalls = mutableListOf<Boolean>()
     private val withdrawQueue = ArrayDeque(withdrawResults)
     private val notificationQueue = ArrayDeque(notificationResults)
+    private val getNotificationQueue = ArrayDeque(getNotificationResults)
+
+    override suspend fun getNotificationSetting(): NotificationSetting {
+        events += "getNotification"
+        val result = getNotificationQueue.removeFirstOrNull() ?: NotificationSetting(enabled = true)
+        if (result is Throwable) throw result
+        return result as NotificationSetting
+    }
 
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting {
         events += "notification"
@@ -65,6 +74,8 @@ internal class InMemoryAppSettingsRepository(
     val events = mutableListOf<String>()
     val mapDisplayType = MutableStateFlow(initial)
     var notificationPrompted = false
+    val notificationEnabled = MutableStateFlow(true)
+    val savedNotificationEnabled = mutableListOf<Boolean>()
     var clearAllCount = 0
         private set
     var onClearAll: () -> Unit = {}
@@ -81,12 +92,20 @@ internal class InMemoryAppSettingsRepository(
         notificationPrompted = prompted
     }
 
+    override fun observeNotificationEnabled(): Flow<Boolean> = notificationEnabled
+
+    override suspend fun setNotificationEnabled(enabled: Boolean) {
+        savedNotificationEnabled += enabled
+        notificationEnabled.value = enabled
+    }
+
     override suspend fun clearAll() {
         events += "clearAll"
         onClearAll()
         clearAllCount += 1
         mapDisplayType.value = MapDisplayType.DEFAULT
         notificationPrompted = false
+        notificationEnabled.value = true
     }
 }
 
