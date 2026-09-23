@@ -26,6 +26,7 @@ interface TermsRepository {
 }
 
 interface MemberRepository {
+    suspend fun getNotificationSetting(): NotificationSetting          // GET /members/me/notification (2026-09-23 추가)
     suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting
     suspend fun withdraw(): Int                                 // DELETE /members/me, 삭제된 여행 계획 수 반환
 }
@@ -66,6 +67,16 @@ interface AppInfoRepository {
     memberRepository: MemberRepository,
     appSettingsRepository: AppSettingsRepository,
 ) { suspend operator fun invoke(enabled: Boolean) }
+
+// 2026-09-23 추가: 서버 GET /members/me/notification 배포(TBD-06 해소). MyPageViewModel init에서 1회 호출
+// 순서: 인증 보장 → memberRepository.getNotificationSetting() (401은 forceRefresh 후 1회 재시도)
+//      → 성공 시 appSettingsRepository.setNotificationEnabled(응답 enabled)
+// CancellationException 외 예외는 삼킴(로컬 캐시 유지, 토스트 없음). ViewModel은 ToggleNotificationEnabled 시 이 Job을 취소한다
+@Inject class FetchNotificationSettingUseCase(
+    ensureAuthenticated: EnsureAuthenticatedUseCase,
+    memberRepository: MemberRepository,
+    appSettingsRepository: AppSettingsRepository,
+) { suspend operator fun invoke() }
 ```
 
 ## 3. data 계층 시그니처
@@ -75,6 +86,8 @@ interface AppInfoRepository {
 internal interface FeedbackApi { @POST("feedback") @Headers("Content-Type: application/json")
     suspend fun createFeedback(@Body request: CreateFeedbackRequest): ApiResponse<Unit> }
 internal interface MemberApi {
+    @GET("members/me/notification")
+    suspend fun getNotificationSetting(): ApiResponse<NotificationSettingResponse>   // 2026-09-23 추가
     @PUT("members/me/notification") @Headers("Content-Type: application/json")
     suspend fun updateNotificationSetting(@Body request: NotificationSettingRequest): ApiResponse<NotificationSettingResponse>
     @DELETE("members/me")
@@ -92,6 +105,7 @@ internal interface MemberApi {
 interface FeedbackRemoteDataSource { suspend fun createFeedback(type: String, content: String,
     appVersion: String, platform: String, osVersion: String, deviceModel: String) }
 interface MemberRemoteDataSource {
+    suspend fun getNotificationSetting(): NotificationSettingResponse
     suspend fun updateNotificationSetting(enabled: Boolean): NotificationSettingResponse
     suspend fun withdraw(): WithdrawMemberResponse
 }

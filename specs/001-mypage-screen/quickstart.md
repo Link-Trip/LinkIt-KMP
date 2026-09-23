@@ -48,6 +48,8 @@
 | 11a | US4 수신 off | 권한 켜진 상태에서 `알림` 행 탭 | 토글 즉시 off, 서버 `PUT` 기록 `enabled=false`, 앱 재실행 후에도 off |
 | 11b | US4 수신 off + 권한 재전환 | 11a 상태에서 기기 권한 끄고 복귀 → 다시 켜고 복귀 | 끄면 카드 + disabled·off, 켜면 카드 없음 + enabled·off(수신 설정 유지) |
 | 11c | US4 전환 실패 | 기내 모드에서 토글 탭 | 토글 원복 + `알림 설정 변경에 실패했습니다. 다시 시도해주세요.` 토스트 |
+| 11d | US4 진입 시 서버 값 반영 | 11a 상태(서버 `enabled=false`)에서 앱 삭제 → 재설치 → 온보딩 통과 → 마이페이지 진입 | 같은 기기(ANDROID_ID/identifierForVendor)라 같은 회원. 진입 2초 이내 토글 off로 갱신(서버 `GET` 로그), 재실행 후에도 off |
+| 11e | US4 조회 실패 | 기내 모드에서 마이페이지 진입 | 토스트 없음, 토글은 로컬 값 표시. 온라인 복구 후 재진입 시 서버 값 반영 |
 | 12 | US5 약관 | `이용약관` → 4개 항목 → `개인정보 처리방침` | 상세 상단 제목, 웹페이지 표시, 뒤로가기로 목록 → 마이페이지 |
 | 13 | US5 오프라인 | 기내 모드에서 약관 항목 탭 → 온라인 복구 후 `다시 시도` | 안내 + 재시도 → 웹페이지 표시 |
 
@@ -58,10 +60,14 @@ TOKEN=$(curl -s -X POST https://linktrip.cloud/api/auth/login \
   -H 'Content-Type: application/json' -H "Idempotency-Key: $(uuidgen)" \
   -d '{"serialNumber":"qa-device-001"}' | jq -r .data.accessToken)
 
-# 기존: 알림 설정 동기화
+# 기존: 알림 수신 설정 변경
 curl -s -X PUT https://linktrip.cloud/api/members/me/notification \
   -H "Authorization: Bearer $TOKEN" -H "Idempotency-Key: $(uuidgen)" \
   -H 'Content-Type: application/json' -d '{"enabled":true}'
+
+# 기존(2026-09-23 배포): 알림 수신 설정 조회 — 200 {data:{enabled}}, 한 번도 바꾸지 않은 회원도 true
+curl -s https://linktrip.cloud/api/members/me/notification \
+  -H "Authorization: Bearer $TOKEN"
 
 # 기존: 의견 전송 — 같은 날 6회째에 429 FEEDBACK_DAILY_LIMIT_EXCEEDED 기대
 curl -s -X POST https://linktrip.cloud/api/feedback \
@@ -77,5 +83,5 @@ curl -s -X DELETE https://linktrip.cloud/api/members/me \
 ## 완료 기준
 
 - 위 자동 검증 3개 태스크 통과, 스크린샷 골든 diff 없음
-- 수동 시나리오 1~13 통과 (8은 같은 날 6회 전송 필요)
+- 수동 시나리오 1~13 통과 (8은 같은 날 6회 전송 필요, 11d는 같은 기기 재설치 필요)
 - iOS 시뮬레이터에서 마이페이지 진입·지도 설정·약관 웹뷰·초기화 후 Intro 전환 확인

@@ -103,7 +103,7 @@
 
 ## Phase 6: User Story 4 - 알림 상태 확인과 기기 설정 이동 (Priority: P2)
 
-**Goal**: 기기 권한 꺼짐 시 안내 카드·토글 disabled·off, 탭 시 기기 설정, 복귀 시 갱신. 권한 켜짐 시 토글 enabled·앱 알림 수신 설정 on/off, 탭 시 전환 + 서버 반영 (FR-008~011d, contracts/member-notification-api.md)
+**Goal**: 기기 권한 꺼짐 시 안내 카드·토글 disabled·off, 탭 시 기기 설정, 복귀 시 갱신. 권한 켜짐 시 토글 enabled·앱 알림 수신 설정 on/off, 탭 시 전환 + 서버 반영, 진입 시 서버 값 조회로 로컬 동기화 (FR-008~011e, contracts/member-notification-api.md)
 
 **Independent Test**: quickstart 시나리오 10·11
 
@@ -116,15 +116,17 @@
 
 **Checkpoint (v0.2)**: 기기 알림 on/off 전환이 복귀 2초 이내 반영
 
-**2026-09-23 개정: 알림 2계층 (docs/specs/mypage-screen.md v0.3.0, research R2 개정)**
+**2026-09-23 개정: 알림 2계층 + 진입 시 서버 조회 (docs/specs/mypage-screen.md v0.3.0·v0.3.1, research R2 개정)**
 
-- [ ] T035 [US4] [DATA] `AppSettingsRepository`/`AppSettingsLocalDataSource`에 `observeNotificationEnabled(): Flow<Boolean>`(기본 true)·`setNotificationEnabled(enabled)` 추가, DataStore 키 `notification_enabled`, `clearAll()` 대상에 포함. `FakeAppSettingsRepository`·`MyPageFakes` 갱신
-- [ ] T036 [US4] [DATA] `domain/usecase/UpdateNotificationSettingUseCase.kt` + 테스트: 인증 보장 → `MemberRepository.updateNotificationSetting(enabled)`(401 시 forceRefresh 후 1회 재시도) → 성공 시 `AppSettingsRepository.setNotificationEnabled(응답 enabled)`. 실패는 전파, 로컬 미변경. 기존 `SyncNotificationSettingUseCase`와 테스트 제거
-- [ ] T037 [US4] [DATA] `MyPageUiState`에 `isNotificationEnabled`(Flow 구독)·`isNotificationUpdating` 추가, `MyPageIntent.ToggleNotificationEnabled` 추가. `RefreshNotificationStatus`에서 서버 동기화 제거. `ToggleNotificationEnabled`: `notificationStatus != ENABLED` 또는 진행 중이면 무시, 낙관적 반영 → UseCase → 실패 시 되돌림 + `ShowToast(Error, MyPageStrings.ToastNotificationFailure)`. ViewModelTest(성공/실패 되돌림/연타 무시/권한 꺼짐 무시) 갱신
-- [ ] T038 [US4] [UI] `MyPageScreen` 알림 행: `LinkItSwitch(enabled = status == ENABLED, checked = enabled && isNotificationEnabled)`. 행 탭은 `ENABLED`면 `ToggleNotificationEnabled`, 아니면 `OpenNotificationSettings`. `MyPageStrings.ToastNotificationFailure = "알림 설정 변경에 실패했습니다. 다시 시도해주세요."` 추가. 스크린샷 골든: `myPage_notificationDisabled`(disabled·off 색 반영) 재생성, `myPage_notificationReceiveOff`(ENABLED + 수신 off) 추가
-- [ ] T039 [US4] docs 동기화: `data/README.md`·`domain/README.md`에 새 키·UseCase 반영 여부 확인, quickstart 시나리오 10~11c 수동 검증
+- [x] T035 [US4] [DATA] `AppSettingsRepository`/`AppSettingsLocalDataSource`에 `observeNotificationEnabled(): Flow<Boolean>`(기본 true)·`setNotificationEnabled(enabled)` 추가, DataStore 키 `notification_enabled`, `clearAll()` 대상에 포함. `FakeAppSettingsRepository`·`MyPageFakes` 갱신
+- [x] T036 [US4] [DATA] `domain/usecase/UpdateNotificationSettingUseCase.kt` + 테스트: 인증 보장 → `MemberRepository.updateNotificationSetting(enabled)`(401 시 forceRefresh 후 1회 재시도) → 성공 시 `AppSettingsRepository.setNotificationEnabled(응답 enabled)`. 실패는 전파, 로컬 미변경. 기존 `SyncNotificationSettingUseCase`와 테스트 제거
+- [x] T036a [US4] [DATA] `GET /members/me/notification` 연결(v0.3.1, TBD-06 해소): `MemberApi.getNotificationSetting()`, `MemberRemoteDataSource(+Impl).getNotificationSetting()`, `MemberRepository(+Impl).getNotificationSetting(): NotificationSetting`. `MemberRemoteDataSourceTest`에 GET 200 `{enabled:false}` → false, 401 → `LinkTripApiException` 케이스 추가
+- [x] T036b [US4] [DATA] `domain/usecase/FetchNotificationSettingUseCase.kt` + 테스트: 인증 보장 → `MemberRepository.getNotificationSetting()`(401 시 forceRefresh 후 1회 재시도) → 성공 시 `AppSettingsRepository.setNotificationEnabled(응답 enabled)`. `CancellationException` 외 예외는 삼킴(로컬 미변경). 테스트: 성공 시 로컬 저장 / 401 재시도 / 실패 시 로컬 미변경·예외 미전파 (T036 이후)
+- [x] T037 [US4] [DATA] `MyPageUiState`에 `isNotificationEnabled`(Flow 구독)·`isNotificationUpdating` 추가, `MyPageIntent.ToggleNotificationEnabled` 추가. `RefreshNotificationStatus`에서 서버 동기화 제거. init에서 `FetchNotificationSettingUseCase`를 1회 호출(Job 보관). `ToggleNotificationEnabled`: `notificationStatus != ENABLED` 또는 진행 중이면 무시, 진행 중인 조회 Job 취소 → 낙관적 반영 → UseCase → 실패 시 되돌림 + `ShowToast(Error, MyPageStrings.ToastNotificationFailure)`. ViewModelTest(성공/실패 되돌림/연타 무시/권한 꺼짐 무시/진입 조회 반영/조회 중 토글 시 조회 결과 폐기/조회 실패 시 토스트 없음) 갱신 (T036b 이후)
+- [x] T038 [US4] [UI] `MyPageScreen` 알림 행: `LinkItSwitch(enabled = status == ENABLED, checked = enabled && isNotificationEnabled)`. 행 탭은 `ENABLED`면 `ToggleNotificationEnabled`, 아니면 `OpenNotificationSettings`. `MyPageStrings.ToastNotificationFailure = "알림 설정 변경에 실패했습니다. 다시 시도해주세요."` 추가. 스크린샷 골든: `myPage_notificationDisabled`(disabled·off 색 반영) 재생성, `myPage_notificationReceiveOff`(ENABLED + 수신 off) 추가
+- [x] T039 [US4] docs 동기화: `data/README.md`·`domain/README.md`에 새 키·UseCase 반영 여부 확인(domain/README는 알림 언급 없음), quickstart 시나리오 10~11e 수동 검증은 기기에서 별도 진행
 
-**Checkpoint**: 권한 꺼짐 → 토글 disabled + 카드 / 권한 켜짐 → 토글 enabled·수신 설정값 표시 / 토글 전환 후 재실행 유지 / 기내 모드 전환 시 되돌림 + 토스트
+**Checkpoint**: 권한 꺼짐 → 토글 disabled + 카드 / 권한 켜짐 → 토글 enabled·수신 설정값 표시 / 토글 전환 후 재실행 유지 / 기내 모드 전환 시 되돌림 + 토스트 / 재설치 후 진입 시 서버 값(off) 반영 / 기내 모드 진입 시 로컬 값 표시·토스트 없음
 
 ---
 
