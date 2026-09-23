@@ -12,6 +12,8 @@ interface AppSettingsRepository {
     suspend fun setOnboardingCompleted(completed: Boolean)
     suspend fun isNotificationPrompted(): Boolean
     suspend fun setNotificationPrompted(prompted: Boolean)
+    fun observeNotificationEnabled(): Flow<Boolean>             // 앱 알림 수신 설정, 기본값 true (2026-09-23 추가)
+    suspend fun setNotificationEnabled(enabled: Boolean)
     suspend fun clearAll()                                      // 위 키 전부 제거 (인증 키 제외)
 }
 
@@ -56,10 +58,14 @@ interface AppInfoRepository {
 //      → appSettingsRepository.clearAll() → authRepository.logout()
 // 원격 단계 예외는 로컬 변경 없이 전파 — contracts/member-withdraw-api.md
 
-@Inject class SyncNotificationSettingUseCase(
+// 2026-09-23 개정: SyncNotificationSettingUseCase(best-effort) 제거 → UpdateNotificationSettingUseCase
+// 순서: 인증 보장 → memberRepository.updateNotificationSetting(enabled) (401은 forceRefresh 후 1회 재시도)
+//      → 성공 시 appSettingsRepository.setNotificationEnabled(응답 enabled). 실패는 전파, 로컬 미변경
+@Inject class UpdateNotificationSettingUseCase(
     ensureAuthenticated: EnsureAuthenticatedUseCase,
     memberRepository: MemberRepository,
-) { suspend operator fun invoke(enabled: Boolean) }   // 모든 예외를 삼키고 반환 (CancellationException 제외)
+    appSettingsRepository: AppSettingsRepository,
+) { suspend operator fun invoke(enabled: Boolean) }
 ```
 
 ## 3. data 계층 시그니처
@@ -94,6 +100,7 @@ interface AppSettingsLocalDataSource {
     suspend fun saveMapDisplayType(value: String)
     suspend fun isOnboardingCompleted(): Boolean; suspend fun saveOnboardingCompleted(value: Boolean)
     suspend fun isNotificationPrompted(): Boolean; suspend fun saveNotificationPrompted(value: Boolean)
+    fun observeNotificationEnabled(): Flow<Boolean?>; suspend fun saveNotificationEnabled(value: Boolean)   // 키 notification_enabled, null이면 기본 true
     suspend fun clearAll()
 }
 
@@ -161,6 +168,7 @@ fun IntroViewController(appGraph: AppGraph, showResetCompletedToast: Boolean = f
 | dialog.reset.title / description | 정말 앱을 초기화 하시겠어요? / 앱을 초기화하면 다시 복구할 수 없어요 |
 | dialog.reset.confirm / cancel | 초기화 / 돌아가기 |
 | card.notification.title / body / action | 기기 알림이 꺼져있어요 / 알림이 꺼져있으면 영상 분석이 완료되어도 바로 알 수 없어요! / 설정하러 가기 |
+| toast.notification.failure | 알림 설정 변경에 실패했습니다. 다시 시도해주세요. |
 | sheet.feedback.title / body | 의견 보내기 / 보내주신 의견은 서비스 개선에 활용돼요. (개별 답변은 어려워요 🥹) 스팸 방지를 위해 하루 최대 5회까지 전송할 수 있어요! |
 | sheet.feedback.placeholder / send | 핑고를 쓰면서 느낀 점이나 발견한 문제를 알려주세요! / 보내기 |
 | terms.error / retry | 약관을 불러오지 못했어요 / 다시 시도 (Figma 미정의, FR-021a 대응) |

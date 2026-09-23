@@ -12,7 +12,7 @@ Technical Context에 NEEDS CLARIFICATION은 없었다. 아래는 Swagger(`https:
 |---|---|---|
 | 의견 전송(FR-015~018) | `POST /feedback` 존재 (2026-09-21 확인) | 서버 계약대로 구현 → [contracts/feedback-api.yaml](contracts/feedback-api.yaml). 요청 `platform: IOS\|ANDROID`, 429는 `FEEDBACK_DAILY_LIMIT_EXCEEDED`/`TOO_MANY_REQUESTS` 두 코드 |
 | 앱 초기화 서버 데이터 삭제(FR-025) | `DELETE /members/me` 회원 탈퇴 존재 (2026-09-21 확인) — 일정 전체 소프트 삭제·FCM 제거·serialNumber 마스킹을 단일 트랜잭션으로 처리 | 회원 탈퇴 1회 호출로 구현 → [contracts/member-withdraw-api.md](contracts/member-withdraw-api.md). 단건 삭제 반복 폐기 |
-| 알림 상태(FR-008~011) | `PUT /members/me/notification {enabled}` 존재, `PUT /members/me/fcm-token` 존재 | 기기 권한값을 서버에 best-effort 동기화 → [contracts/member-notification-api.md](contracts/member-notification-api.md). FCM 토큰 등록은 앱에 FCM 미도입이라 범위 밖 |
+| 알림 상태(FR-008~011d) | `PUT /members/me/notification {enabled}` 존재, GET 없음, `PUT /members/me/fcm-token` 존재 | 사용자 토글 값을 서버에 반영(실패 시 되돌림) → [contracts/member-notification-api.md](contracts/member-notification-api.md). 조회 API 부재는 TBD-06. FCM 토큰 등록은 앱에 FCM 미도입이라 범위 밖 |
 | 이용약관(FR-020~022) | 없음 | 운영 웹페이지 URL을 앱이 보유(Q3 확정). 서버 API 불필요 |
 | 지도 설정(FR-004~007) | 해당 없음(로컬 설정) | DataStore |
 
@@ -26,9 +26,10 @@ Technical Context에 NEEDS CLARIFICATION은 없었다. 아래는 Swagger(`https:
 
 ## R2. 기기 알림 상태 조회·설정 이동·서버 동기화
 
-- **Decision**: feature/map `mypage/platform`에 expect/actual 두 개. `suspend fun isAppNotificationEnabled(): Boolean` (Android `NotificationManagerCompat.areNotificationsEnabled()`, iOS `UNUserNotificationCenter.currentNotificationCenter().getNotificationSettingsWithCompletionHandler`를 `suspendCancellableCoroutine`으로 래핑) 과 `fun openAppNotificationSettings()` (Android `Settings.ACTION_APP_NOTIFICATION_SETTINGS` + `EXTRA_APP_PACKAGE`, iOS `UIApplication.openURL(openSettingsURLString)`). 화면은 `LifecycleEventEffect(ON_RESUME)`으로 재조회한다. 조회 결과가 바뀌면 `SyncNotificationSettingUseCase(enabled)`가 `MemberRepository.updateNotificationSetting(enabled)`를 호출하되 실패는 무시한다(로그만).
-- **Rationale**: 스펙상 토글은 읽기 전용 표시이며 진실은 기기 설정에 있다. 서버 알림 설정 API가 이미 있으므로 푸시 도입 시 서버가 기기 상태와 어긋나지 않도록 동기화해 두는 편이 싸다. 실패를 무시하는 이유는 UX 요구(FR-008~011)가 서버와 무관하기 때문이다.
-- **Alternatives considered**: 서버 설정값을 토글의 진실로 삼기 — 기기에서 알림을 꺼도 켜진 것으로 보여 스펙 위배. core 모듈에 두기 — 사용처가 마이페이지뿐이라 feature/map에 둔다(공용화 필요 시 core:ui로 승격).
+- **Decision**: feature/map `mypage/platform`에 expect/actual 두 개. `suspend fun isAppNotificationEnabled(): Boolean` (Android `NotificationManagerCompat.areNotificationsEnabled()`, iOS `UNUserNotificationCenter.currentNotificationCenter().getNotificationSettingsWithCompletionHandler`를 `suspendCancellableCoroutine`으로 래핑) 과 `fun openAppNotificationSettings()` (Android `Settings.ACTION_APP_NOTIFICATION_SETTINGS` + `EXTRA_APP_PACKAGE`, iOS `UIApplication.openURL(openSettingsURLString)`). 화면은 `LifecycleEventEffect(ON_RESUME)`으로 재조회한다.
+- **Decision (2026-09-23 개정, 알림 2계층)**: 기기 권한 조회는 위와 같되 서버 동기화는 하지 않는다. 앱 알림 수신 설정을 DataStore `notification_enabled`(기본 true)에 두고 `AppSettingsRepository.observeNotificationEnabled()`로 구독한다. 토글은 권한 `ENABLED`일 때만 `enabled=true`이고 `checked = isNotificationEnabled`, 그 외(`DISABLED`·`UNKNOWN`)는 `enabled=false`·off. 권한 켜진 상태의 행/토글 탭은 `ToggleNotificationEnabled` → 낙관적 반영 → `UpdateNotificationSettingUseCase(enabled)`(인증 보장 → `PUT /members/me/notification`, 401은 forceRefresh 후 1회 재시도 → 성공 시 `setNotificationEnabled`). 실패는 전파해 ViewModel이 되돌리고 `알림 설정 변경에 실패했습니다. 다시 시도해주세요.` 토스트를 낸다. 권한 꺼진 상태의 행 탭은 기존대로 기기 설정 이동. 기존 `SyncNotificationSettingUseCase`(권한값 best-effort)는 제거한다.
+- **Rationale**: 요구사항 재정의(2026-09-23)로 토글이 사용자 설정이 됐다. 서버에 조회 API가 없어 로컬을 표시 기준으로 삼되, 서버 반영 성공 후에만 저장해 로컬과 서버가 어긋나지 않게 한다. 기기 권한은 OS가 푸시 표시를 막으므로 서버에 알릴 필요가 없고, 권한 변화로 사용자 의사를 덮어쓰지 않는다.
+- **Alternatives considered**: (a) 서버 설정값을 토글의 진실로 삼기 — GET이 없어 불가, TBD-06 해소 후 재검토. (b) 로컬 먼저 저장하고 서버는 best-effort — 오프라인에서 서버와 영구히 어긋나 푸시 도입 시 사용자 의사와 다르게 동작. (c) 권한이 꺼져도 토글을 enabled로 두고 탭 시 설정 이동 — 요구사항(권한 꺼짐 시 disabled)과 충돌. (d) core 모듈에 두기 — 사용처가 마이페이지뿐이라 feature/map에 둔다(공용화 필요 시 core:ui로 승격).
 
 ## R3. 의견 보내기 API와 클라이언트 구조
 

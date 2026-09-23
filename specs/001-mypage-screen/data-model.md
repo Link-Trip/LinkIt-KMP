@@ -36,7 +36,7 @@
 `TermsDocument(type: TermsDocumentType, title: String, url: String)`. 목록 순서는 위 표 순서로 고정. URL은 data의 `TermsRepositoryImpl` 상수(운영 확정 전 자리 표시).
 
 ### member/NotificationSetting
-`NotificationSetting(enabled: Boolean)` — `PUT /members/me/notification` 응답 매핑.
+`NotificationSetting(enabled: Boolean)` — `PUT /members/me/notification` 응답 매핑. 성공 시 `enabled`를 로컬 `notification_enabled`에 저장한다.
 
 ### app/AppInfo
 `AppInfo(appVersion: String, platform: String, osVersion: String, deviceModel: String)` — 의견 전송 시 자동 첨부. `platform`은 `"ANDROID" | "IOS"`(서버 `CreateFeedbackRequest.platform` enum과 동일). 서버 길이 상한(appVersion·osVersion 20, deviceModel 50)은 data 계층이 잘라 맞춘다.
@@ -53,14 +53,15 @@
 | `map_display_type` | String(enum name) | `DEFAULT` | AppSettingsLocalDataSource | 제거 |
 | `onboarding_completed` | Boolean | false | AppSettingsLocalDataSource (Intro 종료 시 true) | 제거 |
 | `notification_prompted` | Boolean | false | AppSettingsLocalDataSource (schedule 알림 안내 표시 후 true) | 제거 |
+| `notification_enabled` | Boolean | true | AppSettingsLocalDataSource (마이페이지 토글 → 서버 PUT 성공 후 저장) | 제거 |
 
-`AppSettingsLocalDataSource.clearAll()`은 위 세 키만 제거한다(인증 키는 Auth가 책임).
+`AppSettingsLocalDataSource.clearAll()`은 위 앱 설정 키만 제거한다(인증 키는 Auth가 책임, 온보딩 키는 002에서 `OnboardingLocalDataSource`로 이관). `notification_enabled`는 `Flow`로 노출해 마이페이지가 구독한다.
 
 ## 3. 서버 리소스 (2026-09-21 Swagger 재조회 기준, 전부 배포됨)
 
 | 리소스 | 메서드 | 상태 | 용도 |
 |---|---|---|---|
-| `/members/me/notification` | PUT | 기존 | 기기 알림 허용값 best-effort 동기화 |
+| `/members/me/notification` | PUT | 기존 | 사용자가 토글로 바꾼 앱 알림 수신 설정 반영 — [contracts/member-notification-api.md](contracts/member-notification-api.md). 조회 API 없음(TBD-06) |
 | `/auth/login` | POST | 기존 | `ensureAuthenticated()` |
 | `/feedback` | POST | 기존 | 의견 전송 — [contracts/feedback-api.yaml](contracts/feedback-api.yaml) |
 | `/members/me` | DELETE | 기존 | 앱 초기화 시 회원 탈퇴(일정 전체 소프트 삭제 포함, 단일 트랜잭션) — [contracts/member-withdraw-api.md](contracts/member-withdraw-api.md) |
@@ -73,7 +74,10 @@
 | 필드 | 타입 | 초기값 | 근거 |
 |---|---|---|---|
 | `mapDisplayType` | MapDisplayType | DEFAULT | FR-004/005, Repository Flow 구독 |
-| `notificationStatus` | `UNKNOWN / ENABLED / DISABLED` | UNKNOWN | FR-008/009, Edge Case(조회 실패 시 카드 숨김·토글 off) |
+| `notificationStatus` | `UNKNOWN / ENABLED / DISABLED` | UNKNOWN | 기기 알림 권한. FR-008/009, Edge Case(조회 실패 시 카드 숨김·토글 disabled·off) |
+| `isNotificationEnabled` | Boolean | true | 앱 알림 수신 설정. Repository Flow 구독. FR-011a |
+| `isNotificationUpdating` | Boolean | false | 서버 반영 중 재탭 무시. FR-011b |
+| `notificationSwitch` (파생) | `enabled = status == ENABLED`, `checked = enabled && isNotificationEnabled` | — | FR-009/011a. UNKNOWN·DISABLED면 disabled·off |
 | `isResetDialogVisible` | Boolean | false | FR-023 |
 | `isResetInProgress` | Boolean | false | Edge Case(진행 중 팝업 조작 불가) |
 | `feedbackSheet` | `FeedbackSheetState?` | null | FR-012 (null = 닫힘) |
@@ -87,7 +91,7 @@
 | `canSend` (파생) | Boolean | — | `content.isNotBlank() && !isSending` |
 
 ### MyPageIntent
-`SelectMapDisplayType(type)`, `RefreshNotificationStatus`, `OpenNotificationSettings`, `OpenFeedbackSheet`, `CloseFeedbackSheet`, `SelectFeedbackType(type)`, `ChangeFeedbackContent(text)`, `SendFeedback`, `ShowResetDialog`, `DismissResetDialog`, `ConfirmReset`
+`SelectMapDisplayType(type)`, `RefreshNotificationStatus(enabled: Boolean?)`, `OpenNotificationSettings`, `ToggleNotificationEnabled`, `OpenFeedbackSheet`, `CloseFeedbackSheet`, `SelectFeedbackType(type)`, `ChangeFeedbackContent(text)`, `SendFeedback`, `ShowResetDialog`, `DismissResetDialog`, `ConfirmReset`
 
 ### MyPageSideEffect
 `ShowToast(message: String, variant: Success|Error)`, `NavigateToNotificationSettings`, `AppResetCompleted`
@@ -118,10 +122,22 @@ Editing ──CloseFeedbackSheet──▶ SheetClosed (전송 없음)
 
 ### 알림 상태
 ```
-진입/ON_RESUME ──RefreshNotificationStatus──▶ 플랫폼 조회
-  성공 → ENABLED | DISABLED (변경 시 SyncNotificationSettingUseCase best-effort)
-  실패 → UNKNOWN (카드 숨김, 토글 off)
+진입/ON_RESUME ──RefreshNotificationStatus──▶ 플랫폼 조회 (서버 호출 없음)
+  성공 → ENABLED (카드 숨김, 토글 enabled, checked = isNotificationEnabled)
+       | DISABLED (카드 표시, 토글 disabled·off)
+  실패 → UNKNOWN (카드 숨김, 토글 disabled·off)
 OpenNotificationSettings → NavigateToNotificationSettings(SideEffect) → 플랫폼 설정 화면
+
+행/토글 탭:
+  status != ENABLED → OpenNotificationSettings
+  status == ENABLED → ToggleNotificationEnabled
+
+ToggleNotificationEnabled (isNotificationUpdating=false일 때만):
+  isNotificationEnabled = !current, isNotificationUpdating = true (낙관적 반영)
+  UpdateNotificationSettingUseCase(!current)
+    성공 → Repository Flow가 새 값 방출, isNotificationUpdating = false
+    실패 → isNotificationEnabled = current(되돌림), isNotificationUpdating = false
+           + ShowToast(Error "알림 설정 변경에 실패했습니다. 다시 시도해주세요.")
 ```
 
 ### 지도 설정

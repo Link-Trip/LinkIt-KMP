@@ -36,7 +36,7 @@ data/src/
 │   ├── core/                 # KtorConfig (HttpClient 공통 설정·공통 헤더·에러 변환),
 │   │                         # DataStoreFactory (DataStore 생성), DeviceIdProvider (플랫폼별 기기 식별자),
 │   │                         # AppInfoProvider (플랫폼별 앱 버전·OS·기기 모델)
-│   ├── dto/                  # 서버 응답/요청 DTO (@Serializable) — 도메인별 하위 패키지(auth/, tripplan/, video/, member/, feedback/)로 그룹화
+│   ├── dto/                  # 서버 응답/요청 DTO (@Serializable) — 도메인별 하위 패키지(auth/, tripplan/, video/, member/, feedback/, terms/)로 그룹화
 │   │                         # 공통 래퍼(ApiResponse, ErrorResponse)는 dto/ 루트에 둔다
 │   ├── mapper/               # DTO → Domain 모델 변환 확장 함수
 │   ├── datasource/
@@ -198,6 +198,8 @@ API 인스턴스는 DataSourceImpl에서 `ktorfit.create<LinkApi>()`로 생성�
 | 400 | `BAD_REQUEST_DISCOVER_QUERY` | `country`/`region` 동시 사용 불가 | `GET /video/discover/category` |
 | 400 | `BAD_REQUEST_FEEDBACK_TYPE` | 지원하지 않는 의견 유형 | `POST /feedback` |
 | 400 | `BAD_REQUEST_PLATFORM` | 지원하지 않는 플랫폼(`IOS`/`ANDROID` 외) | `POST /feedback`, `PUT /members/me/fcm-token` |
+| 400 | `BAD_REQUEST_TERMS_REQUIRED` | 필수 약관 누락 | `POST /terms/agreement` |
+| 400 | `BAD_REQUEST_TERMS_TYPE` | 지원하지 않는 약관 유형 | `POST /terms/agreement` |
 | 401 | `UNAUTHORIZED_AUTHENTICATION_FAILED` | 인증 실패(토큰 없음) | 인증 필요 API 전체 |
 | 401 | `UNAUTHORIZED_TOKEN_EXPIRED` | 만료된 토큰 | 인증 필요 API 전체 |
 | 401 | `UNAUTHORIZED_TOKEN_INVALID` | 위조·손상된 토큰 | 인증 필요 API 전체 |
@@ -261,6 +263,21 @@ non-GET 요청은 `Idempotency-Key` 헤더가 **필수**다 (UUID v4 권장).
 - non-GET 요청: `Idempotency-Key`(UUID v4) 자동 첨부
 - 저장된 accessToken이 있으면: `Authorization: Bearer` 자동 첨부 (로그인 전에는 미첨부)
 - 주의: `HttpRequestRetry` 도입 시 재시도마다 Idempotency-Key가 재생성되어 멱등성이 무력화되므로, 그때는 attributes 기반으로 키를 고정해야 한다
+
+### 네트워크 로깅
+
+`defaultKtorConfig(json, enableLogging = ...)`의 `enableLogging`이 true일 때만 Ktor `Logging` 플러그인이 설치된다. 출력은 [Napier](https://github.com/AAkira/Napier)를 거치며, 플랫폼별 디버그 판정은 HttpClient를 provide하는 곳에서 넘긴다.
+
+| 플랫폼 | 판정 기준 | 플러그인 설치 위치 | Napier Antilog 등록 위치 |
+| --- | --- | --- | --- |
+| Android | `ApplicationInfo.FLAG_DEBUGGABLE` | `AndroidDataGraph.provideHttpClient` | `LinkitApplication.onCreate` |
+| iOS | `Platform.isDebugBinary` | `IosAppGraph.provideHttpClient` | `createIosAppGraph()` |
+
+- 출력 레벨은 `LogLevel.ALL`(요청·응답 헤더+바디), `Authorization` 헤더 값은 마스킹된다
+- 태그는 `LinkTrip-HTTP`. Android는 Logcat 태그 필터 `tag:LinkTrip-HTTP`, iOS는 Xcode 콘솔 검색으로 잡는다
+- Napier는 Antilog가 등록되지 않으면 아무것도 출력하지 않는다. 새 iOS 진입점을 추가할 때 `Napier.base(DebugAntilog())` 등록을 빠뜨리지 말 것
+- 테스트(`MockKtorfit`, `KtorConfigTest`)는 기본값(false)이라 로그가 출력되지 않는다
+- 앱 로그도 같은 Napier를 쓴다: `Napier.e("메시지", throwable, tag = "기능명")` 형태로 호출하고 태그는 기능 단위로 붙인다
 
 ## DTO 작성 규칙
 
@@ -424,7 +441,8 @@ class LinkLocalDataSourceImpl(
 - `DataStore<Preferences>`를 생성자 주입받는다 — 인스턴스 생성은 `core/DataStoreFactory.kt`의 `createLinkItDataStore(producePath)`로만 하며, 플랫폼별 파일 경로는 각 플랫폼 그래프(`AndroidDataGraph`/`IosAppGraph`)가 주입한다
 - **동일 파일에 DataStore 인스턴스가 2개 이상 생기면 런타임 예외**가 발생하므로, DataStore를 제공하는 `@Provides`에는 반드시 `@SingleIn(DataScope::class)`을 지정한다
 - 저장 키(`stringPreferencesKey` 등)는 Impl의 `companion object`에 정의한다
-- 현재 키: `access_token`, `device_id`(`AuthLocalDataSourceImpl`), `map_display_type`, `onboarding_completed`, `notification_prompted`(`AppSettingsLocalDataSourceImpl`). 앱 초기화는 `AppSettingsLocalDataSource.clearAll()`로 뒤 세 키만 지우고, 토큰은 `AuthRepository.logout()`이 지운다. `device_id`는 유지한다
+- 현재 키: `access_token`, `device_id`(`AuthLocalDataSourceImpl`), `map_display_type`, `notification_prompted`(`AppSettingsLocalDataSourceImpl`), `onboarding_completed`, `terms_agreed_at`(`OnboardingLocalDataSourceImpl`), `unchecked_trip_plan_ids`(`TripPlanLocalDataSourceImpl`, String Set). 튜토리얼 단계는 `OnboardingLocalDataSourceImpl`이 메모리 `MutableStateFlow`로만 보유하므로 그 Impl은 `@SingleIn(DataScope::class)`이 필수다(여러 Activity가 같은 인스턴스를 봐야 함). `TermsRepositoryImpl`도 `GET /terms`로 받은 `detailUrl`을 메모리에 보관해 상수 주소를 덮어쓰므로 `@SingleIn`이다
+- 앱 초기화(`ResetAppUseCase`)는 `AppSettingsLocalDataSource.clearAll()`(2키) → `OnboardingLocalDataSource.clearAll()`(2키 + 단계 null) → `TripPlanLocalDataSource.clearUnchecked()` 순으로 지우고, 토큰은 `AuthRepository.logout()`이 지운다. `device_id`는 유지한다
 
 ### Metro 바인딩 등록
 

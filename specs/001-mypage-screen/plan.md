@@ -11,7 +11,7 @@
 마이페이지(Figma Pingo v3.0.3, 2026-03-12)를 스펙대로 완성한다. 기존 `feature/map/mypage`의 화면 골격(지도 설정 카드, 초기화 팝업)은 유지하고, 다음을 추가·교체한다.
 
 - **지도 설정 영속화**: DataStore에 저장하고 `Flow`로 관찰해 메인 지도·장소 상세 등 모든 지도 화면이 같은 값을 쓴다. 변경 토스트를 표시한다.
-- **알림 상태**: 기기 알림 허용 여부를 읽어 안내 카드·토글을 표시하고, 탭 시 기기 알림 설정 화면으로 이동한다. 복귀 시 갱신하며, 서버 `PUT /members/me/notification`에 best-effort로 동기화한다.
+- **알림 상태** (2026-09-23 개정): 기기 알림 권한이 꺼져 있으면 안내 카드와 disabled·off 토글을 표시하고 탭 시 기기 알림 설정 화면으로 이동한다. 권한이 켜져 있으면 토글이 enabled이고 앱 알림 수신 설정(DataStore `notification_enabled`)에 따라 on/off를 표시하며, 탭 시 전환하고 서버 `PUT /members/me/notification`에 반영한다(실패 시 되돌림 + 토스트). 복귀 시 권한을 재조회한다.
 - **의견 보내기**: 바텀시트(유형 칩·200자 입력·보내기)와 완료/초과/실패 토스트. 서버 `POST /feedback`(2026-09-21 배포 확인) 계약대로 구현한다.
 - **이용약관**: 목록 화면과 상세 웹뷰 화면(expect/actual). 로딩·실패·재시도 상태를 가진다.
 - **앱 초기화**: 서버 `DELETE /members/me` 회원 탈퇴(2026-09-21 배포 확인, 일정 전체 소프트 삭제 포함 단일 트랜잭션) → 로컬 DataStore 초기화 → 로그아웃(토큰 폐기) → 온보딩 시작 화면으로 이동 + 완료 토스트. 재로그인 시 새 회원으로 시작한다.
@@ -24,7 +24,7 @@
 
 **Primary Dependencies**: Metro DI 0.10.4(+ MetroX ViewModel/Compose), Ktor + Ktorfit(API), kotlinx.serialization, AndroidX DataStore Preferences(KMP), Navigation3(멀티 백스택), Google Maps Compose(Android) / MapKit(iOS), Roborazzi(스크린샷 테스트), Robolectric
 
-**Storage**: DataStore Preferences 단일 파일 `linkit.preferences_pb`(access_token, device_id 기존) — 이번에 `map_display_type`, `onboarding_completed`, `notification_prompted` 키 추가. 서버 데이터는 LinkTrip API(여행 계획)
+**Storage**: DataStore Preferences 단일 파일 `linkit.preferences_pb`(access_token, device_id 기존) — 이번에 `map_display_type`, `onboarding_completed`, `notification_prompted` 키 추가, 2026-09-23 `notification_enabled` 추가. 서버 데이터는 LinkTrip API(여행 계획)
 
 **Testing**: `kotlin-test`(domain/data commonTest, Ktor MockEngine), Robolectric + JUnit4(feature androidUnitTest, ViewModel 테스트), Roborazzi(스크린샷 골든)
 
