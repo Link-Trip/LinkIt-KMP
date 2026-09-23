@@ -17,6 +17,14 @@ import com.linkit.company.domain.usecase.ResetAppUseCase
 import com.linkit.company.domain.usecase.SendFeedbackUseCase
 import com.linkit.company.domain.usecase.SyncNotificationSettingUseCase
 import com.linkit.company.feature.map.testing.FakeAppSettingsRepository
+import com.linkit.company.domain.model.common.CursorPage
+import com.linkit.company.domain.model.tripplan.TripPlanDetail
+import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
+import com.linkit.company.domain.model.tripplan.TripPlanSummary
+import com.linkit.company.domain.repository.TripPlanRepository
+import com.linkit.company.feature.map.testing.FakeOnboardingRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -276,7 +284,14 @@ class MyPageViewModelTest {
         val viewModel = MyPageViewModel(
             appSettingsRepository = settings,
             sendFeedback = SendFeedbackUseCase(ensureAuthenticated, feedback, FixedAppInfoRepository()),
-            resetApp = ResetAppUseCase(ensureAuthenticated, member, settings, auth),
+            resetApp = ResetAppUseCase(
+                ensureAuthenticated = ensureAuthenticated,
+                memberRepository = member,
+                appSettingsRepository = settings,
+                onboardingRepository = FakeOnboardingRepository(),
+                tripPlanRepository = NoopTripPlanRepository(),
+                authRepository = auth,
+            ),
             syncNotificationSetting = SyncNotificationSettingUseCase(ensureAuthenticated, member),
         )
         collectJob = CoroutineScope(Dispatchers.Main.immediate).launch {
@@ -293,6 +308,29 @@ class MyPageViewModelTest {
 
 /** 스크립트 결과에 넣으면 해당 호출이 취소될 때까지 대기한다. */
 private object Hang
+
+private class NoopTripPlanRepository : TripPlanRepository {
+    override suspend fun getTripPlans(cursor: String?): CursorPage<TripPlanSummary> =
+        CursorPage(items = emptyList(), nextCursor = null, hasNext = false)
+
+    override suspend fun getTripPlan(tripPlanId: String): TripPlanDetail = error("Not used")
+
+    override suspend fun updateTripPlan(
+        tripPlanId: String,
+        title: String?,
+        items: List<TripPlanItemOrder>?,
+    ): TripPlanDetail = error("Not used")
+
+    override suspend fun deleteTripPlan(tripPlanId: String) = Unit
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = MutableStateFlow(emptySet())
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = Unit
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) = Unit
+
+    override suspend fun clearUncheckedTripPlans() = Unit
+}
 
 private class AlwaysLoggedInAuthRepository : AuthRepository {
     override suspend fun login(): Auth = Auth("member-id", "access-token")

@@ -763,7 +763,7 @@ class MapBottomSheetGestureTest {
         const val DurationFilterPopupTag = "map-filter-duration-popup"
         const val EmptySummaryLabel = "총 0개 일정"
         const val LatestSortLabel = "최신순"
-        const val EmptyStateTitle = "아직 등록된 일정이 없습니다."
+        const val EmptyStateTitle = "저장된 일정이 없어요"
         const val ErrorStateTitle = "일정을 불러오지 못했어요"
 
         // Figma's 380.dp ruler includes the 76.dp bottom navigation outside MapContent.

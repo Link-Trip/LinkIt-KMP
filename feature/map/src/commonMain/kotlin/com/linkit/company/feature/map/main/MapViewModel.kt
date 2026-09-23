@@ -7,8 +7,13 @@ import com.linkit.company.core.common.architecture.MviContext
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.exception.LinkTripErrorCode
 import com.linkit.company.domain.model.map.TripPlanMapData
+import com.linkit.company.domain.model.onboarding.OnboardingCompletion
+import com.linkit.company.domain.model.onboarding.TutorialStep
 import com.linkit.company.domain.model.settings.MapDisplayType
 import com.linkit.company.domain.repository.AppSettingsRepository
+import com.linkit.company.domain.repository.OnboardingRepository
+import com.linkit.company.domain.repository.TripPlanRepository
+import com.linkit.company.domain.usecase.CompleteOnboardingUseCase
 import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
@@ -31,6 +36,9 @@ class MapViewModel(
     private val renameTripPlan: RenameTripPlanUseCase,
     private val deleteTripPlan: DeleteTripPlanUseCase,
     private val appSettingsRepository: AppSettingsRepository,
+    private val onboardingRepository: OnboardingRepository,
+    private val tripPlanRepository: TripPlanRepository,
+    private val completeOnboarding: CompleteOnboardingUseCase,
 ) : ViewModel() {
     private val container = MviContainer<MapIntent, MapSideEffect, MapUiState>(
         initialState = MapUiState(),
@@ -45,6 +53,8 @@ class MapViewModel(
     init {
         loadSchedules()
         observeMapDisplayType()
+        observeTutorialStep()
+        observeUncheckedTripPlanIds()
     }
 
     fun onIntent(intent: MapIntent) = container.intent(intent)
@@ -70,12 +80,13 @@ class MapViewModel(
             MapIntent.ClosePlace -> reduce { copy(selectedPlaceMarkerId = null) }
             MapIntent.ShowPreviousPlace -> selectAdjacentPlace(offset = -1)
             MapIntent.ShowNextPlace -> selectAdjacentPlace(offset = 1)
-            MapIntent.ToggleCreateMenu -> reduce {
-                copy(
-                    isCreateMenuExpanded = !isCreateMenuExpanded,
-                    expandedScheduleMenuId = null,
-                )
+            MapIntent.ToggleCreateMenu -> toggleCreateMenu()
+            MapIntent.SelectCreateFromVideo -> selectCreateFromVideo()
+            is MapIntent.ScheduleOpened -> viewModelScope.launch {
+                runCatching { tripPlanRepository.markTripPlanChecked(intent.scheduleId) }
             }
+            MapIntent.SkipOnboarding -> skipOnboarding()
+            MapIntent.RefreshSchedules -> loadSchedules()
             is MapIntent.ToggleScheduleMenu -> reduce {
                 if (schedules.any { it.id == intent.scheduleId }) {
                     copy(
@@ -174,6 +185,72 @@ class MapViewModel(
                     this
                 }
             }
+        }
+    }
+
+    /**
+     * 튜토리얼 단계는 저장소(메모리 Flow)가 단일 출처다. 인트로·일정 Activity가 바꾼 값이 여기로 들어온다.
+     * 단계가 `null`로 돌아오면(완료·건너뛰기) 튜토리얼에서 만든 일정이 보이도록 목록을 다시 읽는다 (research R8).
+     */
+    private fun observeTutorialStep() {
+        viewModelScope.launch {
+            onboardingRepository.observeTutorialStep().collect { step ->
+                val previous = container.uiState.value.tutorialStep
+                container.mviContext.reduce {
+                    copy(
+                        tutorialStep = step,
+                        isCreateMenuExpanded = if (step == null) false else isCreateMenuExpanded,
+                    )
+                }
+                if (previous != null && step == null) loadSchedules()
+            }
+        }
+    }
+
+    /** `확인전` 집합을 관찰해 카드 강조를 갱신한다. 목록에 없는 새 id가 들어오면 목록을 다시 읽는다 (FR-029, FR-030). */
+    private fun observeUncheckedTripPlanIds() {
+        viewModelScope.launch {
+            tripPlanRepository.observeUncheckedTripPlanIds().collect { ids ->
+                val current = container.uiState.value
+                val hasUnknownId = current.loadState != MapLoadState.LOADING &&
+                    ids.any { id -> current.schedules.none { it.id == id } }
+                container.mviContext.reduce {
+                    copy(
+                        uncheckedScheduleIds = ids,
+                        schedules = schedules.map { it.copy(isUnchecked = it.id in ids) },
+                    )
+                }
+                if (hasUnknownId) loadSchedules()
+            }
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.toggleCreateMenu() {
+        val opening = !currentState.isCreateMenuExpanded
+        reduce { copy(isCreateMenuExpanded = opening, expandedScheduleMenuId = null) }
+        // 튜토리얼 1단계: FAB 탭으로 메뉴가 열리면 2단계로 (FR-017)
+        if (opening && currentState.tutorialStep == TutorialStep.CREATE_BUTTON) {
+            viewModelScope.launch {
+                runCatching { onboardingRepository.setTutorialStep(TutorialStep.VIDEO_LINK_OPTION) }
+            }
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.selectCreateFromVideo() {
+        reduce { copy(isCreateMenuExpanded = false, expandedScheduleMenuId = null) }
+        // 튜토리얼 2단계: `영상 링크로 만들기` 선택으로 3단계(링크 복사)로. 화면 이동은 호출부가 이어서 한다
+        if (currentState.tutorialStep == TutorialStep.VIDEO_LINK_OPTION) {
+            viewModelScope.launch {
+                runCatching { onboardingRepository.setTutorialStep(TutorialStep.COPY_LINK) }
+            }
+        }
+    }
+
+    private fun MviContext<MapUiState, MapSideEffect>.skipOnboarding() {
+        if (currentState.tutorialStep == null) return
+        reduce { copy(isCreateMenuExpanded = false) }
+        viewModelScope.launch {
+            runCatching { completeOnboarding(OnboardingCompletion.SKIPPED_IN_TUTORIAL) }
         }
     }
 
@@ -410,7 +487,10 @@ class MapViewModel(
     }
 
     private fun showSchedules(mapData: List<TripPlanMapData>) {
-        val schedules = mapData.map(TripPlanMapData::toMapScheduleUiModel)
+        val uncheckedIds = container.uiState.value.uncheckedScheduleIds
+        val schedules = mapData.map { data ->
+            data.toMapScheduleUiModel().let { it.copy(isUnchecked = it.id in uncheckedIds) }
+        }
         val firstCenter = schedules.firstOrNull {
             it.centerLatitude != null && it.centerLongitude != null
         }

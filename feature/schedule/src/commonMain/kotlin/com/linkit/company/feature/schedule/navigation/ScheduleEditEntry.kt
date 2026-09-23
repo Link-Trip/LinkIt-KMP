@@ -3,8 +3,8 @@ package com.linkit.company.feature.schedule.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.linkit.company.core.navigation.LinkItNavKey
-import com.linkit.company.feature.schedule.ScheduleAnalysisLoadingScreen
 import com.linkit.company.feature.schedule.ScheduleAnalysisCompleteScreen
+import com.linkit.company.feature.schedule.ScheduleAnalysisLoadingScreen
 import com.linkit.company.feature.schedule.ScheduleEditScreen
 import com.linkit.company.feature.schedule.ScheduleTripDetailScreen
 
@@ -15,13 +15,16 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
     showNotificationPermissionSheet: Boolean,
     onAllowNotifications: () -> Unit,
     onDismissNotificationPrompt: () -> Unit,
-    onConfirmAnalysis: () -> Unit,
+    onNavigateToAnalysisComplete: () -> Unit,
+    onFinishOnboarding: () -> Unit,
     onBack: () -> Unit,
 ) {
     entry<LinkItNavKey.ScheduleEdit> {
         ScheduleEditScreen(
             onCreateSchedule = onCreateSchedule,
             onOpenExistingSchedule = onOpenExistingSchedule,
+            onNavigateToAnalysisComplete = onNavigateToAnalysisComplete,
+            onFinishOnboarding = onFinishOnboarding,
             onBack = onBack,
         )
     }
@@ -39,7 +42,7 @@ fun EntryProviderScope<NavKey>.scheduleEditEntry(
     }
 
     entry<LinkItNavKey.ScheduleAnalysisComplete> {
-        ScheduleAnalysisCompleteScreen(onConfirm = onConfirmAnalysis)
+        ScheduleAnalysisCompleteScreen(onFinish = onFinishOnboarding)
     }
 
     entry<LinkItNavKey.ScheduleTripDetail> { route ->
