@@ -1,6 +1,7 @@
 package com.linkit.company.data
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.provider.Settings
 import androidx.datastore.core.DataStore
@@ -25,11 +26,13 @@ import kotlinx.serialization.json.Json
 interface AndroidDataGraph {
     @Provides
     fun provideHttpClient(
+        context: Context,
         json: Json,
         authLocalDataSource: AuthLocalDataSource,
     ): HttpClient {
+        val isDebuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         return HttpClient(engineFactory = OkHttp) {
-            defaultKtorConfig(json) { authLocalDataSource.getAccessToken() }
+            defaultKtorConfig(json, enableLogging = isDebuggable) { authLocalDataSource.getAccessToken() }
         }
     }
 

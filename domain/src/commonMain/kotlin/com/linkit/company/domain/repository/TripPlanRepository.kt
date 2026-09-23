@@ -4,6 +4,7 @@ import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
+import kotlinx.coroutines.flow.Flow
 
 interface TripPlanRepository {
 
@@ -25,4 +26,18 @@ interface TripPlanRepository {
     ): TripPlanDetail
 
     suspend fun deleteTripPlan(tripPlanId: String)
+
+    // ---- 확인전/확인후 (기기 로컬 상태, research R2) ----
+
+    /** 아직 상세를 열지 않은 `확인전` 일정 id 집합. */
+    fun observeUncheckedTripPlanIds(): Flow<Set<String>>
+
+    /** 새로 생성된 일정을 `확인전`으로 표시한다. */
+    suspend fun markTripPlanUnchecked(tripPlanId: String)
+
+    /** 상세를 열어 `확인후`로 바꾼다. 이후 다시 강조하지 않는다. */
+    suspend fun markTripPlanChecked(tripPlanId: String)
+
+    /** 앱 초기화 시 집합을 비운다. */
+    suspend fun clearUncheckedTripPlans()
 }

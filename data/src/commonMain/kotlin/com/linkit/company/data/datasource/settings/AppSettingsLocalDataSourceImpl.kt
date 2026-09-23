@@ -27,14 +27,6 @@ class AppSettingsLocalDataSourceImpl(
         dataStore.edit { it[KEY_MAP_DISPLAY_TYPE] = value }
     }
 
-    override suspend fun isOnboardingCompleted(): Boolean {
-        return dataStore.data.first()[KEY_ONBOARDING_COMPLETED] ?: false
-    }
-
-    override suspend fun saveOnboardingCompleted(value: Boolean) {
-        dataStore.edit { it[KEY_ONBOARDING_COMPLETED] = value }
-    }
-
     override suspend fun isNotificationPrompted(): Boolean {
         return dataStore.data.first()[KEY_NOTIFICATION_PROMPTED] ?: false
     }
@@ -46,14 +38,12 @@ class AppSettingsLocalDataSourceImpl(
     override suspend fun clearAll() {
         dataStore.edit { preferences ->
             preferences.remove(KEY_MAP_DISPLAY_TYPE)
-            preferences.remove(KEY_ONBOARDING_COMPLETED)
             preferences.remove(KEY_NOTIFICATION_PROMPTED)
         }
     }
 
     companion object {
         private val KEY_MAP_DISPLAY_TYPE = stringPreferencesKey("map_display_type")
-        private val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         private val KEY_NOTIFICATION_PROMPTED = booleanPreferencesKey("notification_prompted")
     }
 }

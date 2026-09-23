@@ -64,21 +64,15 @@ internal class InMemoryAppSettingsRepository(
 ) : AppSettingsRepository {
     val events = mutableListOf<String>()
     val mapDisplayType = MutableStateFlow(initial)
-    var onboardingCompleted = false
     var notificationPrompted = false
     var clearAllCount = 0
         private set
+    var onClearAll: () -> Unit = {}
 
     override fun observeMapDisplayType(): Flow<MapDisplayType> = mapDisplayType
 
     override suspend fun setMapDisplayType(type: MapDisplayType) {
         mapDisplayType.value = type
-    }
-
-    override suspend fun isOnboardingCompleted(): Boolean = onboardingCompleted
-
-    override suspend fun setOnboardingCompleted(completed: Boolean) {
-        onboardingCompleted = completed
     }
 
     override suspend fun isNotificationPrompted(): Boolean = notificationPrompted
@@ -89,9 +83,9 @@ internal class InMemoryAppSettingsRepository(
 
     override suspend fun clearAll() {
         events += "clearAll"
+        onClearAll()
         clearAllCount += 1
         mapDisplayType.value = MapDisplayType.DEFAULT
-        onboardingCompleted = false
         notificationPrompted = false
     }
 }
