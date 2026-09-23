@@ -11,7 +11,7 @@
 마이페이지(Figma Pingo v3.0.3, 2026-03-12)를 스펙대로 완성한다. 기존 `feature/map/mypage`의 화면 골격(지도 설정 카드, 초기화 팝업)은 유지하고, 다음을 추가·교체한다.
 
 - **지도 설정 영속화**: DataStore에 저장하고 `Flow`로 관찰해 메인 지도·장소 상세 등 모든 지도 화면이 같은 값을 쓴다. 변경 토스트를 표시한다.
-- **알림 상태** (2026-09-23 개정): 기기 알림 권한이 꺼져 있으면 안내 카드와 disabled·off 토글을 표시하고 탭 시 기기 알림 설정 화면으로 이동한다. 권한이 켜져 있으면 토글이 enabled이고 앱 알림 수신 설정(DataStore `notification_enabled`)에 따라 on/off를 표시하며, 탭 시 전환하고 서버 `PUT /members/me/notification`에 반영한다(실패 시 되돌림 + 토스트). 복귀 시 권한을 재조회한다.
+- **알림 상태** (2026-09-23 개정): 기기 알림 권한이 꺼져 있으면 안내 카드와 disabled·off 토글을 표시하고 탭 시 기기 알림 설정 화면으로 이동한다. 권한이 켜져 있으면 토글이 enabled이고 앱 알림 수신 설정(DataStore `notification_enabled`)에 따라 on/off를 표시하며, 탭 시 전환하고 서버 `PUT /members/me/notification`에 반영한다(실패 시 되돌림 + 토스트). 복귀 시 권한을 재조회한다. 진입 시 `GET /members/me/notification`(2026-09-23 배포 확인)으로 수신 설정을 읽어 로컬을 서버 값에 맞춘다(실패는 무시, 조회 중 토글 조작 시 조회 취소).
 - **의견 보내기**: 바텀시트(유형 칩·200자 입력·보내기)와 완료/초과/실패 토스트. 서버 `POST /feedback`(2026-09-21 배포 확인) 계약대로 구현한다.
 - **이용약관**: 목록 화면과 상세 웹뷰 화면(expect/actual). 로딩·실패·재시도 상태를 가진다.
 - **앱 초기화**: 서버 `DELETE /members/me` 회원 탈퇴(2026-09-21 배포 확인, 일정 전체 소프트 삭제 포함 단일 트랜잭션) → 로컬 DataStore 초기화 → 로그아웃(토큰 폐기) → 온보딩 시작 화면으로 이동 + 완료 토스트. 재로그인 시 새 회원으로 시작한다.
@@ -71,7 +71,7 @@ specs/001-mypage-screen/
 ├── contracts/
 │   ├── feedback-api.yaml            # [기존] POST /feedback (2026-09-21 배포 확인, platform 필드)
 │   ├── member-withdraw-api.md       # [기존] DELETE /members/me 회원 탈퇴 사용 계약 (구 member-reset-api.yaml 제안 대체)
-│   ├── member-notification-api.md   # [기존] PUT /members/me/notification 사용 계약
+│   ├── member-notification-api.md   # [기존] GET·PUT /members/me/notification 사용 계약
 │   └── domain-contracts.md          # Repository/UseCase/MVI/Route/expect-actual 시그니처
 ├── checklists/requirements.md
 └── tasks.md             # Phase 2 output (/speckit-tasks — 이 명령에서는 생성하지 않음)
@@ -89,17 +89,18 @@ domain/src/commonMain/kotlin/com/linkit/company/domain/
 ├── repository/AppSettingsRepository.kt               # 신규 지도 설정·온보딩·알림 안내 이력·전체 초기화
 ├── repository/FeedbackRepository.kt                  # 신규
 ├── repository/TermsRepository.kt                     # 신규
-├── repository/MemberRepository.kt                    # 신규 알림 설정 변경
+├── repository/MemberRepository.kt                    # 신규 알림 설정 조회·변경
 ├── repository/AppInfoRepository.kt                   # 신규 앱/기기 정보 조회
 ├── exception/LinkTripException.kt                    # 수정 에러 코드 추가(FEEDBACK_DAILY_LIMIT_EXCEEDED, NOT_FOUND_MEMBER, UNAUTHORIZED_TOKEN_EXPIRED)
 └── usecase/
     ├── SendFeedbackUseCase.kt                        # 신규 유형 기본값·트림·앱 정보 첨부·인증 보장
     ├── ResetAppUseCase.kt                            # 신규 회원 탈퇴(DELETE /members/me) → 로컬 초기화 → 로그아웃
-    └── SyncNotificationSettingUseCase.kt             # 신규 기기 권한값을 서버에 best-effort 반영
+    ├── UpdateNotificationSettingUseCase.kt           # 신규 토글 값 서버 반영 → 성공 시 로컬 저장 (2026-09-23, SyncNotificationSettingUseCase 대체)
+    └── FetchNotificationSettingUseCase.kt            # 신규 진입 시 서버 조회 → 로컬 저장, 실패 삼킴 (2026-09-23)
 
 data/src/commonMain/kotlin/com/linkit/company/data/
 ├── api/FeedbackApi.kt                                # 신규 POST feedback
-├── api/MemberApi.kt                                  # 신규 PUT members/me/notification, DELETE members/me
+├── api/MemberApi.kt                                  # 신규 GET·PUT members/me/notification, DELETE members/me
 ├── core/AppInfoProvider.kt                           # 신규 fun interface (플랫폼 그래프가 제공)
 ├── dto/feedback/CreateFeedbackRequest.kt             # 신규 internal
 ├── dto/member/NotificationSettingRequest.kt          # 신규 internal
