@@ -25,6 +25,7 @@ internal object MyPageStrings {
     const val ToastFeedbackLimit = "최대 의견 전송 횟수를 초과했습니다."
     const val ToastFeedbackFailure = "전송에 실패했습니다. 다시 시도해주세요."
     const val ToastResetFailure = "앱 초기화에 실패했습니다. 다시 시도해주세요."
+    const val ToastNotificationFailure = "알림 설정 변경에 실패했습니다. 다시 시도해주세요."
 
     const val ResetDialogTitle = "정말 앱을 초기화 하시겠어요?"
     const val ResetDialogDescription = "앱을 초기화하면 다시 복구할 수 없어요"

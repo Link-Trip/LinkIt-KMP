@@ -33,6 +33,14 @@ class AppSettingsRepositoryImpl(
         appSettingsLocalDataSource.saveNotificationPrompted(prompted)
     }
 
+    override fun observeNotificationEnabled(): Flow<Boolean> {
+        return appSettingsLocalDataSource.observeNotificationEnabled().map { it ?: true }
+    }
+
+    override suspend fun setNotificationEnabled(enabled: Boolean) {
+        appSettingsLocalDataSource.saveNotificationEnabled(enabled)
+    }
+
     override suspend fun clearAll() {
         appSettingsLocalDataSource.clearAll()
     }

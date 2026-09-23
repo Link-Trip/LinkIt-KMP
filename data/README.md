@@ -206,7 +206,7 @@ API 인스턴스는 DataSourceImpl에서 `ktorfit.create<LinkApi>()`로 생성�
 | 403 | `FORBIDDEN_TRIP_PLAN` | 본인의 여행 계획이 아님 | `GET/PUT/DELETE /trip-plans/{id}` |
 | 404 | `NOT_FOUND_TRIP_PLAN` | 존재하지 않는 여행 계획 | `GET/PUT/DELETE /trip-plans/{id}` |
 | 404 | `NOT_FOUND_VIDEO_ANALYSIS_TASK` | 존재하지 않는 영상 분석 결과 | `GET /video/schedule/{id}` |
-| 404 | `NOT_FOUND_MEMBER` | 회원을 찾을 수 없음(탈퇴 등) | `PUT /members/me/notification`, `DELETE /members/me` |
+| 404 | `NOT_FOUND_MEMBER` | 회원을 찾을 수 없음(탈퇴 등) | `GET/PUT /members/me/notification`, `DELETE /members/me` |
 | 409 | `DUPLICATE_REQUEST` | 동일 멱등성 키의 요청이 이미 처리 중 | 멱등성 키 필수 API 전체 |
 | 429 | `TOO_MANY_REQUESTS` | API 요청 횟수 초과(rate limit) | `POST /video/analyze`, `POST /feedback` 등 |
 | 429 | `FEEDBACK_DAILY_LIMIT_EXCEEDED` | 하루(KST) 의견 전송 5회 초과 | `POST /feedback` |
@@ -441,8 +441,8 @@ class LinkLocalDataSourceImpl(
 - `DataStore<Preferences>`를 생성자 주입받는다 — 인스턴스 생성은 `core/DataStoreFactory.kt`의 `createLinkItDataStore(producePath)`로만 하며, 플랫폼별 파일 경로는 각 플랫폼 그래프(`AndroidDataGraph`/`IosAppGraph`)가 주입한다
 - **동일 파일에 DataStore 인스턴스가 2개 이상 생기면 런타임 예외**가 발생하므로, DataStore를 제공하는 `@Provides`에는 반드시 `@SingleIn(DataScope::class)`을 지정한다
 - 저장 키(`stringPreferencesKey` 등)는 Impl의 `companion object`에 정의한다
-- 현재 키: `access_token`, `device_id`(`AuthLocalDataSourceImpl`), `map_display_type`, `notification_prompted`(`AppSettingsLocalDataSourceImpl`), `onboarding_completed`, `terms_agreed_at`(`OnboardingLocalDataSourceImpl`), `unchecked_trip_plan_ids`(`TripPlanLocalDataSourceImpl`, String Set). 튜토리얼 단계는 `OnboardingLocalDataSourceImpl`이 메모리 `MutableStateFlow`로만 보유하므로 그 Impl은 `@SingleIn(DataScope::class)`이 필수다(여러 Activity가 같은 인스턴스를 봐야 함). `TermsRepositoryImpl`도 `GET /terms`로 받은 `detailUrl`을 메모리에 보관해 상수 주소를 덮어쓰므로 `@SingleIn`이다
-- 앱 초기화(`ResetAppUseCase`)는 `AppSettingsLocalDataSource.clearAll()`(2키) → `OnboardingLocalDataSource.clearAll()`(2키 + 단계 null) → `TripPlanLocalDataSource.clearUnchecked()` 순으로 지우고, 토큰은 `AuthRepository.logout()`이 지운다. `device_id`는 유지한다
+- 현재 키: `access_token`, `device_id`(`AuthLocalDataSourceImpl`), `map_display_type`, `notification_prompted`, `notification_enabled`(`AppSettingsLocalDataSourceImpl`. `notification_enabled`는 서버 `GET/PUT /members/me/notification` 값의 표시용 캐시로, 없으면 Repository가 `true`로 해석), `onboarding_completed`, `terms_agreed_at`(`OnboardingLocalDataSourceImpl`), `unchecked_trip_plan_ids`(`TripPlanLocalDataSourceImpl`, String Set). 튜토리얼 단계는 `OnboardingLocalDataSourceImpl`이 메모리 `MutableStateFlow`로만 보유하므로 그 Impl은 `@SingleIn(DataScope::class)`이 필수다(여러 Activity가 같은 인스턴스를 봐야 함). `TermsRepositoryImpl`도 `GET /terms`로 받은 `detailUrl`을 메모리에 보관해 상수 주소를 덮어쓰므로 `@SingleIn`이다
+- 앱 초기화(`ResetAppUseCase`)는 `AppSettingsLocalDataSource.clearAll()`(3키) → `OnboardingLocalDataSource.clearAll()`(2키 + 단계 null) → `TripPlanLocalDataSource.clearUnchecked()` 순으로 지우고, 토큰은 `AuthRepository.logout()`이 지운다. `device_id`는 유지한다
 
 ### Metro 바인딩 등록
 

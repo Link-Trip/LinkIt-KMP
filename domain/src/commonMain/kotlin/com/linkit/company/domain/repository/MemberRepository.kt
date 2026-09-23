@@ -4,6 +4,9 @@ import com.linkit.company.domain.model.member.NotificationSetting
 
 interface MemberRepository {
 
+    /** 회원의 현재 푸시 알림 수신 여부를 서버에서 읽는다. 한 번도 바꾸지 않은 회원은 `true`다. */
+    suspend fun getNotificationSetting(): NotificationSetting
+
     /** 회원의 푸시 알림 수신 여부를 서버에 반영하고 변경 후 설정값을 돌려준다. */
     suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting
 
