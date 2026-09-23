@@ -8,6 +8,8 @@ import kotlinx.serialization.modules.polymorphic
 
 private val linkItSerializersModule = SerializersModule {
     polymorphic(NavKey::class) {
+        subclass(LinkItNavKey.Intro::class, LinkItNavKey.Intro.serializer())
+        subclass(LinkItNavKey.OnboardingStart::class, LinkItNavKey.OnboardingStart.serializer())
         subclass(LinkItNavKey.Map::class, LinkItNavKey.Map.serializer())
         subclass(LinkItNavKey.Storage::class, LinkItNavKey.Storage.serializer())
         subclass(LinkItNavKey.StorageSearch::class, LinkItNavKey.StorageSearch.serializer())
@@ -32,6 +34,16 @@ val LinkItSavedStateConfiguration = SavedStateConfiguration {
 }
 
 interface LinkItNavKey : NavKey {
+    // feature:intro 단일 백스택 (Intro → OnboardingStart → TermsDetail)
+
+    /** 인트로 애니메이션. 매 실행의 시작 라우트 */
+    @Serializable
+    data object Intro : LinkItNavKey
+
+    /** 온보딩 시작 화면(후킹 문구 + 약관 동의 시트 모달) */
+    @Serializable
+    data object OnboardingStart : LinkItNavKey
+
     @Serializable
     data object Map : LinkItNavKey
 

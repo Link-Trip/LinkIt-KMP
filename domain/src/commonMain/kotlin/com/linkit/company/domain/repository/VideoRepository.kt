@@ -28,4 +28,7 @@ interface VideoRepository {
     suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo>
 
     suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo>
+
+    /** 온보딩 추천 영상: 전체 탐색 영상 목록(파라미터 없음) 중 앞에서 8개. 사전 분석은 운영이 보장한다 (research R3). */
+    suspend fun getOnboardingVideos(): List<DiscoverVideo>
 }

@@ -14,6 +14,7 @@ import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
 import com.linkit.company.domain.runImmediateSuspend
+import kotlinx.coroutines.flow.Flow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -191,6 +192,14 @@ private class VideoTripPlanRepositoryFake(
     ): TripPlanDetail = error("Not used in this test")
 
     override suspend fun deleteTripPlan(tripPlanId: String) = error("Not used in this test")
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = error("Not used in this test")
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun clearUncheckedTripPlans() = error("Not used in this test")
 }
 
 private class VideoRepositoryFake(
@@ -241,6 +250,8 @@ private class VideoRepositoryFake(
 
     override suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo> =
         error("Not used in this test")
+
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Not used in this test")
 }
 
 private fun summary(id: String, youtubeUrl: String) = TripPlanSummary(

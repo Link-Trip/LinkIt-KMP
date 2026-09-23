@@ -50,4 +50,15 @@ class VideoRepositoryImpl(
         return videoRemoteDataSource.getDiscoverVideosByCategory(country = null, region = region)
             .map { it.toDomain() }
     }
+
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> {
+        // 파라미터 없이 호출하면 전체 영상. 온보딩 전용 목록은 두지 않고 앞에서 8개만 쓴다 (research R3)
+        return videoRemoteDataSource.getDiscoverVideosByCategory(country = null, region = null)
+            .take(ONBOARDING_VIDEO_COUNT)
+            .map { it.toDomain() }
+    }
+
+    internal companion object {
+        const val ONBOARDING_VIDEO_COUNT = 8
+    }
 }

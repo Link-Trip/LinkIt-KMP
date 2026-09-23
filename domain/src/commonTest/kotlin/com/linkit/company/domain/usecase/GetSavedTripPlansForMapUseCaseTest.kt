@@ -15,6 +15,7 @@ import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.runImmediateSuspend
 import kotlin.test.Test
+import kotlinx.coroutines.flow.Flow
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
@@ -234,6 +235,14 @@ private class FakeTripPlanRepository(
     ): TripPlanDetail = error("Not used in this test")
 
     override suspend fun deleteTripPlan(tripPlanId: String) = error("Not used in this test")
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = error("Not used in this test")
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun clearUncheckedTripPlans() = error("Not used in this test")
 }
 
 private fun summary(id: String) = TripPlanSummary(

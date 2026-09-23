@@ -25,14 +25,6 @@ class AppSettingsRepositoryImpl(
         appSettingsLocalDataSource.saveMapDisplayType(type.name)
     }
 
-    override suspend fun isOnboardingCompleted(): Boolean {
-        return appSettingsLocalDataSource.isOnboardingCompleted()
-    }
-
-    override suspend fun setOnboardingCompleted(completed: Boolean) {
-        appSettingsLocalDataSource.saveOnboardingCompleted(completed)
-    }
-
     override suspend fun isNotificationPrompted(): Boolean {
         return appSettingsLocalDataSource.isNotificationPrompted()
     }
