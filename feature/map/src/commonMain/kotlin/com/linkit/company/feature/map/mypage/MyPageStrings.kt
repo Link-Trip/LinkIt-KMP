@@ -44,6 +44,4 @@ internal object MyPageStrings {
     const val TermsPrivacy = "개인정보 처리방침"
     const val TermsOpenSource = "오픈소스 라이센스 고지"
     const val TermsLocation = "위치기반 서비스 이용약관"
-    const val TermsLoadError = "약관을 불러오지 못했어요"
-    const val TermsRetry = "다시 시도"
 }

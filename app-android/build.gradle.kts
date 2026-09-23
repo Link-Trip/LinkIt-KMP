@@ -50,4 +50,5 @@ dependencies {
     implementation(project(":feature:schedule"))
     implementation(project(":feature:storage"))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.napier)
 }

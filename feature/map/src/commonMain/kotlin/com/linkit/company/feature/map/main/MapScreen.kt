@@ -21,6 +21,7 @@ import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -74,7 +75,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -103,6 +108,9 @@ import com.linkit.company.core.designsystem.component.button.ButtonColors
 import com.linkit.company.core.designsystem.component.button.ButtonSize
 import com.linkit.company.core.designsystem.component.button.ButtonVariant
 import com.linkit.company.core.designsystem.component.button.LinkItButton
+import com.linkit.company.core.designsystem.component.coachmark.LinkItCoachMark
+import com.linkit.company.core.ui.onboarding.OnboardingSkipButton
+import com.linkit.company.core.ui.onboarding.OnboardingSkipButtonDefaults
 import com.linkit.company.core.designsystem.component.menu.LinkItMenuItem
 import com.linkit.company.core.designsystem.component.menu.MenuDefaults as LinkItMenuDefaults
 import com.linkit.company.core.designsystem.component.menu.MenuItemPadding
@@ -114,6 +122,7 @@ import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.typography.rememberNanumSquareFontFamily
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.domain.model.onboarding.TutorialStep
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.delay
 import linkitcompany.feature.map.generated.resources.Res
@@ -141,6 +150,7 @@ fun MapScreen(
     navigateToScheduleManual: () -> Unit = {},
     onOpenPlaceDetail: (MapPlaceUiModel) -> Unit = {},
     onOpenStorage: () -> Unit = {},
+    onOpenExplore: () -> Unit = {},
     onOpenMyPage: () -> Unit = {},
     onPlaceSelectionChanged: (Boolean) -> Unit = {},
     viewModel: MapViewModel = metroViewModel(),
@@ -162,6 +172,7 @@ fun MapScreen(
         onCreateFromVideo = navigateToScheduleEdit,
         onCreateFromStorage = onOpenStorage,
         onCreateManually = navigateToScheduleManual,
+        onOpenExplore = onOpenExplore,
         onOpenMyPage = onOpenMyPage,
     )
 }
@@ -175,10 +186,14 @@ fun MapContent(
     onCreateFromVideo: () -> Unit = {},
     onCreateFromStorage: () -> Unit = {},
     onCreateManually: () -> Unit = {},
+    onOpenExplore: () -> Unit = {},
     onOpenMyPage: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val mapCenter = MapCoordinateUiModel(uiState.cameraLatitude, uiState.cameraLongitude)
+    // 튜토리얼 코치마크 대상 좌표(루트 기준). 화면 로컬 상태로만 두고 ViewModel 에는 올리지 않는다
+    var createControlBounds by remember { mutableStateOf<Rect?>(null) }
+    var videoLinkOptionBounds by remember { mutableStateOf<Rect?>(null) }
     CurrentLocationEffect(
         requestToken = uiState.locationRequestToken,
         onLocationAvailable = { location ->
@@ -214,6 +229,7 @@ fun MapContent(
     ) {
         MapCanvas(uiState = uiState, onIntent = onIntent)
         MapTopActions(
+            showMyPage = !uiState.isOnboardingMode,
             onOpenMyPage = onOpenMyPage,
             onToggleMapType = { onIntent(MapIntent.ToggleMapType) },
         )
@@ -239,6 +255,9 @@ fun MapContent(
                 onCreateFromVideo = onCreateFromVideo,
                 onCreateFromStorage = onCreateFromStorage,
                 onCreateManually = onCreateManually,
+                onOpenExplore = onOpenExplore,
+                onCreateControlPositioned = { createControlBounds = it },
+                onVideoLinkOptionPositioned = { videoLinkOptionBounds = it },
             )
         } else {
             val schedule = uiState.selectedSchedule
@@ -252,6 +271,7 @@ fun MapContent(
                     onNext = { onIntent(MapIntent.ShowNextPlace) },
                     onClose = { onIntent(MapIntent.ClosePlace) },
                     onViewInSchedule = {
+                        onIntent(MapIntent.ScheduleOpened(schedule.id))
                         onOpenSchedule(schedule.id, schedule.title, place.placeId)
                     },
                     onOpenPlaceDetail = { onOpenPlaceDetail(place) },
@@ -301,7 +321,69 @@ fun MapContent(
             null -> Unit
         }
 
+        TutorialOverlay(
+            step = uiState.tutorialStep,
+            createControlBounds = createControlBounds,
+            videoLinkOptionBounds = videoLinkOptionBounds,
+            onCreateControlClick = { onIntent(MapIntent.ToggleCreateMenu) },
+            onVideoLinkOptionClick = {
+                onIntent(MapIntent.SelectCreateFromVideo)
+                onCreateFromVideo()
+            },
+            onSkip = { onIntent(MapIntent.SkipOnboarding) },
+        )
     }
+}
+
+/**
+ * 튜토리얼 1·2단계(FR-012, FR-013, FR-016, FR-017): 코치마크 + 우상단 `건너뛰기`.
+ * `건너뛰기` 는 코치마크 위 레이어에 그려 항상 눌린다. 그 밖의 터치·시스템 뒤로가기는 코치마크가 무시한다.
+ */
+@Composable
+private fun BoxScope.TutorialOverlay(
+    step: TutorialStep?,
+    createControlBounds: Rect?,
+    videoLinkOptionBounds: Rect?,
+    onCreateControlClick: () -> Unit,
+    onVideoLinkOptionClick: () -> Unit,
+    onSkip: () -> Unit,
+) {
+    when (step) {
+        TutorialStep.CREATE_BUTTON -> LinkItCoachMark(
+            targetBounds = createControlBounds,
+            message = MapTutorialStrings.Step1,
+            onTargetClick = onCreateControlClick,
+            targetCornerRadius = 20.dp,
+        )
+        TutorialStep.VIDEO_LINK_OPTION -> LinkItCoachMark(
+            targetBounds = videoLinkOptionBounds,
+            message = MapTutorialStrings.Step2,
+            onTargetClick = onVideoLinkOptionClick,
+        )
+        else -> Unit
+    }
+    if (step != null) {
+        OnboardingSkipButton(
+            onClick = onSkip,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(
+                    top = OnboardingSkipButtonDefaults.TopMargin,
+                    end = OnboardingSkipButtonDefaults.EndMargin,
+                )
+                .testTag(MapTutorialTestTags.Skip),
+        )
+    }
+}
+
+internal object MapTutorialStrings {
+    const val Skip = OnboardingSkipButtonDefaults.Text
+    const val Step1 = "일정 생성 버튼을 선택해보세요"
+    const val Step2 = "\"영상 링크로 만들기\" 를 선택해보세요"
+}
+
+object MapTutorialTestTags {
+    const val Skip = "map-tutorial-skip"
 }
 
 @Composable
@@ -442,6 +524,7 @@ private fun placeMarkerThumbnail(index: Int): DrawableResource = when (index % 5
 
 @Composable
 private fun BoxScope.MapTopActions(
+    showMyPage: Boolean,
     onOpenMyPage: () -> Unit,
     onToggleMapType: () -> Unit,
 ) {
@@ -451,7 +534,12 @@ private fun BoxScope.MapTopActions(
             .padding(top = 20.dp, end = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        MapTopAction(LinkItIcon.Communication.PersonFill, "마이페이지", onOpenMyPage)
+        if (showMyPage) {
+            MapTopAction(LinkItIcon.Communication.PersonFill, "마이페이지", onOpenMyPage)
+        } else {
+            // 튜토리얼 중에는 프로필 자리에 `건너뛰기` 가 코치마크 위 레이어로 그려진다 (TutorialOverlay)
+            Spacer(Modifier.size(40.dp))
+        }
         MapTopAction(LinkItIcon.Location.Map, "지도 종류 변경", onToggleMapType)
     }
 }
@@ -530,6 +618,9 @@ private fun BoxScope.MapBottomSheetHost(
     onCreateFromVideo: () -> Unit,
     onCreateFromStorage: () -> Unit,
     onCreateManually: () -> Unit,
+    onOpenExplore: () -> Unit,
+    onCreateControlPositioned: (Rect) -> Unit,
+    onVideoLinkOptionPositioned: (Rect) -> Unit,
 ) {
     val selectedSchedule = uiState.selectedSchedule
     val content = if (uiState.selection == MapSelection.SCHEDULE && selectedSchedule != null) {
@@ -537,9 +628,20 @@ private fun BoxScope.MapBottomSheetHost(
     } else {
         MapSheetContent.SavedSchedules
     }
-    val draggableState = remember { AnchoredDraggableState(MapSheetAnchor.Resting) }
+    // 튜토리얼 중(FR-016, Figma 17789:47254)에는 시트를 접어 지도와 `일정 생성` 버튼만 보이게 하고 드래그를 막는다
+    val isTutorial = uiState.isOnboardingMode
+    val initialAnchor = if (isTutorial) MapSheetAnchor.Collapsed else MapSheetAnchor.Resting
+    val draggableState = remember { AnchoredDraggableState(initialAnchor) }
     var lastSavedAnchor by remember { mutableStateOf(MapSheetAnchor.Resting) }
     var previousContent by remember { mutableStateOf<MapSheetContent?>(null) }
+    var wasTutorial by remember { mutableStateOf(isTutorial) }
+    LaunchedEffect(isTutorial) {
+        when {
+            isTutorial -> draggableState.animateTo(MapSheetAnchor.Collapsed)
+            wasTutorial -> draggableState.animateTo(MapSheetAnchor.Resting)
+        }
+        wasTutorial = isTutorial
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -553,7 +655,12 @@ private fun BoxScope.MapBottomSheetHost(
         val collapsedSurfaceHeightPx = with(density) { MapSheetCollapsedSurfaceHeight.toPx() }
         val restingVisibleHeightPx = with(density) {
             when (content) {
-                MapSheetContent.SavedSchedules -> containerHeightPx * MapSheetSavedRestingFraction
+                // 저장 일정이 없으면 안내·버튼·링크가 보이도록 더 높이 올린다 (Figma "[일정 없을경우] 542px")
+                MapSheetContent.SavedSchedules -> containerHeightPx * if (uiState.loadState == MapLoadState.EMPTY) {
+                    MapSheetEmptyRestingFraction
+                } else {
+                    MapSheetSavedRestingFraction
+                }
                 MapSheetContent.TravelPreview ->
                     MapLocationPillHeight.toPx() + MapSheetTravelRestingSurfaceHeight.toPx()
             }
@@ -578,7 +685,7 @@ private fun BoxScope.MapBottomSheetHost(
                 lastSavedAnchor = draggableState.settledValue
             }
             val targetAfterAnchorUpdate = when {
-                previousContent == null -> MapSheetAnchor.Resting
+                previousContent == null -> initialAnchor
                 contentChanged && content == MapSheetContent.TravelPreview ->
                     MapSheetAnchor.Resting
                 contentChanged && content == MapSheetContent.SavedSchedules -> lastSavedAnchor
@@ -596,12 +703,16 @@ private fun BoxScope.MapBottomSheetHost(
             positionalThreshold = { distance -> distance * .5f },
         )
         @Suppress("DEPRECATION")
-        val dragModifier = Modifier.anchoredDraggable(
-            state = draggableState,
-            orientation = Orientation.Vertical,
-            startDragImmediately = true,
-            flingBehavior = flingBehavior,
-        )
+        val dragModifier = if (isTutorial) {
+            Modifier
+        } else {
+            Modifier.anchoredDraggable(
+                state = draggableState,
+                orientation = Orientation.Vertical,
+                startDragImmediately = true,
+                flingBehavior = flingBehavior,
+            )
+        }
         val isExpanded = content == MapSheetContent.SavedSchedules &&
             draggableState.settledValue == MapSheetAnchor.Expanded
         val isCollapsed = draggableState.settledValue == MapSheetAnchor.Collapsed
@@ -668,6 +779,7 @@ private fun BoxScope.MapBottomSheetHost(
                         onScheduleClick = { schedule ->
                             onIntent(MapIntent.SelectSchedule(schedule.id))
                         },
+                        onOpenExplore = onOpenExplore,
                     )
                     MapSheetContent.TravelPreview -> selectedSchedule?.let { schedule ->
                         SelectedScheduleSheetContent(
@@ -685,6 +797,7 @@ private fun BoxScope.MapBottomSheetHost(
                                 onIntent(MapIntent.ShowDeleteScheduleDialog(schedule.id))
                             },
                             onOpenSchedule = {
+                                onIntent(MapIntent.ScheduleOpened(schedule.id))
                                 onOpenSchedule(schedule.id, schedule.title, null)
                             },
                         )
@@ -732,7 +845,7 @@ private fun BoxScope.MapBottomSheetHost(
                 mode = createControlMode,
                 onToggle = { onIntent(MapIntent.ToggleCreateMenu) },
                 onCreateFromVideo = {
-                    onIntent(MapIntent.ToggleCreateMenu)
+                    onIntent(MapIntent.SelectCreateFromVideo)
                     onCreateFromVideo()
                 },
                 onCreateFromStorage = {
@@ -741,6 +854,10 @@ private fun BoxScope.MapBottomSheetHost(
                 onCreateManually = {
                     onIntent(MapIntent.ShowComingSoonDialog)
                 },
+                // 튜토리얼 2단계: `영상 링크로 만들기` 외 항목·닫기 비활성 (FR-016·FR-017)
+                otherOptionsEnabled = !uiState.isOnboardingMode,
+                onControlPositioned = onCreateControlPositioned,
+                onVideoLinkOptionPositioned = onVideoLinkOptionPositioned,
             )
         }
     }
@@ -774,6 +891,7 @@ private fun ColumnScope.SavedScheduleSheetContent(
     uiState: MapUiState,
     onIntent: (MapIntent) -> Unit,
     onScheduleClick: (MapScheduleUiModel) -> Unit,
+    onOpenExplore: () -> Unit = {},
 ) {
     val nanumSquare = rememberNanumSquareFontFamily()
     Text(
@@ -806,6 +924,7 @@ private fun ColumnScope.SavedScheduleSheetContent(
         )
         MapLoadState.EMPTY -> EmptyScheduleSheetContent(
             onCreateSchedule = { onIntent(MapIntent.ToggleCreateMenu) },
+            onExploreVideos = onOpenExplore,
         )
         MapLoadState.ERROR -> ScheduleLoadErrorContent(
             description = uiState.errorMessage
@@ -916,11 +1035,18 @@ private val MapCreateMenuWidth = 171.dp
 private val ScheduleMoreMenuWidth = 160.dp
 private const val ScheduleActionFeedbackDurationMillis = 3_000L
 private const val MapSheetSavedRestingFraction = .53f
+// Figma 18425:36106: 위치 칩 상단 y=213(상태바 38 포함). 컨테이너(상태바·하단 내비 제외 698) 기준
+// 칩 포함 가시 높이 698 - (213 - 38) = 523 → 523 / 698 ≈ .75. 링크까지 잘리지 않고 보인다
+private const val MapSheetEmptyRestingFraction = .75f
 private const val MapCreateControlAnimationDurationMillis = 180
 private const val MapCreateMenuEnterDurationMillis = 210
 private const val MapCreateMenuExitDurationMillis = 180
 private const val MapCreateIconTransitionDurationMillis = 160
 private const val MapCreateIconTransitionScale = .9f
+private const val UncheckedScheduleAlpha = .1f
+
+// Figma `#BAD9FF`는 팔레트에 없는 색이라 임시로 직접 지정한다. 토큰 확정 시 교체(specs/002 figma-diff.md)
+private val UncheckedScheduleGradientEnd = Color(0xFFBAD9FF)
 
 @Composable
 private fun MapFilters(
@@ -1055,21 +1181,33 @@ private fun <T> FilterOptions(
     }
 }
 
+/** 저장 일정 빈 상태(스펙 US1-4): 안내 문구 + `일정 생성하기` + `볼만한 영상 찾아보기` 링크 */
 @Composable
 private fun EmptyScheduleSheetContent(
     onCreateSchedule: () -> Unit,
+    onExploreVideos: () -> Unit,
 ) {
     ScheduleSummaryRow(scheduleCount = 0)
     Spacer(Modifier.height(4.dp))
     ScheduleStateContent(
-        title = "아직 등록된 일정이 없습니다.",
-        actionLabel = "일정 생성하기",
+        title = MapEmptyStrings.Title,
+        description = MapEmptyStrings.Body,
+        actionLabel = MapEmptyStrings.Create,
         onAction = onCreateSchedule,
+        linkLabel = MapEmptyStrings.ExploreLink,
+        onLink = onExploreVideos,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 24.dp),
         visual = { EmptyScheduleIllustration() },
     )
+}
+
+internal object MapEmptyStrings {
+    const val Title = "저장된 일정이 없어요"
+    const val Body = "여행 영상 하나면 핑고가 일정으로 만들어드려요!"
+    const val Create = "일정 생성하기"
+    const val ExploreLink = "볼만한 영상 찾아보기"
 }
 
 @Composable
@@ -1113,6 +1251,8 @@ private fun ScheduleStateContent(
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
     description: String? = null,
+    linkLabel: String? = null,
+    onLink: () -> Unit = {},
     visual: @Composable () -> Unit,
 ) {
     Column(
@@ -1121,27 +1261,55 @@ private fun ScheduleStateContent(
         verticalArrangement = Arrangement.Center,
     ) {
         visual()
+        // Figma 18425:36127: 제목 headline2 Bold, 부제 label1 Reading Medium(label.normal), 간격 4 / 12 / 12
         Text(
             text = title,
-            style = LinkItTheme.typography.body1NormalSemibold,
+            style = LinkItTheme.typography.headline2Bold,
             color = LinkItTheme.color.semantic.label.normal,
             textAlign = TextAlign.Center,
         )
         description?.let {
             Text(
                 text = it,
-                style = LinkItTheme.typography.label2Medium,
-                color = LinkItTheme.color.semantic.label.alternative,
+                style = LinkItTheme.typography.label1ReadingMedium,
+                color = LinkItTheme.color.semantic.label.normal,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 6.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
         LinkItButton(
             onClick = onAction,
             text = actionLabel,
             size = ButtonSize.Medium,
-            modifier = Modifier.padding(top = if (description == null) 8.dp else 16.dp),
+            modifier = Modifier.padding(top = if (description == null) 8.dp else 12.dp),
         )
+        linkLabel?.let {
+            // primary 색 밑줄 링크 + 오른쪽 chevron (Figma: 좌 4 / 우 2 패딩, 간격 4, 아이콘 높이 18)
+            Row(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .clickable(onClick = onLink)
+                    .padding(start = 4.dp, end = 2.dp)
+                    .testTag("map-empty-explore-link"),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = it,
+                    style = LinkItTheme.typography.label1ReadingMedium.copy(
+                        textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                    ),
+                    color = LinkItTheme.color.semantic.primary.normal,
+                )
+                Icon(
+                    imageVector = LinkItIcon.Arrow.ChevronRight,
+                    contentDescription = null,
+                    tint = LinkItTheme.color.semantic.primary.normal,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
     }
 }
 
@@ -1549,6 +1717,9 @@ private fun BoxScope.CreateScheduleControl(
     onCreateFromVideo: () -> Unit,
     onCreateFromStorage: () -> Unit,
     onCreateManually: () -> Unit,
+    otherOptionsEnabled: Boolean = true,
+    onControlPositioned: (Rect) -> Unit = {},
+    onVideoLinkOptionPositioned: (Rect) -> Unit = {},
 ) {
     val nanumSquare = rememberNanumSquareFontFamily()
     val visualMode = if (expanded) MapCreateControlMode.IconOnly else mode
@@ -1625,6 +1796,8 @@ private fun BoxScope.CreateScheduleControl(
                     },
                     onCreateFromStorage = onCreateFromStorage,
                     onCreateManually = onCreateManually,
+                    otherOptionsEnabled = otherOptionsEnabled,
+                    onVideoLinkOptionPositioned = onVideoLinkOptionPositioned,
                 )
             }
         }
@@ -1634,7 +1807,12 @@ private fun BoxScope.CreateScheduleControl(
                 .height(40.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .then(controlBackground)
-                .clickable(onClick = onToggle)
+                .clickable(
+                    // 튜토리얼 2단계에서는 닫기 버튼도 비활성 (FR-017)
+                    enabled = otherOptionsEnabled || !expanded,
+                    onClick = onToggle,
+                )
+                .onGloballyPositioned { onControlPositioned(it.boundsInRoot()) }
                 .testTag("map-create-schedule-control")
                 .semantics {
                     contentDescription = if (expanded) {
@@ -1734,6 +1912,8 @@ private fun CreateScheduleMenu(
     onCreateFromVideo: () -> Unit,
     onCreateFromStorage: () -> Unit,
     onCreateManually: () -> Unit,
+    otherOptionsEnabled: Boolean = true,
+    onVideoLinkOptionPositioned: (Rect) -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -1747,6 +1927,9 @@ private fun CreateScheduleMenu(
             text = "영상 링크로 만들기",
             highlighted = true,
             onClick = onCreateFromVideo,
+            modifier = Modifier
+                .onGloballyPositioned { onVideoLinkOptionPositioned(it.boundsInRoot()) }
+                .testTag("map-create-from-video"),
         )
         CreateScheduleMenuDivider()
         CreateScheduleMenuOption(
@@ -1754,6 +1937,8 @@ private fun CreateScheduleMenu(
             text = "보관함에서 가져오기",
             highlighted = false,
             onClick = onCreateFromStorage,
+            enabled = otherOptionsEnabled,
+            modifier = Modifier.testTag("map-create-from-storage"),
         )
         CreateScheduleMenuDivider()
         CreateScheduleMenuOption(
@@ -1761,6 +1946,8 @@ private fun CreateScheduleMenu(
             text = "직접 만들기",
             highlighted = false,
             onClick = onCreateManually,
+            enabled = otherOptionsEnabled,
+            modifier = Modifier.testTag("map-create-manually"),
         )
     }
 }
@@ -1771,6 +1958,8 @@ private fun CreateScheduleMenuOption(
     text: String,
     highlighted: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val contentColor = if (highlighted) {
         PaletteTokens.PingoNeutral50
@@ -1778,9 +1967,9 @@ private fun CreateScheduleMenuOption(
         PaletteTokens.PingoNeutral400
     }
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -1876,7 +2065,27 @@ private fun ScheduleListRow(
     onRename: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    // `확인전` 일정은 강조 배경(Figma 18154:39159: 약 110°, PaleBlue60 10% → #BAD9FF 10%)으로 표시한다 (FR-030)
+    val uncheckedBackground = if (schedule.isUnchecked) {
+        Modifier.background(
+            Brush.linearGradient(
+                colors = listOf(
+                    PaletteTokens.PaleBlue60.copy(alpha = UncheckedScheduleAlpha),
+                    UncheckedScheduleGradientEnd.copy(alpha = UncheckedScheduleAlpha),
+                ),
+                start = Offset.Zero,
+                end = Offset(Float.POSITIVE_INFINITY, 0f),
+            ),
+        )
+    } else {
+        Modifier
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(uncheckedBackground)
+            .semantics { if (schedule.isUnchecked) stateDescription = "확인전" },
+    ) {
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
             Image(
                 painter = painterResource(Res.drawable.map_schedule_thumbnail),
@@ -1948,7 +2157,13 @@ private fun ScheduleListRow(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .height(1.dp)
-                .background(LinkItTheme.color.semantic.line.solid.normal),
+                .background(
+                    if (schedule.isUnchecked) {
+                        PaletteTokens.PingoNeutral50
+                    } else {
+                        LinkItTheme.color.semantic.line.solid.normal
+                    },
+                ),
         )
     }
 }

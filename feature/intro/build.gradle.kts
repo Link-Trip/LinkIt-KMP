@@ -15,9 +15,13 @@ kotlin {
             implementation(projects.core.ui)
             implementation(projects.core.designsystem)
             implementation(projects.domain)
+            implementation(libs.metrox.viewmodel)
+            implementation(libs.metrox.viewmodel.compose)
+            implementation(libs.bundles.jetbrainsNavigation3)
         }
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
+            implementation(libs.metrox.viewmodel)
             compileOnly(libs.metrox.android)
         }
     }

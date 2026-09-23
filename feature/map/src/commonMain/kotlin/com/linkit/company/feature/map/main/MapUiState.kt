@@ -1,6 +1,7 @@
 package com.linkit.company.feature.map.main
 
 import com.linkit.company.core.common.architecture.contract.UiState
+import com.linkit.company.domain.model.onboarding.TutorialStep
 import com.linkit.company.domain.model.settings.MapDisplayType
 
 enum class MapSelection {
@@ -87,6 +88,8 @@ data class MapScheduleUiModel(
     val centerLatitude: Double?,
     val centerLongitude: Double?,
     val places: List<MapPlaceUiModel>,
+    /** 생성 후 아직 상세를 열지 않은 `확인전` 일정이면 true (FR-030). `uncheckedScheduleIds` 로 계산한다 */
+    val isUnchecked: Boolean = false,
 )
 
 data class MapPlaceUiModel(
@@ -133,7 +136,15 @@ data class MapUiState(
     val currentLocationLongitude: Double? = null,
     val focusCurrentLocationRequest: Int = 0,
     val locationMessage: String? = null,
+    /** 튜토리얼 단계(`OnboardingRepository.observeTutorialStep()`). null 이면 일반 모드 */
+    val tutorialStep: TutorialStep? = null,
+    /** `확인전` 일정 id 집합(`TripPlanRepository.observeUncheckedTripPlanIds()`) */
+    val uncheckedScheduleIds: Set<String> = emptySet(),
 ) : UiState {
+    /** 온보딩 모드: 건너뛰기 노출, 코치마크, 생성 메뉴 나머지 항목 비활성 (FR-016, FR-017) */
+    val isOnboardingMode: Boolean
+        get() = tutorialStep != null
+
     val selection: MapSelection
         get() = when {
             selectedPlaceMarkerId != null -> MapSelection.PLACE

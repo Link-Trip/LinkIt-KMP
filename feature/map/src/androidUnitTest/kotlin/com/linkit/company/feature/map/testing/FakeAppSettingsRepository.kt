@@ -11,7 +11,6 @@ class FakeAppSettingsRepository(
 ) : AppSettingsRepository {
     val mapDisplayType = MutableStateFlow(initial)
     val savedMapDisplayTypes = mutableListOf<MapDisplayType>()
-    var onboardingCompleted = false
     var notificationPrompted = false
     var clearAllCount = 0
         private set
@@ -23,12 +22,6 @@ class FakeAppSettingsRepository(
         mapDisplayType.value = type
     }
 
-    override suspend fun isOnboardingCompleted(): Boolean = onboardingCompleted
-
-    override suspend fun setOnboardingCompleted(completed: Boolean) {
-        onboardingCompleted = completed
-    }
-
     override suspend fun isNotificationPrompted(): Boolean = notificationPrompted
 
     override suspend fun setNotificationPrompted(prompted: Boolean) {
@@ -38,7 +31,6 @@ class FakeAppSettingsRepository(
     override suspend fun clearAll() {
         clearAllCount += 1
         mapDisplayType.value = MapDisplayType.DEFAULT
-        onboardingCompleted = false
         notificationPrompted = false
     }
 }

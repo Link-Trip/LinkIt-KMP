@@ -24,7 +24,9 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.linkit.company.core.designsystem.component.coachmark.CoachMarkDefaults
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.domain.model.onboarding.TutorialStep
 import org.jetbrains.compose.resources.PreviewContextConfigurationEffect
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -234,6 +236,86 @@ class MapScreenshotTest {
         createControlExpectation = CreateControlExpectation.IconOnlyClose,
     )
 
+    /** 17789:47254 — 튜토리얼 1단계: FAB 코치마크 + 건너뛰기, 프로필 숨김 */
+    @Test
+    fun tutorialStep1CreateButton() {
+        setMapContent(state = MapTestFixtures.contentState().copy(tutorialStep = TutorialStep.CREATE_BUTTON))
+        composeRule.onNodeWithTag(CoachMarkDefaults.OverlayTestTag).assertIsDisplayed()
+        composeRule.onNodeWithText(MapTutorialStrings.Step1).assertIsDisplayed()
+        composeRule.onNodeWithTag(MapTutorialTestTags.Skip).assertIsDisplayed()
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("마이페이지").fetchSemanticsNodes().size)
+        composeRule.onRoot().captureRoboImage()
+    }
+
+    /** 17789:47737 — 튜토리얼 2단계: 메뉴 열림 + 코치마크, 나머지 항목·닫기 비활성 */
+    @Test
+    fun tutorialStep2VideoLinkOption() {
+        setMapContent(
+            state = MapTestFixtures.contentState().copy(
+                isCreateMenuExpanded = true,
+                tutorialStep = TutorialStep.VIDEO_LINK_OPTION,
+            ),
+        )
+        composeRule.onNodeWithText(MapTutorialStrings.Step2).assertIsDisplayed()
+        composeRule.onNodeWithTag("map-create-from-storage").assertIsNotEnabled()
+        composeRule.onNodeWithTag("map-create-manually").assertIsNotEnabled()
+        composeRule.onNodeWithTag(CreateControlTag).assertIsNotEnabled()
+        composeRule.onRoot().captureRoboImage()
+    }
+
+    /** 코치마크 대상(FAB) 탭은 ToggleCreateMenu 로, 건너뛰기는 SkipOnboarding 으로, 어두운 영역 탭은 무시 */
+    @Test
+    fun tutorialStep1TapsFollowSpec() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapTestFixtures.contentState().copy(tutorialStep = TutorialStep.CREATE_BUTTON),
+            onIntent = intents::add,
+        )
+        composeRule.onNodeWithTag("map-bottom-sheet-handle").performClick()
+        composeRule.onNodeWithTag(CreateControlTag).performClick()
+        composeRule.onNodeWithTag(MapTutorialTestTags.Skip).performClick()
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.ToggleCreateMenu, MapIntent.SkipOnboarding), intents)
+        }
+    }
+
+    /** 18154:39159 — `확인전` 강조 카드(시트 목록) */
+    @Test
+    fun uncheckedScheduleCard() = capture(
+        state = MapTestFixtures.contentState().copy(
+            schedules = MapTestFixtures.schedules.map { schedule ->
+                schedule.copy(isUnchecked = schedule.id == MapTestFixtures.SeoulScheduleId)
+            },
+            uncheckedScheduleIds = setOf(MapTestFixtures.SeoulScheduleId),
+        ),
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    /** `확인전` 강조 카드(확장 전체 목록) */
+    @Test
+    fun uncheckedScheduleCardExpanded() = capture(
+        state = MapTestFixtures.contentState().copy(
+            schedules = MapTestFixtures.schedules.map { schedule ->
+                schedule.copy(isUnchecked = schedule.id == MapTestFixtures.SeoulScheduleId)
+            },
+            uncheckedScheduleIds = setOf(MapTestFixtures.SeoulScheduleId),
+        ),
+        sheetGesture = SheetGesture.EXPAND,
+        createControlExpectation = CreateControlExpectation.IconOnly,
+    )
+
+    /** 스펙 US1-4 — 빈 상태 문구·버튼·링크 */
+    @Test
+    fun emptyMapShowsOnboardingCopy() {
+        setMapContent(
+            state = MapUiState(loadState = MapLoadState.EMPTY, mapCenterLocationLabel = DefaultMapCenterLabel),
+        )
+        composeRule.onNodeWithText(MapEmptyStrings.Title).assertIsDisplayed()
+        composeRule.onNodeWithText(MapEmptyStrings.Body).assertIsDisplayed()
+        composeRule.onNodeWithText(MapEmptyStrings.Create).assertIsDisplayed()
+        composeRule.onNodeWithTag("map-empty-explore-link").assertIsDisplayed()
+    }
+
     @Test
     fun comingSoonDialog() = capture(
         state = MapTestFixtures.contentState().copy(
@@ -315,8 +397,13 @@ class MapScreenshotTest {
         composeRule.onNodeWithTag("map-place-open-detail").performClick()
 
         composeRule.runOnIdle {
+            // `일정에서 보기`는 상세 진입이라 `확인후` 기록 Intent 가 함께 나간다 (FR-030)
             assertEquals(
-                listOf(MapIntent.ShowPreviousPlace, MapIntent.ClosePlace),
+                listOf(
+                    MapIntent.ShowPreviousPlace,
+                    MapIntent.ClosePlace,
+                    MapIntent.ScheduleOpened(MapTestFixtures.SeoulScheduleId),
+                ),
                 intents,
             )
             assertEquals(

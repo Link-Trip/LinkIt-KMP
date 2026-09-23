@@ -36,6 +36,8 @@ fun ScheduleNavDisplay(
     // 알림 안내 노출 이력은 앱 설정 저장소(DataStore)에 두어 앱 초기화 시 함께 지워진다
     val notificationPromptViewModel: NotificationPromptViewModel = metroViewModel()
     val isNotificationPrompted by notificationPromptViewModel.isPrompted.collectAsState()
+    // 튜토리얼 중에는 코치마크 위에 시트가 겹치지 않도록 띄우지 않는다 (research R8)
+    val isOnboardingMode by notificationPromptViewModel.isOnboardingMode.collectAsState()
     val isNotificationPermissionMissing = remember(context) {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(
@@ -45,7 +47,10 @@ fun ScheduleNavDisplay(
     }
     var isNotificationSheetDismissed by rememberSaveable { mutableStateOf(false) }
     val showNotificationPermissionSheet =
-        isNotificationPermissionMissing && isNotificationPrompted == false && !isNotificationSheetDismissed
+        isNotificationPermissionMissing &&
+            isNotificationPrompted == false &&
+            isOnboardingMode == false &&
+            !isNotificationSheetDismissed
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) {
@@ -98,7 +103,9 @@ fun ScheduleNavDisplay(
             showNotificationPermissionSheet = showNotificationPermissionSheet,
             onAllowNotifications = allowNotifications,
             onDismissNotificationPrompt = dismissNotificationPrompt,
-            onConfirmAnalysis = { navigator.navigate(LinkItNavKey.ScheduleTripDetail()) },
+            // 온보딩: 분석 중 화면을 생략하고 완료 화면으로, 완료·건너뛰기는 Activity 종료로 메인 복귀
+            onNavigateToAnalysisComplete = { navigator.navigate(LinkItNavKey.ScheduleAnalysisComplete) },
+            onFinishOnboarding = onFinishActivity,
             onBack = navigator::navigateBack,
         )
     }
