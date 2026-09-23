@@ -1,4 +1,4 @@
-package com.linkit.company.feature.map.mypage.platform
+package com.linkit.company.core.ui.terms
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
-internal actual fun PlatformWebView(
+actual fun PlatformWebView(
     url: String,
     reloadToken: Int,
     onLoadingChanged: (Boolean) -> Unit,

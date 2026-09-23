@@ -1,4 +1,4 @@
-package com.linkit.company.feature.map.mypage.platform
+package com.linkit.company.core.ui.terms
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +24,7 @@ import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-internal actual fun PlatformWebView(
+actual fun PlatformWebView(
     url: String,
     reloadToken: Int,
     onLoadingChanged: (Boolean) -> Unit,
