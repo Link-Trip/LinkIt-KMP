@@ -1,4 +1,4 @@
-package com.linkit.company.feature.map.mypage.platform
+package com.linkit.company.core.ui.terms
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
  * 본문 안의 링크는 같은 도메인이면 웹뷰 안에서 열고, 외부 도메인이면 기기 브라우저로 넘긴다.
  */
 @Composable
-internal expect fun PlatformWebView(
+expect fun PlatformWebView(
     url: String,
     reloadToken: Int,
     onLoadingChanged: (Boolean) -> Unit,

@@ -1,4 +1,4 @@
-package com.linkit.company.feature.map.mypage.terms
+package com.linkit.company.core.ui.terms
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

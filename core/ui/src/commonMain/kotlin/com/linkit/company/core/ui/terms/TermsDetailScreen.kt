@@ -1,4 +1,4 @@
-package com.linkit.company.feature.map.mypage.terms
+package com.linkit.company.core.ui.terms
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,8 +32,6 @@ import com.linkit.company.core.designsystem.component.navigation.TopNavigationDe
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.domain.model.terms.TermsDocument
 import com.linkit.company.domain.model.terms.TermsDocumentType
-import com.linkit.company.feature.map.mypage.MyPageStrings
-import com.linkit.company.feature.map.mypage.platform.PlatformWebView
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 
 /** 웹뷰 로딩 상태. 화면 로컬 상태로 관리한다. */
@@ -122,14 +120,14 @@ fun TermsDetailContent(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                        text = MyPageStrings.TermsLoadError,
+                        text = TermsStrings.TermsLoadError,
                         style = LinkItTheme.typography.body2NormalMedium,
                         color = LinkItTheme.color.semantic.label.alternative,
                         textAlign = TextAlign.Center,
                     )
                     LinkItButton(
                         onClick = onRetry,
-                        text = MyPageStrings.TermsRetry,
+                        text = TermsStrings.TermsRetry,
                         variant = ButtonVariant.Outlined,
                         color = ButtonColor.Assistive,
                         size = ButtonSize.Medium,
