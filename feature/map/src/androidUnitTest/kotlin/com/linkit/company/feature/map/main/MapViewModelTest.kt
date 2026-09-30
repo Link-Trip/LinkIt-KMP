@@ -212,12 +212,15 @@ class MapViewModelTest {
 
     @Test
     fun placeSelectionKeepsFocusWhileMapMovesAndCloseReturnsToSchedule() {
-        val viewModel = createViewModel()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
+        val viewModel = createViewModel(repository)
         val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
         val firstPlace = schedule.places.first()
         val secondPlace = schedule.places[1]
 
-        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        viewModel.onScreenResumed()
+        idle()
+        viewModel.onScreenPaused()
         viewModel.onIntent(MapIntent.SelectPlace(schedule.id, firstPlace.markerId))
 
         assertEquals(MapSelection.PLACE, viewModel.uiState.value.selection)
@@ -244,12 +247,15 @@ class MapViewModelTest {
 
     @Test
     fun selectingAnotherPlaceReplacesFocusAndBoundaryNavigationDoesNothing() {
-        val viewModel = createViewModel()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
+        val viewModel = createViewModel(repository)
         val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
         val firstPlace = schedule.places.first()
         val lastPlace = schedule.places.last()
 
-        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        viewModel.onScreenResumed()
+        idle()
+        viewModel.onScreenPaused()
         viewModel.onIntent(MapIntent.SelectPlace(schedule.id, firstPlace.markerId))
         viewModel.onIntent(MapIntent.ShowPreviousPlace)
         assertEquals(firstPlace.markerId, viewModel.uiState.value.selectedPlaceMarkerId)
@@ -263,12 +269,15 @@ class MapViewModelTest {
 
     @Test
     fun scheduleMoreMenuTogglesBetweenSchedulesAndDismisses() {
-        val viewModel = createViewModel()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
+        val viewModel = createViewModel(repository)
         val schedules = MapDebugMockData.schedules
         val firstScheduleId = schedules.first().toMapScheduleUiModel().id
         val secondScheduleId = schedules[1].toMapScheduleUiModel().id
 
-        viewModel.useDebugMapData(schedules)
+        viewModel.onScreenResumed()
+        idle()
+        viewModel.onScreenPaused()
         viewModel.onIntent(MapIntent.ToggleScheduleMenu(firstScheduleId))
         assertEquals(firstScheduleId, viewModel.uiState.value.expandedScheduleMenuId)
 
@@ -285,11 +294,13 @@ class MapViewModelTest {
 
     @Test
     fun renameDialogPrefillsLimitsAndRenamesSchedule() {
-        val repository = RecordingTripPlanRepository()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
         val viewModel = createViewModel(repository)
         val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
 
-        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        viewModel.onScreenResumed()
+        idle()
+        viewModel.onScreenPaused()
         viewModel.onIntent(MapIntent.ShowRenameScheduleDialog(schedule.id))
         assertEquals(MapScheduleDialog.RENAME, viewModel.uiState.value.scheduleDialog)
         assertEquals(schedule.title, viewModel.uiState.value.scheduleNameDraft)
@@ -315,11 +326,13 @@ class MapViewModelTest {
 
     @Test
     fun deleteDialogDeletesScheduleAndClearsSelection() {
-        val repository = RecordingTripPlanRepository()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
         val viewModel = createViewModel(repository)
         val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
 
-        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        viewModel.onScreenResumed()
+        idle()
+        viewModel.onScreenPaused()
         viewModel.onIntent(MapIntent.SelectSchedule(schedule.id))
         viewModel.onIntent(MapIntent.ShowDeleteScheduleDialog(schedule.id))
         assertEquals(MapScheduleDialog.DELETE, viewModel.uiState.value.scheduleDialog)
@@ -400,10 +413,12 @@ class MapViewModelTest {
 
     @Test
     fun uncheckedIdsMarkSchedulesAndOpeningDetailChecksThem() {
-        val repository = RecordingTripPlanRepository()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
         val viewModel = createViewModel(repository)
         val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
-        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        viewModel.onScreenResumed()
+        idle()
+        viewModel.onScreenPaused()
 
         repository.uncheckedIds.value = setOf(schedule.id)
         idle()
@@ -418,13 +433,14 @@ class MapViewModelTest {
 
     @Test
     fun newViewModelKeepsHighlightFromPersistedUncheckedIds() {
-        val repository = RecordingTripPlanRepository()
+        val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
         val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
         repository.uncheckedIds.value = setOf(schedule.id)
 
         val viewModel = createViewModel(repository)
-        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        viewModel.onScreenResumed()
         idle()
+        viewModel.onScreenPaused()
 
         assertTrue(viewModel.uiState.value.schedules.first { it.id == schedule.id }.isUnchecked)
         assertEquals(setOf(schedule.id), viewModel.uiState.value.uncheckedScheduleIds)

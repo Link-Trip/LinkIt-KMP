@@ -1,9 +1,5 @@
 package com.linkit.company.feature.map.main
 
-import android.content.pm.ApplicationInfo
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import com.linkit.company.domain.model.map.GeoCoordinate
 import com.linkit.company.domain.model.map.TripPlanMapData
 import com.linkit.company.domain.model.map.TripPlanMapPlace
@@ -12,15 +8,6 @@ import com.linkit.company.domain.model.place.Place
 import com.linkit.company.domain.model.place.PlaceCategory
 import com.linkit.company.domain.model.tripplan.TripPlanItem
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
-
-@Composable
-internal actual fun rememberMapDebugData(): List<TripPlanMapData>? {
-    val context = LocalContext.current
-    val isDebuggable = remember(context) {
-        context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
-    }
-    return MapDebugMockData.schedules.takeIf { isDebuggable }
-}
 
 internal object MapDebugMockData {
     val schedules = listOf(

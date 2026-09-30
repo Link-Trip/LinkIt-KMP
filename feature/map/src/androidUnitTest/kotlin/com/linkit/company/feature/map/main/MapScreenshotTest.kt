@@ -1,11 +1,13 @@
 package com.linkit.company.feature.map.main
 
+import android.view.View
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
@@ -19,6 +21,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
@@ -28,6 +31,9 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.linkit.company.core.designsystem.component.coachmark.CoachMarkDefaults
 import com.linkit.company.core.designsystem.theme.LinkItTheme
@@ -48,6 +54,42 @@ import org.robolectric.annotation.GraphicsMode
 class MapScreenshotTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun mapExtendsBehindStatusBarWhileTopActionsStayBelowIt() {
+        lateinit var composeView: View
+        composeRule.setContent {
+            composeView = LocalView.current
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                PreviewContextConfigurationEffect()
+                LinkItTheme {
+                    Box(Modifier.requiredSize(375.dp, 744.dp)) {
+                        MapContent(uiState = MapTestFixtures.contentState(), onIntent = {})
+                    }
+                }
+            }
+        }
+        val statusBarHeight = with(composeRule.density) { 48.dp.roundToPx() }
+        composeRule.runOnIdle {
+            ViewCompat.dispatchApplyWindowInsets(
+                composeView,
+                WindowInsetsCompat.Builder()
+                    .setInsets(WindowInsetsCompat.Type.statusBars(), Insets.of(0, statusBarHeight, 0, 0))
+                    .build(),
+            )
+        }
+
+        val mapBounds = composeRule.onNodeWithTag("map-canvas")
+            .assertHeightIsEqualTo(744.dp)
+            .fetchSemanticsNode().boundsInRoot
+        val profileBounds = composeRule.onNodeWithContentDescription("마이페이지")
+            .assertIsDisplayed()
+            .fetchSemanticsNode().boundsInRoot
+        val actionTopMargin = with(composeRule.density) { 20.dp.toPx() }
+        assertEquals(0f, mapBounds.top, 1f)
+        assertTrue(profileBounds.top >= statusBarHeight + actionTopMargin)
+        composeRule.onRoot().captureRoboImage()
+    }
 
     @Test
     fun defaultMap() = capture(

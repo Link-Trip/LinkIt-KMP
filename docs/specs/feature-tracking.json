@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-tracking.v1",
-  "updatedAt": "2026-09-30T12:45:32.237Z",
+  "updatedAt": "2026-09-30T13:30:55.082Z",
   "features": {
     "onboarding:INTRO_MAP_ZOOM": {
       "featureUid": "onboarding:INTRO_MAP_ZOOM",
@@ -796,15 +796,15 @@
     },
     "main:SCHEDULE_MARKER_SHOW": {
       "featureUid": "main:SCHEDULE_MARKER_SHOW",
-      "workStatus": "in_review",
+      "workStatus": "implemented",
       "developer": "fbghgus123",
       "issue": "#42",
       "pr": "#43",
       "branch": "feature/#42-main_map_screen",
       "testStatus": "passed",
-      "screenshotStatus": "passed",
+      "screenshotStatus": "not_started",
       "blockedReason": null,
-      "notes": "",
+      "notes": "Android 디버그의 더미 주입을 제거하고 기존 서버 일정 조회 경로를 사용한다. 지도 배경을 상태 표시줄 뒤까지 확장하고 조작 영역에 상단 인셋을 적용했다. 지도 단위 테스트 24개, 화면 테스트 4개 및 홈 Android 컴파일 통과. Robolectric 화면 배치 이미지는 확인했으며 실제 서버 응답과 네이티브 지도 화면은 이번 변경에서 실행 검증하지 않았다.",
       "workPlan": {
         "status": "in_progress",
         "summary": "실제 서버 일정과 장소 좌표를 메인 지도·바텀시트·마커 상태에 연결한다",
@@ -838,7 +838,7 @@
         "updatedBy": "yuhohyeon"
       },
       "promptHistory": [],
-      "updatedAt": "2026-08-18T10:29:37.667Z",
+      "updatedAt": "2026-09-30T13:30:55.081Z",
       "updatedBy": "yuhohyeon"
     },
     "main:SCHEDULE_MARKER_CENTER_RULE": {

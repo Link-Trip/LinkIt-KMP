@@ -54,7 +54,6 @@ class MapViewModel(
     private var reloadAfterScheduleAction = false
     private var videoCreationJob: Job? = null
     private var isScreenResumed = false
-    private var debugMapData: List<TripPlanMapData>? = null
     private var scheduleActionFeedbackId: Int = 0
 
     val uiState = container.uiState
@@ -81,7 +80,7 @@ class MapViewModel(
 
     private fun observeVideoCreation() {
         videoCreationJob?.cancel()
-        if (!isScreenResumed || debugMapData != null) return
+        if (!isScreenResumed) return
         videoCreationJob = viewModelScope.launch {
             observeVideoScheduleCreation().collect { creation ->
                 val previous = uiState.value.videoCreationState
@@ -109,13 +108,6 @@ class MapViewModel(
                 }
             }
         }
-    }
-
-    internal fun useDebugMapData(mapData: List<TripPlanMapData>) {
-        debugMapData = mapData
-        cancelScheduleLoad()
-        videoCreationJob?.cancel()
-        showSchedules(mapData)
     }
 
     private fun MviContext<MapUiState, MapSideEffect>.handleIntent(intent: MapIntent) {
@@ -526,10 +518,6 @@ class MapViewModel(
         }
         if (loadJob?.isActive == true) return
         reloadAfterScheduleAction = false
-        debugMapData?.let { mapData ->
-            showSchedules(mapData)
-            return
-        }
         val generation = ++loadGeneration
         loadJob = viewModelScope.launch {
             container.mviContext.reduce {
@@ -539,7 +527,7 @@ class MapViewModel(
                 )
             }
             val result = runCatching { loadWithAuthRetry() }
-            if (generation != loadGeneration || result.exceptionOrNull() is CancellationException || debugMapData != null) {
+            if (generation != loadGeneration || result.exceptionOrNull() is CancellationException) {
                 return@launch
             }
             result

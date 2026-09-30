@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -158,10 +159,6 @@ fun MapScreen(
     onPlaceSelectionChanged: (Boolean) -> Unit = {},
     viewModel: MapViewModel = metroViewModel(),
 ) {
-    val debugMapData = rememberMapDebugData()
-    LaunchedEffect(viewModel, debugMapData) {
-        debugMapData?.let(viewModel::useDebugMapData)
-    }
     val uiState by viewModel.uiState.collectAsState()
     LifecycleResumeEffect(viewModel) {
         viewModel.onScreenResumed()
@@ -251,132 +248,134 @@ fun MapContent(
             .background(LinkItTheme.color.semantic.background.normal.alternative),
     ) {
         MapCanvas(uiState = uiState, onIntent = onIntent)
-        MapTopActions(
-            showMyPage = !uiState.isOnboardingMode,
-            onOpenMyPage = onOpenMyPage,
-            onToggleMapType = { onIntent(MapIntent.ToggleMapType) },
-        )
+        Box(Modifier.fillMaxSize().statusBarsPadding()) {
+            MapTopActions(
+                showMyPage = !uiState.isOnboardingMode,
+                onOpenMyPage = onOpenMyPage,
+                onToggleMapType = { onIntent(MapIntent.ToggleMapType) },
+            )
 
-        if (uiState.selection == MapSelection.PLACE) {
-            uiState.selectedSchedule?.let { schedule ->
-                SelectedScheduleMapMarker(schedule)
+            if (uiState.selection == MapSelection.PLACE) {
+                uiState.selectedSchedule?.let { schedule ->
+                    SelectedScheduleMapMarker(schedule)
+                }
             }
-        }
 
-        uiState.locationMessage?.let { message ->
-            MapNotice(
-                message = message,
-                topPadding = if (uiState.selection == MapSelection.PLACE) 68.dp else 20.dp,
-            )
-        }
-
-        if (uiState.selection != MapSelection.PLACE) {
-            MapBottomSheetHost(
-                uiState = uiState,
-                onIntent = onIntent,
-                onOpenSchedule = onOpenSchedule,
-                onCreateFromVideo = requestCreateFromVideo,
-                onCreateFromStorage = onCreateFromStorage,
-                onCreateManually = onCreateManually,
-                onOpenExplore = onOpenExplore,
-                onCreateControlPositioned = { createControlBounds = it },
-                onVideoLinkOptionPositioned = { videoLinkOptionBounds = it },
-            )
-        } else {
-            val schedule = uiState.selectedSchedule
-            val place = uiState.selectedPlace
-            if (schedule != null && place != null) {
-                PlaceInformationCard(
-                    place = place,
-                    canShowPrevious = uiState.canShowPreviousPlace,
-                    canShowNext = uiState.canShowNextPlace,
-                    onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
-                    onNext = { onIntent(MapIntent.ShowNextPlace) },
-                    onClose = { onIntent(MapIntent.ClosePlace) },
-                    onViewInSchedule = {
-                        onIntent(MapIntent.ScheduleOpened(schedule.id))
-                        onOpenSchedule(schedule.id, schedule.title, place.placeId)
-                    },
-                    onOpenPlaceDetail = { onOpenPlaceDetail(place) },
+            uiState.locationMessage?.let { message ->
+                MapNotice(
+                    message = message,
+                    topPadding = if (uiState.selection == MapSelection.PLACE) 68.dp else 20.dp,
                 )
             }
-        }
 
-        MapVideoCreationNotice(
-            state = uiState.videoCreationState,
-            onRetry = { onIntent(MapIntent.RetryVideoCreation) },
-            onAcknowledge = { onIntent(MapIntent.AcknowledgeVideoCreation(it)) },
-            onOpenSchedule = { id, title ->
-                onIntent(MapIntent.ScheduleOpened(id))
-                onOpenSchedule(id, title, null)
-            },
-            onCreateAgain = requestCreateFromVideo,
-            onShowInProgress = { onIntent(MapIntent.ShowCreationInProgressDialog) },
-        )
+            if (uiState.selection != MapSelection.PLACE) {
+                MapBottomSheetHost(
+                    uiState = uiState,
+                    onIntent = onIntent,
+                    onOpenSchedule = onOpenSchedule,
+                    onCreateFromVideo = requestCreateFromVideo,
+                    onCreateFromStorage = onCreateFromStorage,
+                    onCreateManually = onCreateManually,
+                    onOpenExplore = onOpenExplore,
+                    onCreateControlPositioned = { createControlBounds = it },
+                    onVideoLinkOptionPositioned = { videoLinkOptionBounds = it },
+                )
+            } else {
+                val schedule = uiState.selectedSchedule
+                val place = uiState.selectedPlace
+                if (schedule != null && place != null) {
+                    PlaceInformationCard(
+                        place = place,
+                        canShowPrevious = uiState.canShowPreviousPlace,
+                        canShowNext = uiState.canShowNextPlace,
+                        onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
+                        onNext = { onIntent(MapIntent.ShowNextPlace) },
+                        onClose = { onIntent(MapIntent.ClosePlace) },
+                        onViewInSchedule = {
+                            onIntent(MapIntent.ScheduleOpened(schedule.id))
+                            onOpenSchedule(schedule.id, schedule.title, place.placeId)
+                        },
+                        onOpenPlaceDetail = { onOpenPlaceDetail(place) },
+                    )
+                }
+            }
 
-        if (uiState.isCreationInProgressDialogVisible) {
-            LinkItDialog(
-                title = "일정을 생성하고 있어요",
-                description = "현재 일정 생성이 끝난 뒤 새 일정을 만들 수 있어요.",
-                confirmText = "확인",
-                onConfirmClick = { onIntent(MapIntent.DismissCreationInProgressDialog) },
-                onDismissRequest = { onIntent(MapIntent.DismissCreationInProgressDialog) },
-            )
-        }
-
-        if (uiState.isComingSoonDialogVisible) {
-            LinkItDialog(
-                title = "해당 기능은\n곧 출시 예정이에요!",
-                description = "조금만 기다려 주세요",
-                confirmText = "확인",
-                onConfirmClick = { onIntent(MapIntent.DismissComingSoonDialog) },
-                onDismissRequest = { onIntent(MapIntent.DismissComingSoonDialog) },
-            )
-        }
-
-        uiState.scheduleActionFeedback?.let { feedback ->
-            LinkItToast(
-                text = feedback.message,
-                variant = if (feedback.type == MapScheduleActionFeedbackType.SUCCESS) {
-                    ToastVariant.Positive
-                } else {
-                    ToastVariant.Negative
+            MapVideoCreationNotice(
+                state = uiState.videoCreationState,
+                onRetry = { onIntent(MapIntent.RetryVideoCreation) },
+                onAcknowledge = { onIntent(MapIntent.AcknowledgeVideoCreation(it)) },
+                onOpenSchedule = { id, title ->
+                    onIntent(MapIntent.ScheduleOpened(id))
+                    onOpenSchedule(id, title, null)
                 },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-                    .fillMaxWidth()
-                    .testTag("map-schedule-action-feedback"),
+                onCreateAgain = requestCreateFromVideo,
+                onShowInProgress = { onIntent(MapIntent.ShowCreationInProgressDialog) },
+            )
+
+            if (uiState.isCreationInProgressDialogVisible) {
+                LinkItDialog(
+                    title = "일정을 생성하고 있어요",
+                    description = "현재 일정 생성이 끝난 뒤 새 일정을 만들 수 있어요.",
+                    confirmText = "확인",
+                    onConfirmClick = { onIntent(MapIntent.DismissCreationInProgressDialog) },
+                    onDismissRequest = { onIntent(MapIntent.DismissCreationInProgressDialog) },
+                )
+            }
+
+            if (uiState.isComingSoonDialogVisible) {
+                LinkItDialog(
+                    title = "해당 기능은\n곧 출시 예정이에요!",
+                    description = "조금만 기다려 주세요",
+                    confirmText = "확인",
+                    onConfirmClick = { onIntent(MapIntent.DismissComingSoonDialog) },
+                    onDismissRequest = { onIntent(MapIntent.DismissComingSoonDialog) },
+                )
+            }
+
+            uiState.scheduleActionFeedback?.let { feedback ->
+                LinkItToast(
+                    text = feedback.message,
+                    variant = if (feedback.type == MapScheduleActionFeedbackType.SUCCESS) {
+                        ToastVariant.Positive
+                    } else {
+                        ToastVariant.Negative
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                        .fillMaxWidth()
+                        .testTag("map-schedule-action-feedback"),
+                )
+            }
+
+            when (uiState.scheduleDialog) {
+                MapScheduleDialog.RENAME -> ScheduleRenameDialog(
+                    value = uiState.scheduleNameDraft,
+                    isLoading = uiState.isScheduleActionInProgress,
+                    onValueChange = { onIntent(MapIntent.UpdateScheduleName(it)) },
+                    onConfirm = { onIntent(MapIntent.ConfirmScheduleRename) },
+                    onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
+                )
+                MapScheduleDialog.DELETE -> ScheduleDeleteDialog(
+                    isLoading = uiState.isScheduleActionInProgress,
+                    onConfirm = { onIntent(MapIntent.ConfirmScheduleDelete) },
+                    onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
+                )
+                null -> Unit
+            }
+
+            TutorialOverlay(
+                step = uiState.tutorialStep,
+                createControlBounds = createControlBounds,
+                videoLinkOptionBounds = videoLinkOptionBounds,
+                onCreateControlClick = { onIntent(MapIntent.ToggleCreateMenu) },
+                onVideoLinkOptionClick = {
+                    onIntent(MapIntent.SelectCreateFromVideo)
+                    requestCreateFromVideo()
+                },
+                onSkip = { onIntent(MapIntent.SkipOnboarding) },
             )
         }
-
-        when (uiState.scheduleDialog) {
-            MapScheduleDialog.RENAME -> ScheduleRenameDialog(
-                value = uiState.scheduleNameDraft,
-                isLoading = uiState.isScheduleActionInProgress,
-                onValueChange = { onIntent(MapIntent.UpdateScheduleName(it)) },
-                onConfirm = { onIntent(MapIntent.ConfirmScheduleRename) },
-                onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
-            )
-            MapScheduleDialog.DELETE -> ScheduleDeleteDialog(
-                isLoading = uiState.isScheduleActionInProgress,
-                onConfirm = { onIntent(MapIntent.ConfirmScheduleDelete) },
-                onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
-            )
-            null -> Unit
-        }
-
-        TutorialOverlay(
-            step = uiState.tutorialStep,
-            createControlBounds = createControlBounds,
-            videoLinkOptionBounds = videoLinkOptionBounds,
-            onCreateControlClick = { onIntent(MapIntent.ToggleCreateMenu) },
-            onVideoLinkOptionClick = {
-                onIntent(MapIntent.SelectCreateFromVideo)
-                requestCreateFromVideo()
-            },
-            onSkip = { onIntent(MapIntent.SkipOnboarding) },
-        )
     }
 }
 
@@ -452,7 +451,7 @@ private fun BoxScope.MapCanvas(
 
     PlatformMapBackground(
         mapType = uiState.mapType,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("map-canvas"),
         markers = markers,
         selectedArea = selectedArea,
         initialCamera = camera,
