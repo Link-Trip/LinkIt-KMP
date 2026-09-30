@@ -12,6 +12,9 @@ import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 fun HomeViewController(
     appGraph: AppGraph,
     navigateToScheduleEdit: () -> Unit = {},
+    navigateToSchedule: (scheduleId: String, title: String, focusedPlaceId: String?) -> Unit = { _, _, _ ->
+        navigateToScheduleEdit()
+    },
     onAppReset: () -> Unit = {},
 ) = ComposeUIViewController {
     CompositionLocalProvider(
@@ -21,6 +24,7 @@ fun HomeViewController(
             HomeNavDisplay(
                 savedStateConfiguration = LinkItSavedStateConfiguration,
                 navigateToScheduleEdit = navigateToScheduleEdit,
+                navigateToSchedule = navigateToSchedule,
                 onAppReset = onAppReset,
             )
         }

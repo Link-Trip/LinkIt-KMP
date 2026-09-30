@@ -12,13 +12,9 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
-import androidx.navigation3.runtime.entryProvider
 import com.linkit.company.core.designsystem.theme.LinkItTheme
-import com.linkit.company.core.navigation.LinkItNavDisplay
 import com.linkit.company.core.navigation.LinkItNavKey
-import com.linkit.company.core.navigation.LinkItSavedStateConfiguration
-import com.linkit.company.core.navigation.rememberNavigationState
-import com.linkit.company.feature.schedule.navigation.scheduleEditEntry
+import com.linkit.company.feature.schedule.navigation.ScheduleNavigationHost
 import org.jetbrains.compose.resources.PreviewContextConfigurationEffect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -68,6 +64,28 @@ class ScheduleNotificationNavigationTest {
         composeRule.onNodeWithText("완료되면 바로 알려드릴게요!").assertIsDisplayed()
     }
 
+    @Test
+    fun returnHomeClosesPlatformHostAfterDismissingPrompt() {
+        var closeCalls = 0
+        setNavigationContent(onClose = { closeCalls++ })
+
+        composeRule.onNodeWithText("나중에 할게요").performClick()
+        composeRule.onNodeWithText("메인화면으로 돌아가기").performClick()
+
+        assertEquals(1, closeCalls)
+    }
+
+    @Test
+    fun backFromInitialRouteClosesPlatformHost() {
+        var closeCalls = 0
+        isPrompted.value = true
+        setNavigationContent(onClose = { closeCalls++ })
+
+        composeRule.onNodeWithContentDescription("뒤로 가기").assertIsDisplayed().performClick()
+
+        assertEquals(1, closeCalls)
+    }
+
     private fun assertPromptDismissed() {
         composeRule.onNodeWithText("완료되면 바로 알려드릴게요!").assertDoesNotExist()
         composeRule.onNodeWithText("나중에 할게요").assertDoesNotExist()
@@ -78,22 +96,16 @@ class ScheduleNotificationNavigationTest {
         }
     }
 
-    private fun setNavigationContent() {
+    private fun setNavigationContent(onClose: () -> Unit = {}) {
         composeRule.setContent {
             CompositionLocalProvider(LocalInspectionMode provides true) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     val route = LinkItNavKey.ScheduleAnalysisLoading(videoTitle = "실제 영상 제목")
-                    val navigationState = rememberNavigationState(
-                        savedStateConfiguration = LinkItSavedStateConfiguration,
-                        startRoute = route,
-                        topLevelRoutes = setOf(route),
-                    )
-                    val provider = entryProvider {
-                        scheduleEditEntry(
-                            onCreateSchedule = { _, _ -> },
-                            onOpenExistingSchedule = { _, _ -> },
-                            onReturnHome = {},
+                    Box(Modifier.requiredSize(375.dp, 812.dp)) {
+                        ScheduleNavigationHost(
+                            onClose = onClose,
+                            startRoute = route,
                             showNotificationPermissionSheet = {
                                 isPrompted.value == false && !isDismissed.value
                             },
@@ -102,16 +114,6 @@ class ScheduleNotificationNavigationTest {
                                 isPrompted.value = true
                                 isDismissed.value = true
                             },
-                            onNavigateToAnalysisComplete = {},
-                            onFinishOnboarding = {},
-                            onBack = {},
-                        )
-                    }
-                    Box(Modifier.requiredSize(375.dp, 812.dp)) {
-                        LinkItNavDisplay(
-                            backStack = navigationState.currentTopLevelBackStack,
-                            onBack = {},
-                            entryProvider = provider,
                         )
                     }
                 }

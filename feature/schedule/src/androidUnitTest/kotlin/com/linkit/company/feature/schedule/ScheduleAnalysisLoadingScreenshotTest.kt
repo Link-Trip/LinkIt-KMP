@@ -45,6 +45,15 @@ class ScheduleAnalysisLoadingScreenshotTest {
             .assertIsDisplayed()
     }
 
+    @Test
+    fun missingMetadataShowsNeutralInformationInsteadOfUnrelatedVideo() {
+        setScheduleContent(showNotificationPermissionSheet = false)
+
+        composeRule.onNodeWithText("분석 중인 영상").assertIsDisplayed()
+        composeRule.onNodeWithText("[알파메일 독신남 정혁이랑 결혼하실 분? | 독신의 삶 ep.06]")
+            .assertDoesNotExist()
+    }
+
     private fun capture(showNotificationPermissionSheet: Boolean) {
         setScheduleContent(showNotificationPermissionSheet = showNotificationPermissionSheet)
         composeRule.onRoot().captureRoboImage()

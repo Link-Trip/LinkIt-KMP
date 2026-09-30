@@ -15,6 +15,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -85,7 +86,9 @@ class ScheduleRecommendationsTest {
             intents::add,
         )
 
-        composeRule.onNodeWithText("조회수 1만회").assertIsDisplayed()
+        composeRule.onNodeWithTag("recommended-video-recommended-0")
+            .assertTextContains("조회수 1만회")
+            .assertIsDisplayed()
         composeRule.onNodeWithTag("recommended-video-copy-recommended-0").performClick()
         composeRule.runOnIdle {
             assertEquals("https://youtu.be/recommended-0", clipboard?.getText()?.text)

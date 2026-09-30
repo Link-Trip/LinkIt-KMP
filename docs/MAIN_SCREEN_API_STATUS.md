@@ -1,10 +1,10 @@
 # 메인·탐색 화면 API 연결 현황
 
-- 기준: `feature/#42-main_map_screen`, 2026-09-21 작업 트리
+- 기준: `feature/#42-main_map_screen`, 2026-09-30 `develop` 병합 후 코드 계약. 아래 2026-09-21 명세·실행 결과는 당시 기록이며, 신규 병합 API의 실서버·UI 성공을 뜻하지 않는다.
 - 디자인: [Pingo v3.0.3 메인 화면](https://www.figma.com/design/Pym5oUSWQjyWVtN86oj6lb/Pingo--v3.0.3?node-id=17789-48296)
-- 범위: 메인 지도/일정 카드, 영상 일정 생성·추천, 일정·영상 요약 상세, 탐색·추천 크리에이터, develop에서 병합된 마이페이지 API
+- 범위: 메인 지도/일정 카드, 영상 일정 생성·추천, 일정·영상 요약 상세, 탐색·추천 크리에이터, develop에서 병합된 마이페이지·약관·온보딩 API 연결
 - 근거: [Swagger](https://linktrip.cloud/api/swagger-ui/index.html), [OpenAPI 원본](https://linktrip.cloud/api/v3/api-docs). 2026-09-21 명세 확인에 성공했다. 과거 DNS 오류로 보류했던 API 유무·비용 단위를 정정한다.
-- 통합: `origin/develop`의 `7e9eafd`를 merge commit `f0f373b`로 병합했다. 기존 지도·분석 추적과 신규 마이페이지 연동을 함께 유지한다.
+- 통합: 2026-09-21 `origin/develop`의 `7e9eafd`를 `f0f373b`로 병합했고, 2026-09-30 `67279d1`을 `1f58ba4`로 추가 병합했다. 기존 지도·분석 추적과 신규 약관·온보딩·알림 조회 계약을 함께 유지한다.
 
 ## 연결한 기능
 
@@ -14,6 +14,7 @@
 | 일정 카드 AI 요약·예상 비용 | `GET /video/schedule/{videoAnalysisTaskId}` | `summary`, `estimatedMinCost`, `estimatedMaxCost` 표시. 누락·조회 실패 시 대체 문구 표시 |
 | 일정 카드 영상 썸네일 | YouTube `GET /oembed?url=…&format=json` | `thumbnail_url` 사용. 이미지 없는 경우 중립 플레이스홀더 표시 |
 | 영상에서 일정 생성 | `POST /video/analyze` | 기존 생성 요청 유지. `PENDING`·`PROCESSING`을 진행 중으로 처리하고 분석 작업 ID를 로컬 저장 |
+| 온보딩 첫 일정 생성 | 기존 `POST /video/analyze`, `GET /video/schedule/{videoAnalysisTaskId}`, `GET /trip-plans` | 추천 목록에 포함된 영상만 허용. `COMPLETED`가 아니면 미준비 안내. 분석은 완료됐으나 대응 일정이 없으면 분석·목록을 한 번 더 조회. 찾은 일정의 ‘확인전’ 상태는 기기 로컬에 저장 |
 | 생성 진행·완료·실패 | `GET /video/schedule/{videoAnalysisTaskId}`, `GET /trip-plans` | 메인이 보이는 동안 상태 조회. 완료된 분석 ID에 대응하는 실제 일정 ID를 찾아 완료 안내의 ‘확인하기’에 연결 |
 | 중복 생성 방지 | 로컬 pending ID + 기존 분석 API | 진행 중에는 새 요청 차단. 최초 요청 응답 대기 중 추천 선택·붙여넣기·직접 입력으로 제출을 취소하지 않으며, 링크 복사는 허용. 이미 저장된 같은 영상을 다시 분석할 때 기존 일정 ID를 제외하고 새 일정을 찾음 |
 | 일정 상세 | `GET /trip-plans/{tripPlanId}` | 실제 일차·정렬 순서·장소명·카테고리·주소·설명·팁 표시, 일차 선택 연결 |
@@ -27,21 +28,24 @@
 | API | 연결 내용 |
 | --- | --- |
 | `GET /video/discover/countries` | 대표 여행지 TOP 10. `countries: [{country: String, tripPlanCount: Long}]`, 생성 일정 수 내림차순 |
-| `GET /video/discover/category` | 국가·지역별 탐색 영상과 일정 생성 화면 추천 목록. `country` 또는 `region`, 둘 다 없으면 전체. 동시 전달은 400 |
+| `GET /video/discover/category` | 국가·지역별 탐색 영상과 일정 생성 화면 추천 목록. `country` 또는 `region`, 둘 다 없으면 전체. 동시 전달은 400. 온보딩 추천은 전체 목록의 앞 8개를 재사용 |
 | `GET /video/discover/theme` | 테마별 영상·더보기. 필수 `theme`, 선택 `cursor`, 응답 `videos[]/nextCursor/hasNext` |
 | `GET /video/discover/channels` | 추천 채널·구독자 수·채널별 최신 영상 |
+| `GET /terms` | 약관 목록·회원 동의 상태 조회. 필수 약관의 미동의 여부로 동의 필요 판단 |
+| `POST /terms/agreement` | 약관 동의를 서버에 기록한 뒤 로컬 동의 시각 저장 |
+| `GET /members/me/notification` | 마이페이지 진입 시 서버 알림 설정으로 로컬 캐시 갱신. 조회 실패 시 기존 캐시 유지 |
 | `PUT /members/me/notification` | develop에서 병합된 마이페이지·알림 권한 안내 |
 | `DELETE /members/me` | develop에서 병합된 앱 초기화. 회원 탈퇴·여행 계획 삭제·FCM 제거 |
 | `POST /feedback` | develop에서 병합된 의견 보내기 |
 | `PUT /members/me/fcm-token` | 데이터 계층 및 `RegisterFcmTokenUseCase`. 실제 플랫폼 토큰 발급·갱신 연결은 외부 설정 필요 |
 
-앱용 API는 기존 7개와 위 8개로 총 15개다. health 진단 API 4개는 앱 연동 대상에서 제외한다. 실제 무인증 탐색 GET 4개는 모두 401이므로 앱은 인증 확보·401 재인증 1회 후 조회한다.
+2026-09-21 확인한 앱용 API는 15개였으며 health 진단 API 4개는 앱 연동 대상에서 제외했다. 현재 코드에는 약관 2개·알림 조회 1개가 추가돼 위 계약이 총 18개다(신규 3개는 이번 문서 갱신에서 실서버 재검증하지 않음). 2026-09-21 실제 무인증 탐색 GET 4개는 모두 401이었으며, 앱은 인증 확보·401 재인증 1회 후 조회한다.
 
 탐색 영상 길이는 ISO 8601(`PT35M29S`), 조회수·좋아요·구독자 수는 `Long`이다. 테마 문자열 예시는 `맛집여행`, `힐링여행`, `액티비티`이며 UI 라벨과 요청값을 구분한다. 영상 및 채널을 누르면 실제 원본 URL을 사용한다.
 
 ## 기존 API 간단 명세
 
-Base URL: `https://linktrip.cloud/api/`. 아래 경로는 이 주소 기준이다.
+Base URL: `https://linktrip.cloud/api/`. 아래 경로는 이 주소 기준이며, 신규 약관·알림 조회 항목은 현재 코드의 API·DTO 계약이다.
 
 | Method | Path | 요청 | 주요 응답 `data` |
 | --- | --- | --- | --- |
@@ -56,6 +60,9 @@ Base URL: `https://linktrip.cloud/api/`. 아래 경로는 이 주소 기준이�
 | GET | `/video/discover/category` | 선택 `country` 또는 `region` | `videos[]` |
 | GET | `/video/discover/theme` | 필수 `theme`, 선택 `cursor` | `videos[]`, `nextCursor`, `hasNext` |
 | GET | `/video/discover/channels` | 없음 | `channels[]` |
+| GET | `/terms` | 없음 | `terms: [{ type, title, required, version, detailUrl, agreed }]` |
+| POST | `/terms/agreement` | `{ "types": ["SERVICE", "PRIVACY"] }` | 반환 데이터 없음 |
+| GET | `/members/me/notification` | 없음 | `enabled` |
 | PUT | `/members/me/notification` | `{ "enabled": true }` | `enabled` |
 | PUT | `/members/me/fcm-token` | `{ "fcmToken": "SDK 토큰", "platform": "IOS 또는 ANDROID" }` | 반환 데이터 없음. 플랫폼 발급 연동은 아래 보류 사항 참조 |
 | DELETE | `/members/me` | 없음 | `deletedTripPlanCount` |
@@ -129,4 +136,4 @@ Base URL: `https://linktrip.cloud/api/`. 아래 경로는 이 주소 기준이�
 
 도메인·데이터 테스트는 가짜 저장소/인메모리 DataStore를, 화면 테스트는 Robolectric을 사용한다. 실제 서버·지도 SDK·에뮬레이터 실행 결과는 [E2E 검증 기록](API_E2E_VALIDATION.md)에 별도로 정리한다. Figma 정량 이미지 일치율은 측정하지 않았다.
 
-이전 단계인 develop 병합 직후에는 테스트 191개와 Android debug 빌드·app-shared/map/schedule iOS Simulator Arm64 컴파일을 통과했다. 당시 실서버 확인은 명세와 무인증 탐색 GET의 401 응답까지였다. 이후 요청받은 E2E에서는 실제 인증된 탐색 조회와 영상 분석 생성 요청도 수행했다. 기존 일정 삭제·앱 데이터 초기화·의견 전송은 하지 않았다.
+2026-09-21 작업의 초기 단계인 develop 병합 직후에는 테스트 191개와 Android debug 빌드·app-shared/map/schedule iOS Simulator Arm64 컴파일을 통과했다. 당시 실서버 확인은 명세와 무인증 탐색 GET의 401 응답까지였다. 이후 요청받은 E2E에서는 실제 인증된 탐색 조회와 영상 분석 생성 요청도 수행했다. 기존 일정 삭제·앱 데이터 초기화·의견 전송은 하지 않았다.

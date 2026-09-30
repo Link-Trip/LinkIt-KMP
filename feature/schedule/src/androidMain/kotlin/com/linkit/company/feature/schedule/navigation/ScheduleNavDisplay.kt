@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,12 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.navigation3.runtime.entryProvider
-import com.linkit.company.core.navigation.LinkItNavDisplay
 import com.linkit.company.core.navigation.LinkItNavKey
-import com.linkit.company.core.navigation.LinkItNavigator
-import com.linkit.company.core.navigation.LinkItSavedStateConfiguration
-import com.linkit.company.core.navigation.rememberNavigationState
 import com.linkit.company.feature.schedule.NotificationPromptViewModel
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 
@@ -73,55 +67,12 @@ fun ScheduleNavDisplay(
         isNotificationSheetDismissed = true
     }
 
-    val navigationState = rememberNavigationState(
-        savedStateConfiguration = LinkItSavedStateConfiguration,
+    ScheduleNavigationHost(
+        onClose = onFinishActivity,
         startRoute = startRoute,
-        topLevelRoutes = setOf(startRoute),
-    )
-    val navigator = remember(navigationState) { LinkItNavigator(navigationState) }
-    val navigateBack = {
-        if (navigationState.currentRoute == startRoute) {
-            onFinishActivity()
-        } else {
-            navigator.navigateBack()
-        }
-    }
-
-    val entryProvider = entryProvider {
-        scheduleEditEntry(
-            onCreateSchedule = { videoTitle, thumbnailUrl ->
-                navigator.navigate(
-                    LinkItNavKey.ScheduleAnalysisLoading(
-                        videoTitle = videoTitle,
-                        thumbnailUrl = thumbnailUrl,
-                    ),
-                )
-            },
-            onOpenExistingSchedule = { tripPlanId, title ->
-                navigator.navigate(
-                    LinkItNavKey.ScheduleTripDetail(
-                        tripPlanId = tripPlanId,
-                        title = title,
-                    ),
-                )
-            },
-            onReturnHome = onFinishActivity,
-            showNotificationPermissionSheet = showNotificationPermissionSheet,
-            onAllowNotifications = allowNotifications,
-            onDismissNotificationPrompt = dismissNotificationPrompt,
-            // 온보딩: 분석 중 화면을 생략하고 완료 화면으로, 완료·건너뛰기는 Activity 종료로 메인 복귀
-            onNavigateToAnalysisComplete = { navigator.navigate(LinkItNavKey.ScheduleAnalysisComplete) },
-            onFinishOnboarding = onFinishActivity,
-            onBack = navigateBack,
-        )
-    }
-
-    LinkItNavDisplay(
-        modifier = modifier
-            .fillMaxSize()
-            .systemBarsPadding(),
-        backStack = navigationState.currentTopLevelBackStack,
-        onBack = navigateBack,
-        entryProvider = entryProvider,
+        showNotificationPermissionSheet = showNotificationPermissionSheet,
+        onAllowNotifications = allowNotifications,
+        onDismissNotificationPrompt = dismissNotificationPrompt,
+        modifier = modifier.systemBarsPadding(),
     )
 }

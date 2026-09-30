@@ -301,6 +301,8 @@ commonMain.dependencies {
 
 현재 Kotlin 2.2.20에서는 iOS 멀티모듈 `@ContributesIntoMap` 자동 수집이 지원되지 않습니다 ([Metro 이슈 #460](https://github.com/ZacSweers/metro/issues/460)). 새 ViewModel을 추가할 경우 `IosAppGraph`에 수동으로 등록이 필요할 수 있습니다.
 
+현재 앱에서 쓰는 ViewModel 10개는 `IosAppGraph`의 `@Binds @IntoMap @ViewModelKey`로 명시적으로 등록합니다. 온보딩 `IntroViewModel`과 `core:ui`로 이동한 `TermsViewModel`도 포함합니다. `app-shared/iosMain`이 해당 feature와 `core:ui`를 직접 의존하며, `IosAppGraphTest`가 등록 키를 검증합니다. `MainViewController`의 단일 lazy 그래프를 모든 feature ViewController에 전달하고, 화면별로 `createIosAppGraph()`를 호출하지 않습니다.
+
 ---
 
 ## Navigator 바인딩

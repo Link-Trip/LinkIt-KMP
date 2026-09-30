@@ -7,6 +7,7 @@
 | 날짜 | 내용 |
 |------|------|
 | 2026-09-21 | 온보딩 라우트(OnboardingStart) 추가, IntroActivity를 Navigation3 단일 백스택(Intro → OnboardingStart → TermsDetail)으로 개편 (이슈 #47/#49/#50) |
+| 2026-09-21 | iOS MainViewController의 Intro/Home/Schedule 연결, 공통 ScheduleNavigationHost 공유 |
 | 2026-09-21 | 마이페이지 라우트(MyPage, Terms, TermsDetail) 및 앱 초기화용 IntroNavigator 추가 (이슈 #41/#45) |
 | 2026-04-06 | Navigator 패턴 추가 (이슈 #21): Feature 모듈 간 Activity 전환 추상화 |
 | 2026-04-03 | 멀티 백스택 구조, 멀티 액티비티 구조, Entry Provider 패턴 반영 |
@@ -131,6 +132,8 @@ graph LR
 - `HomeActivity`는 `ScheduleNavigator`를 Metro DI로 주입받아 `ScheduleActivity`로 전환
 - `ScheduleActivity`는 `finish()`로 직접 종료하여 `HomeActivity`로 복귀
 - `HomeActivity`는 앱 초기화 완료 시 `IntroNavigator`로 `IntroActivity`에 진입하고 `finish()`한다. `IntroNavigatorImpl`이 `FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK`와 `EXTRA_SHOW_RESET_TOAST`를 붙이므로 뒤로가기로 마이페이지·메인 지도에 복귀할 수 없다
+
+iOS는 `app-shared/iosMain/MainViewController.kt`에서 동일 흐름을 조립한다. 온보딩 → 홈 및 앱 초기화 → 온보딩은 UIKit 스택의 루트 교체, 홈 → 일정은 push, 일정 종료는 pop으로 처리한다. 홈의 상세 콜백은 `tripPlanId/title/focusedPlaceId`를 그대로 전달한다. 일정 내부 Navigation3 백스택은 common `ScheduleNavigationHost`를 Android와 공유하고, OS 알림 권한 요청·상태 조회만 각 플랫폼 호스트에서 처리한다.
 
 ### HomeActivity 내부 탭 전환
 
