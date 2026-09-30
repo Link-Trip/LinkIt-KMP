@@ -25,6 +25,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 class GetTripPlanContentUseCaseTest {
@@ -126,6 +127,10 @@ private class DetailTripsFake : TripPlanRepository {
 
     override suspend fun updateTripPlan(tripPlanId: String, title: String?, items: List<TripPlanItemOrder>?): TripPlanDetail = error("unused")
     override suspend fun deleteTripPlan(tripPlanId: String) = error("unused")
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = error("unused")
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = error("unused")
+    override suspend fun markTripPlanChecked(tripPlanId: String) = error("unused")
+    override suspend fun clearUncheckedTripPlans() = error("unused")
 
     private fun item(id: String, day: Int, order: Int) = TripPlanItem(
         id, "source-$id", day, order, id, PlaceCategory.ATTRACTION, "", "", null,
@@ -135,6 +140,7 @@ private class DetailTripsFake : TripPlanRepository {
 private class DetailVideosFake : VideoRepository {
     override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
     override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Not used in this test")
     var analysisError: Exception? = null
     var metadataError: Exception? = null
     var failAnalysisOnce = false

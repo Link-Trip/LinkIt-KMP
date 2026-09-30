@@ -31,10 +31,23 @@ data class FeedbackSheetState(
     }
 }
 
+/**
+ * @property notificationStatus 기기 알림 권한. 토글의 활성 여부와 안내 카드 표시를 정한다
+ * @property isNotificationEnabled 앱 알림 수신 설정(서버 값의 로컬 캐시). 권한이 켜져 있을 때 토글의 on/off를 정한다
+ * @property isNotificationUpdating 수신 설정을 서버에 반영하는 중. 이 동안 토글 재탭은 무시한다
+ */
 data class MyPageUiState(
     val mapDisplayType: MapDisplayType = MapDisplayType.DEFAULT,
     val notificationStatus: NotificationStatus = NotificationStatus.UNKNOWN,
+    val isNotificationEnabled: Boolean = true,
+    val isNotificationUpdating: Boolean = false,
     val isResetDialogVisible: Boolean = false,
     val isResetInProgress: Boolean = false,
     val feedbackSheet: FeedbackSheetState? = null,
-) : UiState
+) : UiState {
+    /** 기기 권한이 켜져 있을 때만 토글을 조작할 수 있다. */
+    val isNotificationSwitchEnabled: Boolean get() = notificationStatus == NotificationStatus.ENABLED
+
+    /** 권한이 꺼져 있거나 조회 불가면 수신 설정과 무관하게 항상 off로 보인다. */
+    val isNotificationSwitchChecked: Boolean get() = isNotificationSwitchEnabled && isNotificationEnabled
+}

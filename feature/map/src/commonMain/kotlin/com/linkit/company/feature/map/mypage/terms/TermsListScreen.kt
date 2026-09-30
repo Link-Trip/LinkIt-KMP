@@ -30,6 +30,7 @@ import com.linkit.company.core.designsystem.component.navigation.TopNavigationDe
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.interaction.InteractionDefaults
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.core.ui.terms.TermsViewModel
 import com.linkit.company.domain.model.terms.TermsDocument
 import com.linkit.company.domain.model.terms.TermsDocumentType
 import com.linkit.company.feature.map.mypage.MyPageStrings

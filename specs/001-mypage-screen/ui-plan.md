@@ -14,8 +14,9 @@
 
 | 프레임 노드 | 내용 | 구현 파일 | 태스크 |
 |---|---|---|---|
-| `18197:40381` | 마이페이지, 알림 꺼짐(안내 카드 + 토글 off) | `mypage/MyPageScreen.kt` | T013 T014 T034 |
-| `18197:41176` | 마이페이지, 알림 켜짐(카드 없음 + 토글 on) | 〃 | T034 |
+| `18197:40381` | 마이페이지, 권한 꺼짐(안내 카드 + 토글 disabled·off) | `mypage/MyPageScreen.kt` | T013 T014 T034 T038 |
+| `18197:41176` | 마이페이지, 권한 켜짐·수신 on(카드 없음 + 토글 enabled·on) | 〃 | T034 T038 |
+| (없음) | 마이페이지, 권한 켜짐·수신 off(카드 없음 + 토글 enabled·off) — `18197:41176`의 Switch off 변형 | 〃 | T038 |
 | `18197:41365` | 토스트 표시(`의견 전송이 완료되었습니다.`) | 〃 토스트 호스트 | T013 |
 | `18212:35261` (`18212:35451` Popup) | 앱 초기화 확인 팝업 | `LinkItDialog` 확장 + `MyPageScreen` | T021 |
 | `18197:34527` (`18197:38784` Modal) | 의견 보내기 바텀시트 | `mypage/FeedbackBottomSheet.kt` | T027 |
@@ -35,7 +36,7 @@
 | 섹션 제목 | Label 1 Normal SemiBold 14/20, label/neutral | `label1NormalSemibold`, `label.neutral` |
 | 알림 안내 카드 | bg Violet/99, border 1 Violet/95, radius 16, padding 17, 아이콘 20(컬러 종 일러스트), 제목 Body 2 Bold label/normal, 설명 Label 2 Medium label/neutral, 버튼 `설정하러 가기` white bg, border line/normal/neutral, radius 8, 14×8, Caption 1 Bold primary/normal | `atomic.Violet99/Violet95`, `body2NormalBold`, `label2Medium`, `LinkItButton(Outlined, Primary, Small)` (radius 8 확인 후 필요 시 `shape` 지정) |
 | 지도 카드 | Row gap 12, 각 weight 1, 이미지 92 높이 radius 12, 선택 border 2 primary/normal, 라벨 위 8, 선택 Label 1 Bold primary/normal, 미선택 Label 1 Medium label/alternative | 미리보기 PNG 2종(`ContentScale.Crop`), `label1NormalBold` / `label1NormalMedium` |
-| 알림설정 행 | py 12, gap 12, 아이콘 Bell 20, `알림` Body 2 Medium label/normal, 우측 Switch 43.33×26.67(패딩 3.33, 썸 20 static/white, off fill/strong, on primary/normal) | `LinkItIcon.Utility.Bell`, 신규 `LinkItSwitch`(읽기 전용, 행 전체 클릭) |
+| 알림설정 행 | py 12, gap 12, 아이콘 Bell 20, `알림` Body 2 Medium label/normal, 우측 Switch 43.33×26.67(패딩 3.33, 썸 20 static/white, off fill/strong, on primary/normal) | `LinkItIcon.Utility.Bell`, 신규 `LinkItSwitch`. 2026-09-23 개정: 권한 `ENABLED`면 `enabled=true`·`checked=수신 설정`, 행/토글 탭 시 전환. 그 외 `enabled=false`·off(track `interaction.disable`), 행 탭 시 기기 설정 이동 |
 | 도움말 행 | 컨테이너 px 20 gap 4, 행 py 12, 아이콘 20 + 텍스트 gap 8, chevronRight 20, 디바이더 1 line/solid/neutral | `Communication.Message`, 신규 `Utility.Document`, `Arrow.ChevronRight`, `line.solid.neutral` |
 | 앱 초기화 행 | px 20 py 12, Refresh 아이콘, chevron 없음 | `Control.Refresh` |
 | 토스트 | 하단 20 마진, 335×48, Positive/Negative | `LinkItToast` (MapScreen과 동일 배치) |
@@ -110,8 +111,10 @@
 
 | 테스트 | 상태 | Figma 대조 |
 |---|---|---|
-| `myPage_notificationDisabled` | DISABLED, DEFAULT | `18197:40381` |
-| `myPage_notificationEnabled` | ENABLED, DEFAULT | `18197:41176` |
+| `myPage_notificationDisabled` | DISABLED, DEFAULT (토글 disabled·off) | `18197:40381` |
+| `myPage_notificationEnabled` | ENABLED, 수신 on, DEFAULT | `18197:41176` |
+| `myPage_notificationReceiveOff` | ENABLED, 수신 off, DEFAULT (토글 enabled·off) | — |
+| `myPage_notificationUnknown` | UNKNOWN (카드 없음, 토글 disabled·off) | — |
 | `myPage_satelliteSelected` | ENABLED, SATELLITE | — |
 | `myPage_resetDialog` | `isResetDialogVisible` | `18212:35261` |
 | `myPage_toast` | 토스트 표시 | `18197:41365` |

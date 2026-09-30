@@ -111,9 +111,23 @@ class StartVideoScheduleCreationUseCaseTest {
     }
 
     @Test
-    fun capturesOldSchedulesWhenUserConfirmsCreatingAnotherSchedule() = runImmediateSuspend {
+    fun capturesAllOldSchedulesAcrossUrlVariantsWhenUserConfirmsCreatingAnotherSchedule() = runImmediateSuspend {
         val tripPlanRepository = VideoTripPlanRepositoryFake(
-            mapOf(null to CursorPage(listOf(summary("old", "https://youtu.be/same-video")), null, false)),
+            mapOf(
+                null to CursorPage(
+                    items = listOf(summary("old", "https://youtu.be/same-video")),
+                    nextCursor = "next",
+                    hasNext = true,
+                ),
+                "next" to CursorPage(
+                    items = listOf(
+                        summary("older", "https://www.youtube.com/watch?feature=share&v=same-video"),
+                        summary("other", "https://youtu.be/another-video"),
+                    ),
+                    nextCursor = null,
+                    hasNext = false,
+                ),
+            ),
         )
         val videoRepository = VideoRepositoryFake()
         val useCase = createUseCase(
@@ -123,14 +137,15 @@ class StartVideoScheduleCreationUseCaseTest {
         )
 
         val result = useCase(
-            youtubeUrl = "https://youtu.be/same-video",
+            youtubeUrl = " https://m.youtube.com/live/same-video?feature=share ",
             allowDuplicate = true,
         )
 
         assertIs<StartVideoScheduleCreationResult.AnalysisStarted>(result)
-        assertEquals(listOf<String?>(null), tripPlanRepository.requestedCursors)
-        assertEquals(listOf("https://youtu.be/same-video"), videoRepository.analyzedUrls)
-        assertEquals(setOf("old"), videoRepository.excludedTripPlanIds)
+        assertEquals(listOf(null, "next"), tripPlanRepository.requestedCursors)
+        assertEquals(listOf("https://m.youtube.com/live/same-video?feature=share"), videoRepository.analyzedUrls)
+        assertEquals(videoRepository.analyzedUrls, videoRepository.metadataUrls)
+        assertEquals(setOf("old", "older"), videoRepository.excludedTripPlanIds)
     }
 
     @Test
@@ -281,6 +296,14 @@ private class VideoTripPlanRepositoryFake(
     ): TripPlanDetail = error("Not used in this test")
 
     override suspend fun deleteTripPlan(tripPlanId: String) = error("Not used in this test")
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = error("Not used in this test")
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun clearUncheckedTripPlans() = error("Not used in this test")
 }
 
 private class VideoRepositoryFake(
@@ -351,6 +374,8 @@ private class VideoRepositoryFake(
 
     override suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo> =
         error("Not used in this test")
+
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Not used in this test")
 }
 
 private fun summary(id: String, youtubeUrl: String) = TripPlanSummary(

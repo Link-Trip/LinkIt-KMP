@@ -102,7 +102,8 @@ class ScheduleNotificationNavigationTest {
                                 isPrompted.value = true
                                 isDismissed.value = true
                             },
-                            onConfirmAnalysis = {},
+                            onNavigateToAnalysisComplete = {},
+                            onFinishOnboarding = {},
                             onBack = {},
                         )
                     }

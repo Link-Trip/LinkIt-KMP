@@ -31,6 +31,7 @@ class ScheduleAnalysisCompleteScreenshotTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    /** 17789:48125 — 분석 완료(SaveMenu 목업 제거, 캐릭터 일러스트) */
     @Test
     fun complete() {
         composeRule.setContent {
@@ -44,7 +45,7 @@ class ScheduleAnalysisCompleteScreenshotTest {
                             .requiredSize(375.dp, 812.dp)
                             .graphicsLayer { alpha = if (ready) 1f else .999f },
                     ) {
-                        ScheduleAnalysisCompleteScreen()
+                        ScheduleAnalysisCompleteContent(onConfirm = {})
                     }
                 }
             }

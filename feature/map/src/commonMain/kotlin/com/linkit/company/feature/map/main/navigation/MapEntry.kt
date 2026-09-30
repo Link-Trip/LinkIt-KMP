@@ -8,7 +8,7 @@ import com.linkit.company.feature.map.main.MapPlaceDetailScreen
 import com.linkit.company.feature.map.main.MapScreen
 import com.linkit.company.domain.model.terms.TermsDocumentType
 import com.linkit.company.feature.map.mypage.MyPageScreen
-import com.linkit.company.feature.map.mypage.terms.TermsDetailScreen
+import com.linkit.company.core.ui.terms.TermsDetailScreen
 import com.linkit.company.feature.map.mypage.terms.TermsListScreen
 
 fun EntryProviderScope<NavKey>.mapEntry(
@@ -37,6 +37,7 @@ fun EntryProviderScope<NavKey>.mapEntry(
                 )
             },
             onOpenStorage = { navigator.navigate(LinkItNavKey.Storage) },
+            onOpenExplore = { navigator.navigate(LinkItNavKey.Explore) },
             onOpenMyPage = { navigator.navigate(LinkItNavKey.MyPage) },
             onPlaceSelectionChanged = onPlaceSelectionChanged,
         )

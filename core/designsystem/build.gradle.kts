@@ -12,6 +12,9 @@ kotlin {
         commonMain.dependencies {
             implementation(composeExtension.dependencies.materialIconsExtended)
         }
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+        }
     }
 }
 

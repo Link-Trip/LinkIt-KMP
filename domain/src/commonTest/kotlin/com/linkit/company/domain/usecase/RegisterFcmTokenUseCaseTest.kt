@@ -80,6 +80,7 @@ private class TokenMemberRepository(
         calls += fcmToken to platform
         if (failures.isNotEmpty()) throw failures.removeAt(0)
     }
+    override suspend fun getNotificationSetting(): NotificationSetting = error("Not used")
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting = error("Not used")
     override suspend fun withdraw(): Int = error("Not used")
 }

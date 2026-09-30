@@ -210,6 +210,7 @@ private fun runTrackingTest(block: suspend () -> Unit) = runBlocking {
 private class TrackingVideoRepositoryFake : VideoRepository {
     override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
     override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Not used in this test")
     val pending = MutableStateFlow<String?>("task")
     val states = mutableListOf<VideoAnalysis>()
     var failure: Exception? = null
@@ -261,6 +262,10 @@ private class TrackingTripPlanRepositoryFake(
     override suspend fun getTripPlan(tripPlanId: String): TripPlanDetail = error("Unused")
     override suspend fun updateTripPlan(tripPlanId: String, title: String?, items: List<TripPlanItemOrder>?): TripPlanDetail = error("Unused")
     override suspend fun deleteTripPlan(tripPlanId: String) = error("Unused")
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = error("Unused")
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = error("Unused")
+    override suspend fun markTripPlanChecked(tripPlanId: String) = error("Unused")
+    override suspend fun clearUncheckedTripPlans() = error("Unused")
 }
 
 private class TrackingAuthRepositoryFake : AuthRepository {

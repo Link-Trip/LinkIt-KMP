@@ -93,7 +93,13 @@ class MapApiContentTest {
         composeRule.onRoot().captureRoboImage()
         composeRule.onNodeWithText("확인하기").performClick()
         assertEquals(Triple("created-trip-42", "새로 생성된 서울 여행", null), openedSchedule)
-        assertEquals(listOf<MapIntent>(MapIntent.AcknowledgeVideoCreation("completed-task")), intents)
+        assertEquals(
+            listOf<MapIntent>(
+                MapIntent.AcknowledgeVideoCreation("completed-task"),
+                MapIntent.ScheduleOpened("created-trip-42"),
+            ),
+            intents,
+        )
     }
 
     private fun setMapContent(

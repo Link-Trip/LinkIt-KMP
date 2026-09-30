@@ -19,8 +19,14 @@ import com.linkit.company.data.datasource.feedback.FeedbackRemoteDataSource
 import com.linkit.company.data.datasource.feedback.FeedbackRemoteDataSourceImpl
 import com.linkit.company.data.datasource.member.MemberRemoteDataSource
 import com.linkit.company.data.datasource.member.MemberRemoteDataSourceImpl
+import com.linkit.company.data.datasource.onboarding.OnboardingLocalDataSource
+import com.linkit.company.data.datasource.onboarding.OnboardingLocalDataSourceImpl
+import com.linkit.company.data.datasource.terms.TermsRemoteDataSource
+import com.linkit.company.data.datasource.terms.TermsRemoteDataSourceImpl
 import com.linkit.company.data.datasource.settings.AppSettingsLocalDataSource
 import com.linkit.company.data.datasource.settings.AppSettingsLocalDataSourceImpl
+import com.linkit.company.data.datasource.tripplan.TripPlanLocalDataSource
+import com.linkit.company.data.datasource.tripplan.TripPlanLocalDataSourceImpl
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSourceImpl
 import com.linkit.company.data.datasource.video.VideoRemoteDataSource
@@ -32,6 +38,7 @@ import com.linkit.company.data.repository.AppSettingsRepositoryImpl
 import com.linkit.company.data.repository.AuthRepositoryImpl
 import com.linkit.company.data.repository.FeedbackRepositoryImpl
 import com.linkit.company.data.repository.MemberRepositoryImpl
+import com.linkit.company.data.repository.OnboardingRepositoryImpl
 import com.linkit.company.data.repository.TermsRepositoryImpl
 import com.linkit.company.data.repository.TripPlanRepositoryImpl
 import com.linkit.company.data.repository.VideoRepositoryImpl
@@ -40,6 +47,7 @@ import com.linkit.company.domain.repository.AppSettingsRepository
 import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.FeedbackRepository
 import com.linkit.company.domain.repository.MemberRepository
+import com.linkit.company.domain.repository.OnboardingRepository
 import com.linkit.company.domain.repository.TermsRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
@@ -55,7 +63,11 @@ import dev.zacsweers.metro.createGraphFactory
 import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
 import dev.zacsweers.metrox.viewmodel.MetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.Platform
 import kotlin.reflect.KClass
 import io.ktor.client.engine.darwin.Darwin
 import kotlin.uuid.ExperimentalUuidApi
@@ -103,6 +115,9 @@ interface IosAppGraph : AppGraph {
     val TripPlanRemoteDataSourceImpl.bind: TripPlanRemoteDataSource
 
     @Binds
+    val TripPlanLocalDataSourceImpl.bind: TripPlanLocalDataSource
+
+    @Binds
     val TripPlanRepositoryImpl.bind: TripPlanRepository
 
     @Binds
@@ -136,7 +151,16 @@ interface IosAppGraph : AppGraph {
     val FeedbackRepositoryImpl.bind: FeedbackRepository
 
     @Binds
+    val TermsRemoteDataSourceImpl.bind: TermsRemoteDataSource
+
+    @Binds
     val TermsRepositoryImpl.bind: TermsRepository
+
+    @Binds
+    val OnboardingLocalDataSourceImpl.bind: OnboardingLocalDataSource
+
+    @Binds
+    val OnboardingRepositoryImpl.bind: OnboardingRepository
 
     @Provides
     fun provideJson(): Json = defaultJson()
@@ -182,13 +206,16 @@ interface IosAppGraph : AppGraph {
     @Provides
     fun provideBaseUrl(): String = "https://linktrip.cloud/api/"
 
+    @OptIn(ExperimentalNativeApi::class)
     @Provides
     fun provideHttpClient(
         json: Json,
         authLocalDataSource: AuthLocalDataSource,
     ): HttpClient {
         return HttpClient(Darwin) {
-            defaultKtorConfig(json) { authLocalDataSource.getAccessToken() }
+            defaultKtorConfig(json, enableLogging = Platform.isDebugBinary) {
+                authLocalDataSource.getAccessToken()
+            }
         }
     }
 
@@ -221,6 +248,14 @@ interface IosAppGraph : AppGraph {
     }
 }
 
+/**
+ * iOS 호스트(Swift)가 호출하는 앱 그래프 진입점.
+ * 디버그 바이너리에서만 Napier 출력을 켠다. 릴리스에서는 모든 Napier 호출이 no-op이다.
+ */
+@OptIn(ExperimentalNativeApi::class)
 fun createIosAppGraph(): IosAppGraph {
+    if (Platform.isDebugBinary) {
+        Napier.base(DebugAntilog())
+    }
     return createGraphFactory<IosAppGraph.Factory>().createIosAppGraph()
 }

@@ -6,6 +6,7 @@ import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.settings.MapDisplayType
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
+import com.linkit.company.domain.model.onboarding.TutorialStep
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.repository.AuthRepository
 import com.linkit.company.domain.repository.AppSettingsRepository
@@ -22,13 +23,18 @@ import com.linkit.company.domain.usecase.AcknowledgeVideoScheduleCreationUseCase
 import com.linkit.company.domain.usecase.ObserveVideoScheduleCreationUseCase
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
+import com.linkit.company.domain.usecase.CompleteOnboardingUseCase
 import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
 import com.linkit.company.domain.usecase.EnsureAuthenticatedUseCase
 import com.linkit.company.domain.usecase.GetSavedTripPlansForMapUseCase
 import com.linkit.company.domain.usecase.RenameTripPlanUseCase
 import com.linkit.company.feature.map.testing.FakeAppSettingsRepository
+import com.linkit.company.feature.map.testing.FakeOnboardingRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -116,6 +122,8 @@ class MapViewModelTest {
     fun completedAnalysisLinksToServerScheduleAndAcknowledgementClearsNotice() {
         val repository = RecordingTripPlanRepository().apply { savedSchedules = MapDebugMockData.schedules }
         val summary = repository.savedSchedules.first().summary
+        repository.uncheckedIds.value = setOf(summary.id)
+        val onboarding = FakeOnboardingRepository(initialStep = TutorialStep.FREE)
         val videos = EmptyVideoRepository().apply {
             pending.value = summary.videoAnalysisTaskId
             analysis = VideoAnalysis(
@@ -125,13 +133,22 @@ class MapViewModelTest {
                 placeEnrichmentCompleted = true, timelines = emptyList(), itineraryItems = emptyList(),
             )
         }
-        val viewModel = createViewModel(repository, videos)
+        val viewModel = createViewModel(repository, videos, onboarding = onboarding)
         viewModel.onScreenResumed()
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(
             VideoScheduleCreationState.Completed(summary.videoAnalysisTaskId, summary.id, summary.title),
             viewModel.uiState.value.videoCreationState,
         )
+        val loadedSchedule = viewModel.uiState.value.schedules.first { it.id == summary.id }
+        assertEquals("분석 요약", loadedSchedule.analysisSummary)
+        assertEquals(100L, loadedSchedule.estimatedMinCost)
+        assertEquals(200L, loadedSchedule.estimatedMaxCost)
+        assertTrue(loadedSchedule.isUnchecked)
+        assertEquals(TutorialStep.FREE, viewModel.uiState.value.tutorialStep)
+        viewModel.onIntent(MapIntent.ScheduleOpened(summary.id))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertFalse(viewModel.uiState.value.schedules.first { it.id == summary.id }.isUnchecked)
         viewModel.onIntent(MapIntent.AcknowledgeVideoCreation(summary.videoAnalysisTaskId))
         shadowOf(Looper.getMainLooper()).idle()
         assertNull(videos.pending.value)
@@ -316,10 +333,124 @@ class MapViewModelTest {
         assertEquals("일정이 삭제되었습니다.", viewModel.uiState.value.scheduleActionFeedback?.message)
     }
 
+    // ---- 튜토리얼 (T033) ----
+
+    @Test
+    fun tutorialStepComesFromRepositoryAndFabTapAdvancesToVideoLinkOption() {
+        val onboarding = FakeOnboardingRepository(initialStep = TutorialStep.CREATE_BUTTON)
+        val viewModel = createViewModel(onboarding = onboarding)
+        idle()
+        assertEquals(TutorialStep.CREATE_BUTTON, viewModel.uiState.value.tutorialStep)
+        assertTrue(viewModel.uiState.value.isOnboardingMode)
+
+        viewModel.onIntent(MapIntent.ToggleCreateMenu)
+        idle()
+
+        assertTrue(viewModel.uiState.value.isCreateMenuExpanded)
+        assertEquals(TutorialStep.VIDEO_LINK_OPTION, viewModel.uiState.value.tutorialStep)
+        assertEquals(listOf("setTutorialStep(VIDEO_LINK_OPTION)"), onboarding.events)
+    }
+
+    @Test
+    fun selectingVideoLinkOptionAdvancesToCopyLinkAndClosesMenu() {
+        val onboarding = FakeOnboardingRepository(initialStep = TutorialStep.VIDEO_LINK_OPTION)
+        val viewModel = createViewModel(onboarding = onboarding)
+        viewModel.onIntent(MapIntent.ToggleCreateMenu)
+        idle()
+
+        viewModel.onIntent(MapIntent.SelectCreateFromVideo)
+        idle()
+
+        assertFalse(viewModel.uiState.value.isCreateMenuExpanded)
+        assertEquals(TutorialStep.COPY_LINK, viewModel.uiState.value.tutorialStep)
+        assertEquals(listOf("setTutorialStep(COPY_LINK)"), onboarding.events)
+    }
+
+    @Test
+    fun skipOnboardingRecordsCompletionAndLeavesTutorialMode() {
+        val onboarding = FakeOnboardingRepository(initialStep = TutorialStep.CREATE_BUTTON)
+        val viewModel = createViewModel(onboarding = onboarding)
+        idle()
+
+        viewModel.onIntent(MapIntent.SkipOnboarding)
+        idle()
+
+        assertEquals(listOf("setOnboardingCompleted(true)", "setTutorialStep(null)"), onboarding.events)
+        assertTrue(onboarding.onboardingCompleted)
+        assertNull(viewModel.uiState.value.tutorialStep)
+        assertFalse(viewModel.uiState.value.isOnboardingMode)
+    }
+
+    @Test
+    fun withoutTutorialStepMenuAndSkipBehaveAsBefore() {
+        val onboarding = FakeOnboardingRepository(initialStep = null)
+        val viewModel = createViewModel(onboarding = onboarding)
+        idle()
+
+        viewModel.onIntent(MapIntent.ToggleCreateMenu)
+        viewModel.onIntent(MapIntent.SelectCreateFromVideo)
+        viewModel.onIntent(MapIntent.SkipOnboarding)
+        idle()
+
+        assertEquals(emptyList<String>(), onboarding.events)
+        assertNull(viewModel.uiState.value.tutorialStep)
+    }
+
+    // ---- 확인전/확인후 (T049) ----
+
+    @Test
+    fun uncheckedIdsMarkSchedulesAndOpeningDetailChecksThem() {
+        val repository = RecordingTripPlanRepository()
+        val viewModel = createViewModel(repository)
+        val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
+        viewModel.useDebugMapData(MapDebugMockData.schedules)
+
+        repository.uncheckedIds.value = setOf(schedule.id)
+        idle()
+        assertTrue(viewModel.uiState.value.schedules.first { it.id == schedule.id }.isUnchecked)
+
+        viewModel.onIntent(MapIntent.ScheduleOpened(schedule.id))
+        idle()
+
+        assertEquals(listOf(schedule.id), repository.checkedIds)
+        assertFalse(viewModel.uiState.value.schedules.first { it.id == schedule.id }.isUnchecked)
+    }
+
+    @Test
+    fun newViewModelKeepsHighlightFromPersistedUncheckedIds() {
+        val repository = RecordingTripPlanRepository()
+        val schedule = MapDebugMockData.schedules.first().toMapScheduleUiModel()
+        repository.uncheckedIds.value = setOf(schedule.id)
+
+        val viewModel = createViewModel(repository)
+        viewModel.useDebugMapData(MapDebugMockData.schedules)
+        idle()
+
+        assertTrue(viewModel.uiState.value.schedules.first { it.id == schedule.id }.isUnchecked)
+        assertEquals(setOf(schedule.id), viewModel.uiState.value.uncheckedScheduleIds)
+    }
+
+    @Test
+    fun tutorialFinishingReloadsSchedules() {
+        val onboarding = FakeOnboardingRepository(initialStep = TutorialStep.FREE)
+        val repository = RecordingTripPlanRepository()
+        val viewModel = createViewModel(repository, onboarding = onboarding)
+        idle()
+        val loadsBefore = repository.listRequests
+
+        onboarding.tutorialStep.value = null
+        idle()
+
+        assertTrue(repository.listRequests > loadsBefore)
+    }
+
+    private fun idle() = shadowOf(Looper.getMainLooper()).idle()
+
     private fun createViewModel(
         tripPlanRepository: TripPlanRepository = RecordingTripPlanRepository(),
         videoRepository: VideoRepository = EmptyVideoRepository(),
         appSettingsRepository: AppSettingsRepository = FakeAppSettingsRepository(),
+        onboarding: FakeOnboardingRepository = FakeOnboardingRepository(),
     ): MapViewModel {
         val authRepository = EmptyAuthRepository()
         val ensureAuthenticated = EnsureAuthenticatedUseCase(authRepository)
@@ -343,6 +474,9 @@ class MapViewModelTest {
             ),
             acknowledgeVideoScheduleCreation = AcknowledgeVideoScheduleCreationUseCase(videoRepository),
             appSettingsRepository = appSettingsRepository,
+            onboardingRepository = onboarding,
+            tripPlanRepository = tripPlanRepository,
+            completeOnboarding = CompleteOnboardingUseCase(onboarding),
         )
     }
 }
@@ -360,8 +494,12 @@ private class RecordingTripPlanRepository : TripPlanRepository {
     var nextListGate: CompletableDeferred<Unit>? = null
     var renamedSchedule: Pair<String, String>? = null
     var deletedScheduleId: String? = null
+    var listRequests = 0
+    val uncheckedIds = MutableStateFlow<Set<String>>(emptySet())
+    val checkedIds = mutableListOf<String>()
 
     override suspend fun getTripPlans(cursor: String?): CursorPage<TripPlanSummary> {
+        listRequests += 1
         val snapshot = savedSchedules.map { it.summary }
         val gate = nextListGate
         nextListGate = null
@@ -400,6 +538,21 @@ private class RecordingTripPlanRepository : TripPlanRepository {
         deletedScheduleId = tripPlanId
         savedSchedules = savedSchedules.filterNot { it.summary.id == tripPlanId }
     }
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = uncheckedIds
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) {
+        uncheckedIds.value = uncheckedIds.value + tripPlanId
+    }
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) {
+        checkedIds += tripPlanId
+        uncheckedIds.value = uncheckedIds.value - tripPlanId
+    }
+
+    override suspend fun clearUncheckedTripPlans() {
+        uncheckedIds.value = emptySet()
+    }
 }
 
 private class EmptyVideoRepository : VideoRepository {
@@ -420,4 +573,5 @@ private class EmptyVideoRepository : VideoRepository {
     override suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo> = error("Not used")
     override suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo> = error("Not used")
     override suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo> = error("Not used")
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Not used")
 }

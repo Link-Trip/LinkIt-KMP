@@ -18,6 +18,10 @@ class MemberRepositoryImpl(
         memberRemoteDataSource.registerFcmToken(fcmToken, platform)
     }
 
+    override suspend fun getNotificationSetting(): NotificationSetting {
+        return memberRemoteDataSource.getNotificationSetting().toDomain()
+    }
+
     override suspend fun updateNotificationSetting(enabled: Boolean): NotificationSetting {
         return memberRemoteDataSource.updateNotificationSetting(enabled).toDomain()
     }

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -55,7 +56,13 @@ class ScheduleRecommendationsTest {
         composeRule.onNodeWithTag("recommended-video-copy-recommended-4").performScrollTo().performClick()
         composeRule.runOnIdle {
             assertEquals("https://youtu.be/recommended-4", clipboard?.getText()?.text)
-            assertEquals(listOf<ScheduleIntent>(ScheduleIntent.ToggleRecommendedVideos), intents)
+            assertEquals(
+                listOf<ScheduleIntent>(
+                    ScheduleIntent.ToggleRecommendedVideos,
+                    ScheduleIntent.CopyRecommendedLink("https://youtu.be/recommended-4"),
+                ),
+                intents,
+            )
         }
         // Tap the title: the card's geometric center may belong to its separate copy action.
         composeRule.onNodeWithText(ScheduleRecommendationFixtures[4].title, useUnmergedTree = true)
@@ -78,11 +85,11 @@ class ScheduleRecommendationsTest {
             intents::add,
         )
 
-        composeRule.onNodeWithText("조회수 12,345회").assertIsDisplayed()
+        composeRule.onNodeWithText("조회수 1만회").assertIsDisplayed()
         composeRule.onNodeWithTag("recommended-video-copy-recommended-0").performClick()
         composeRule.runOnIdle {
             assertEquals("https://youtu.be/recommended-0", clipboard?.getText()?.text)
-            assertEquals(emptyList<ScheduleIntent>(), intents)
+            assertEquals(listOf<ScheduleIntent>(ScheduleIntent.CopyRecommendedLink("https://youtu.be/recommended-0")), intents)
         }
     }
 
@@ -95,6 +102,7 @@ class ScheduleRecommendationsTest {
                 isLoadingRecommendedVideos = false,
                 videoLink = "https://youtu.be/submitted-video",
                 isSubmittingVideoLink = true,
+                hasClipboardText = true,
             ),
             intents::add,
         )
@@ -106,7 +114,7 @@ class ScheduleRecommendationsTest {
         composeRule.onNodeWithText("https://youtu.be/submitted-video").assertIsDisplayed()
         composeRule.runOnIdle {
             assertEquals("https://youtu.be/recommended-0", clipboard?.getText()?.text)
-            assertEquals(emptyList<ScheduleIntent>(), intents)
+            assertEquals(listOf<ScheduleIntent>(ScheduleIntent.CopyRecommendedLink("https://youtu.be/recommended-0")), intents)
         }
     }
 
@@ -165,6 +173,7 @@ class ScheduleRecommendationsTest {
                                         areRecommendedVideosExpanded = !state.areRecommendedVideosExpanded,
                                     )
                                     is ScheduleIntent.UpdateVideoLink -> state = state.copy(videoLink = intent.link)
+                                    is ScheduleIntent.CopyRecommendedLink -> clipboard?.setText(AnnotatedString(intent.url))
                                     else -> Unit
                                 }
                                 onIntent(intent)

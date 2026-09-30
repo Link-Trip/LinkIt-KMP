@@ -25,6 +25,7 @@ class IntroScreenshotTest {
     @get:Rule
     val composeRule = createComposeRule()
 
+    /** 인트로 애니메이션(정적 지구). 초기화 완료 토스트 골든은 OnboardingStartScreenshotTest 로 이동 */
     @Test
     fun globe() {
         composeRule.setContent {

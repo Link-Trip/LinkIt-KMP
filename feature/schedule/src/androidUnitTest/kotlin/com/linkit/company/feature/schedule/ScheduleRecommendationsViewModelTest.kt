@@ -2,6 +2,10 @@ package com.linkit.company.feature.schedule
 
 import android.os.Looper
 import com.linkit.company.domain.model.auth.Auth
+import com.linkit.company.domain.model.onboarding.TutorialStep
+import com.linkit.company.domain.repository.OnboardingRepository
+import com.linkit.company.domain.usecase.CompleteOnboardingUseCase
+import com.linkit.company.domain.usecase.CreateOnboardingScheduleUseCase
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
@@ -128,7 +132,9 @@ class ScheduleRecommendationsViewModelTest {
         assertTrue(viewModel.uiState.value.isSubmittingVideoLink)
         assertEquals(listOf(submittedUrl), videos.analysisUrls)
         viewModel.onIntent(ScheduleIntent.UpdateVideoLink(ScheduleRecommendationFixtures[0].videoUrl))
-        viewModel.onIntent(ScheduleIntent.UpdateVideoLink("https://youtu.be/pasted-video"))
+        viewModel.onIntent(ScheduleIntent.PasteFromClipboard("https://youtu.be/pasted-video"))
+        viewModel.onIntent(ScheduleIntent.CopyRecommendedLink("https://youtu.be/copied-video"))
+        viewModel.onIntent(ScheduleIntent.ApplyClipboardToast)
         viewModel.onIntent(ScheduleIntent.SubmitVideoLink)
         shadowOf(Looper.getMainLooper()).idle()
 
@@ -175,12 +181,29 @@ class ScheduleRecommendationsViewModelTest {
                 items: List<TripPlanItemOrder>?,
             ): TripPlanDetail = error("Unused")
             override suspend fun deleteTripPlan(tripPlanId: String): Unit = error("Unused")
+            override fun observeUncheckedTripPlanIds() = flowOf(emptySet<String>())
+            override suspend fun markTripPlanUnchecked(tripPlanId: String) = Unit
+            override suspend fun markTripPlanChecked(tripPlanId: String) = Unit
+            override suspend fun clearUncheckedTripPlans() = Unit
+        }
+        val onboarding = object : OnboardingRepository {
+            override suspend fun isOnboardingCompleted() = true
+            override suspend fun setOnboardingCompleted(completed: Boolean) = Unit
+            override suspend fun isTermsAgreed() = true
+            override suspend fun setTermsAgreed(agreedAtEpochMillis: Long) = Unit
+            override fun observeTutorialStep() = flowOf<TutorialStep?>(null)
+            override suspend fun setTutorialStep(step: TutorialStep?) = Unit
+            override suspend fun clearAll() = Unit
         }
         return ScheduleViewModel(
             startVideoScheduleCreation = StartVideoScheduleCreationUseCase(authentication, trips, videos),
             renameTripPlan = RenameTripPlanUseCase(authentication, trips),
             deleteTripPlan = DeleteTripPlanUseCase(authentication, trips),
             getExploreVideos = GetExploreVideosUseCase(authentication, videos),
+            createOnboardingSchedule = CreateOnboardingScheduleUseCase(authentication, videos, trips),
+            completeOnboarding = CompleteOnboardingUseCase(onboarding),
+            onboardingRepository = onboarding,
+            videoRepository = videos,
         )
     }
 
@@ -216,6 +239,7 @@ class ScheduleRecommendationsViewModelTest {
         override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata = error("Unused")
         override suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo> = error("Unused")
         override suspend fun getDiscoverChannels(): List<DiscoverChannel> = error("Unused")
+        override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Unused")
         override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Unused")
         override suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo> = error("Unused")
         override suspend fun getDiscoverVideosByRegion(region: String): List<DiscoverVideo> = error("Unused")

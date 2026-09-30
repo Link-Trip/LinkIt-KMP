@@ -3,11 +3,15 @@ package com.linkit.company.data.core
 import com.linkit.company.data.dto.ErrorResponse
 import com.linkit.company.domain.exception.LinkTripApiException
 import com.linkit.company.domain.exception.LinkTripErrorCode
+import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.isSuccess
@@ -16,12 +20,28 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.serialization.json.Json
 
+/**
+ * 모든 플랫폼 HttpClient에 공통 적용되는 Ktor 설정.
+ *
+ * @param enableLogging true면 요청/응답 전체(헤더·바디)를 Napier `LinkTrip-HTTP` 태그로 출력한다.
+ *   디버그 빌드에서만 켜야 하며, `Authorization` 헤더 값은 마스킹된다.
+ *   실제 출력은 앱 진입점에서 `Napier.base(DebugAntilog())`가 등록되어 있어야 한다.
+ */
 fun HttpClientConfig<*>.defaultKtorConfig(
     ktorJsonSettings: Json,
+    enableLogging: Boolean = false,
     accessTokenProvider: suspend () -> String?,
 ) {
     install(ContentNegotiation) {
         json(ktorJsonSettings)
+    }
+
+    if (enableLogging) {
+        install(Logging) {
+            logger = LinkTripHttpLogger
+            level = LogLevel.ALL
+            sanitizeHeader { header -> header == HttpHeaders.Authorization }
+        }
     }
 
     install(linkTripHeadersPlugin(accessTokenProvider))
@@ -66,6 +86,15 @@ private fun linkTripHeadersPlugin(accessTokenProvider: suspend () -> String?) =
     }
 
 private const val LinkTripHost = "linktrip.cloud"
+
+/** Android는 Logcat 태그, iOS는 Xcode 콘솔 접두어로 `LinkTrip-HTTP`가 붙는다. */
+private object LinkTripHttpLogger : Logger {
+    override fun log(message: String) {
+        Napier.d(message, tag = HttpLogTag)
+    }
+}
+
+private const val HttpLogTag = "LinkTrip-HTTP"
 
 fun defaultJson(): Json {
     return Json {

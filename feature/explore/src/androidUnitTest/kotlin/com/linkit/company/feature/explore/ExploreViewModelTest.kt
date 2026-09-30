@@ -246,4 +246,5 @@ private class ExploreVideoRepositoryFake : VideoRepository {
     override suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis = error("Unused")
     override suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis = error("Unused")
     override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata = error("Unused")
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Unused")
 }

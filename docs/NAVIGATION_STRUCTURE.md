@@ -6,6 +6,7 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-09-21 | 온보딩 라우트(OnboardingStart) 추가, IntroActivity를 Navigation3 단일 백스택(Intro → OnboardingStart → TermsDetail)으로 개편 (이슈 #47/#49/#50) |
 | 2026-09-21 | 마이페이지 라우트(MyPage, Terms, TermsDetail) 및 앱 초기화용 IntroNavigator 추가 (이슈 #41/#45) |
 | 2026-04-06 | Navigator 패턴 추가 (이슈 #21): Feature 모듈 간 Activity 전환 추상화 |
 | 2026-04-03 | 멀티 백스택 구조, 멀티 액티비티 구조, Entry Provider 패턴 반영 |
@@ -94,6 +95,11 @@ graph TD
 ```
 Activity 레벨 (Intent로 전환)
 ├── IntroActivity ──Intent──→ HomeActivity
+│   └── Navigation3 단일 백스택 (IntroNavDisplay)
+│       ├── Intro (시작 route, 인트로 애니메이션 — OnboardingStart로 갈 때 백스택에서 제거.
+│       │         온보딩을 마친 회원에게 개정 약관 재동의가 필요하면 이 위에 약관 시트를 띄우고 동의 후 Home으로)
+│       ├── OnboardingStart (온보딩 시작 + 약관 동의 바텀시트)
+│       └── TermsDetail(type) (약관 상세, core:ui TermsDetailScreen 공유)
 ├── HomeActivity (바텀네비 호스트)
 │   └── Navigation3 멀티 백스택
 │       ├── Map 탭 백스택
@@ -211,6 +217,10 @@ interface LinkItNavKey : NavKey {
     // Sub-route
     data object ScheduleEdit : LinkItNavKey
 
+    // Intro Activity 단일 백스택 (feature:intro IntroNavDisplay가 등록)
+    data object Intro : LinkItNavKey
+    data object OnboardingStart : LinkItNavKey
+
     // Map 탭 서브 라우트 (feature:map MapEntry가 등록, 마이페이지 화면군은 하단 탭 숨김)
     data class PlaceDetail(...) : LinkItNavKey
     data object MyPage : LinkItNavKey
@@ -228,6 +238,7 @@ private val linkItSerializersModule = SerializersModule {
         subclass(LinkItNavKey.Storage::class, LinkItNavKey.Storage.serializer())
         subclass(LinkItNavKey.Explore::class, LinkItNavKey.Explore.serializer())
         subclass(LinkItNavKey.ScheduleEdit::class, LinkItNavKey.ScheduleEdit.serializer())
+        subclass(LinkItNavKey.OnboardingStart::class, LinkItNavKey.OnboardingStart.serializer())
         subclass(LinkItNavKey.MyPage::class, LinkItNavKey.MyPage.serializer())
         subclass(LinkItNavKey.Terms::class, LinkItNavKey.Terms.serializer())
         subclass(LinkItNavKey.TermsDetail::class, LinkItNavKey.TermsDetail.serializer())

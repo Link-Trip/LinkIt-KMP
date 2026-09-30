@@ -25,6 +25,7 @@ internal object MyPageStrings {
     const val ToastFeedbackLimit = "최대 의견 전송 횟수를 초과했습니다."
     const val ToastFeedbackFailure = "전송에 실패했습니다. 다시 시도해주세요."
     const val ToastResetFailure = "앱 초기화에 실패했습니다. 다시 시도해주세요."
+    const val ToastNotificationFailure = "알림 설정 변경에 실패했습니다. 다시 시도해주세요."
 
     const val ResetDialogTitle = "정말 앱을 초기화 하시겠어요?"
     const val ResetDialogDescription = "앱을 초기화하면 다시 복구할 수 없어요"
@@ -44,6 +45,4 @@ internal object MyPageStrings {
     const val TermsPrivacy = "개인정보 처리방침"
     const val TermsOpenSource = "오픈소스 라이센스 고지"
     const val TermsLocation = "위치기반 서비스 이용약관"
-    const val TermsLoadError = "약관을 불러오지 못했어요"
-    const val TermsRetry = "다시 시도"
 }

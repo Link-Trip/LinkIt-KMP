@@ -1,6 +1,6 @@
 {
   "schemaVersion": "spec-command-center.feature-list.v1.1",
-  "generatedAt": "2026-09-21T13:23:19.869Z",
+  "generatedAt": "2026-09-30T12:45:32.177Z",
   "project": {
     "name": "Pingo",
     "figmaFile": "Pingo v3.0.3",
@@ -84,7 +84,7 @@
       "title": "마이페이지",
       "area": "MyPage",
       "path": "mypage-screen.md",
-      "specVersion": "v0.2.1",
+      "specVersion": "v0.3.1",
       "figmaSection": "17789:52610",
       "accent": "#ea580c",
       "reviewStatus": "Pass with Comments"
@@ -384,7 +384,7 @@
       "description": "이전 마이페이지 기본 디자인 근거",
       "source": {
         "path": "mypage-screen.md",
-        "line": 79
+        "line": 81
       }
     },
     {
@@ -395,7 +395,7 @@
       "description": "이전 앱 초기화 확인 디자인 근거",
       "source": {
         "path": "mypage-screen.md",
-        "line": 80
+        "line": 82
       }
     },
     {
@@ -406,7 +406,7 @@
       "description": "이전 지도 설정 결과 후보",
       "source": {
         "path": "mypage-screen.md",
-        "line": 81
+        "line": 83
       }
     },
     {
@@ -924,23 +924,7 @@
       },
       "source": {
         "path": "mypage-screen.md",
-        "line": 99
-      }
-    },
-    {
-      "uid": "mypage:TBD-05",
-      "tbdId": "TBD-05",
-      "screenSlug": "mypage",
-      "title": "온보딩 완료 플래그 기록 시점",
-      "description": "DataStore 키 `onboarding_completed`와 초기화는 준비됨. `true`를 쓰는 시점은 온보딩 플로우 스펙(002)에서 확정",
-      "status": "open",
-      "resolver": "PM",
-      "impact": {
-        "featureRefs": []
-      },
-      "source": {
-        "path": "mypage-screen.md",
-        "line": 100
+        "line": 101
       }
     },
     {
@@ -4740,9 +4724,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 67,
+        "sourceLine": 69,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -4798,9 +4782,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 68,
+        "sourceLine": 70,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -4856,9 +4840,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 69,
+        "sourceLine": 71,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -4914,9 +4898,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 70,
+        "sourceLine": 72,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -4972,9 +4956,9 @@
           "mypage:TERMS_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 71,
+        "sourceLine": 73,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -5032,9 +5016,9 @@
           "mypage:BUG_REPORT_OPEN"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 72,
+        "sourceLine": 74,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -5087,9 +5071,9 @@
           "mypage:RESET_CONFIRM"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 73,
+        "sourceLine": 75,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -5142,9 +5126,9 @@
           "mypage:RESET_CONFIRM"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 74,
+        "sourceLine": 76,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {
@@ -5197,9 +5181,9 @@
           "mypage:RESET_CANCEL"
         ],
         "specPath": "mypage-screen.md",
-        "sourceLine": 75,
+        "sourceLine": 77,
         "figmaSection": "17789:52610",
-        "specVersion": "v0.2.1"
+        "specVersion": "v0.3.1"
       }
     },
     {

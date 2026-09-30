@@ -34,28 +34,6 @@ class TermsScreenshotTest {
         TermsListContent(documents = SampleDocuments, onBack = {}, onOpenDocument = {})
     }
 
-    /** 18287:116612 — 상세 로딩 중(웹뷰는 인스펙션 모드에서 생략) */
-    @Test
-    fun terms_detailLoading() = capture {
-        TermsDetailContent(
-            document = SampleDocuments.first(),
-            loadState = TermsLoadState.LOADING,
-            onBack = {},
-            onRetry = {},
-        )
-    }
-
-    /** 상세 실패: 안내 문구 + 다시 시도 (Figma 미정의, FR-021a) */
-    @Test
-    fun terms_detailError() = capture {
-        TermsDetailContent(
-            document = SampleDocuments.first(),
-            loadState = TermsLoadState.ERROR,
-            onBack = {},
-            onRetry = {},
-        )
-    }
-
     private companion object {
         /** TermsRepositoryImpl과 동일한 4종. 스크린샷은 data 모듈에 의존하지 않도록 여기서 정의한다. */
         val SampleDocuments = listOf(

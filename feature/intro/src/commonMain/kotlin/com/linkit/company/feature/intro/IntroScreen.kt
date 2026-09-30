@@ -4,9 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
@@ -17,36 +14,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linkit.company.core.designsystem.component.popup.LinkItToast
-import com.linkit.company.core.designsystem.component.popup.ToastVariant
 import com.linkit.company.core.designsystem.foundation.color.token.PaletteTokens
 import com.linkit.company.core.designsystem.foundation.typography.rememberNanumSquareFontFamily
 import com.linkit.company.core.designsystem.theme.LinkItTheme
+import kotlinx.coroutines.delay
 import linkitcompany.feature.intro.generated.resources.Res
 import linkitcompany.feature.intro.generated.resources.intro_globe
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 
-/** 앱 초기화 완료 토스트 문구 (specs/001-mypage-screen contracts §8). */
-const val ResetCompletedToastMessage = "앱 초기화가 완료되었습니다."
-
+/**
+ * 인트로 애니메이션 화면. [IntroSplashDurationMillis] 뒤 [onSplashFinished] 만 호출하고
+ * 목적지 판단은 [IntroViewModel] 이 한다(research R5·R11).
+ *
+ * 앱 초기화 완료 토스트는 온보딩 시작 화면([OnboardingStartScreen])으로 옮겨졌다.
+ */
 @Composable
 fun IntroScreen(
-    onNavigateToHome: () -> Unit = {},
-    showResetCompletedToast: Boolean = false,
+    onSplashFinished: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
-        delay(1_500)
-        onNavigateToHome()
+        delay(IntroSplashDurationMillis)
+        onSplashFinished()
     }
 
-    IntroContent(showResetCompletedToast = showResetCompletedToast)
+    IntroContent(modifier = modifier)
 }
 
 @Composable
 fun IntroContent(
     modifier: Modifier = Modifier,
-    showResetCompletedToast: Boolean = false,
 ) {
     val background = PaletteTokens.PaleBlue95
     val nanumSquare = rememberNanumSquareFontFamily()
@@ -77,17 +74,5 @@ fun IntroContent(
                 .align(Alignment.TopCenter)
                 .offset(y = 132.dp),
         )
-
-        if (showResetCompletedToast) {
-            LinkItToast(
-                text = ResetCompletedToastMessage,
-                variant = ToastVariant.Positive,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-                    .fillMaxWidth(),
-            )
-        }
     }
 }

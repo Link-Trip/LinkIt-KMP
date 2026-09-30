@@ -19,6 +19,8 @@ kotlin {
             implementation(libs.ktorfitLib)
             implementation(libs.ktorKotlinxSerializationJson)
             implementation(libs.ktorClientContentNegotiation)
+            implementation(libs.ktorClientLogging)
+            implementation(libs.napier)
             implementation(libs.androidxDataStorePreferencesCore)
         }
 

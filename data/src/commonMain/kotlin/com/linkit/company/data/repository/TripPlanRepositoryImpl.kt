@@ -2,6 +2,7 @@ package com.linkit.company.data.repository
 
 import com.linkit.company.data.DataScope
 import com.linkit.company.data.datasource.tripplan.TripPlanItemOrderParam
+import com.linkit.company.data.datasource.tripplan.TripPlanLocalDataSource
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
 import com.linkit.company.data.mapper.toDomain
 import com.linkit.company.domain.model.common.CursorPage
@@ -11,11 +12,13 @@ import com.linkit.company.domain.model.tripplan.TripPlanSummary
 import com.linkit.company.domain.repository.TripPlanRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.Flow
 
 @Inject
 @ContributesBinding(DataScope::class)
 class TripPlanRepositoryImpl(
     private val tripPlanRemoteDataSource: TripPlanRemoteDataSource,
+    private val tripPlanLocalDataSource: TripPlanLocalDataSource,
 ) : TripPlanRepository {
 
     override suspend fun getTripPlans(cursor: String?): CursorPage<TripPlanSummary> {
@@ -40,6 +43,23 @@ class TripPlanRepositoryImpl(
 
     override suspend fun deleteTripPlan(tripPlanId: String) {
         tripPlanRemoteDataSource.deleteTripPlan(tripPlanId)
+        tripPlanLocalDataSource.removeUncheckedId(tripPlanId)
+    }
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> {
+        return tripPlanLocalDataSource.observeUncheckedIds()
+    }
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) {
+        tripPlanLocalDataSource.addUncheckedId(tripPlanId)
+    }
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) {
+        tripPlanLocalDataSource.removeUncheckedId(tripPlanId)
+    }
+
+    override suspend fun clearUncheckedTripPlans() {
+        tripPlanLocalDataSource.clearUnchecked()
     }
 
     private fun TripPlanItemOrder.toParam(): TripPlanItemOrderParam {

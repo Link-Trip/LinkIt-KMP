@@ -329,6 +329,7 @@ private class MapVideoRepositoryFake(
 ) : VideoRepository {
     override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
     override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
+    override suspend fun getOnboardingVideos(): List<DiscoverVideo> = error("Not used in this test")
     val requestedTaskIds = mutableListOf<String>()
     val requestedUrls = mutableListOf<String>()
 
@@ -426,6 +427,14 @@ private class FakeTripPlanRepository(
     ): TripPlanDetail = error("Not used in this test")
 
     override suspend fun deleteTripPlan(tripPlanId: String) = error("Not used in this test")
+
+    override fun observeUncheckedTripPlanIds(): Flow<Set<String>> = error("Not used in this test")
+
+    override suspend fun markTripPlanUnchecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun markTripPlanChecked(tripPlanId: String) = error("Not used in this test")
+
+    override suspend fun clearUncheckedTripPlans() = error("Not used in this test")
 }
 
 private fun summary(id: String) = TripPlanSummary(

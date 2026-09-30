@@ -8,6 +8,7 @@ import com.linkit.company.domain.model.video.VideoAnalysisStatus
 import com.linkit.company.domain.model.video.YouTubeVideoMetadata
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
+import com.linkit.company.domain.util.YouTubeUrl
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
@@ -43,8 +44,8 @@ class StartVideoScheduleCreationUseCase(
         youtubeUrl: String,
         allowDuplicate: Boolean = false,
     ): StartVideoScheduleCreationResult = creationMutex.withLock {
-        val normalizedUrl = youtubeUrl.trim()
-        val videoId = normalizedUrl.youtubeVideoIdOrNull()
+        val normalizedUrl = YouTubeUrl.normalize(youtubeUrl)
+        val videoId = YouTubeUrl.videoIdOrNull(normalizedUrl)
             ?: return@withLock StartVideoScheduleCreationResult.InvalidFormat
 
         videoRepository.observePendingVideoAnalysisTaskId().first()?.let { taskId ->
@@ -106,7 +107,7 @@ class StartVideoScheduleCreationUseCase(
         while (true) {
             val page = tripPlanRepository.getTripPlans(cursor)
             matchingSchedules += page.items.filter { summary ->
-                summary.youtubeUrl.youtubeVideoIdOrNull() == videoId
+                YouTubeUrl.videoIdOrNull(summary.youtubeUrl) == videoId
             }
             if (stopAfterFirst && matchingSchedules.isNotEmpty()) return matchingSchedules
 
@@ -123,38 +124,3 @@ class StartVideoScheduleCreationUseCase(
         val creationMutex = Mutex()
     }
 }
-
-private fun String.youtubeVideoIdOrNull(): String? {
-    val url = trim()
-
-    YouTubeShortUrl.matchEntire(url)?.let { match ->
-        return match.groupValues[1]
-    }
-    YouTubePathUrl.matchEntire(url)?.let { match ->
-        return match.groupValues[1]
-    }
-    YouTubeWatchUrl.matchEntire(url)?.let { match ->
-        return match.groupValues[1]
-            .split('&')
-            .firstOrNull { it.startsWith("v=") }
-            ?.substringAfter("v=")
-            ?.takeIf(String::isNotBlank)
-    }
-
-    return null
-}
-
-private val YouTubeShortUrl = Regex(
-    pattern = """https?://(?:www\.)?youtu\.be/([A-Za-z0-9_-]+)(?:[/?#&].*)?""",
-    option = RegexOption.IGNORE_CASE,
-)
-
-private val YouTubePathUrl = Regex(
-    pattern = """https?://(?:www\.|m\.)?youtube\.com/(?:shorts|live|embed)/([A-Za-z0-9_-]+)(?:[/?#&].*)?""",
-    option = RegexOption.IGNORE_CASE,
-)
-
-private val YouTubeWatchUrl = Regex(
-    pattern = """https?://(?:www\.|m\.)?youtube\.com/watch\?([^#\s]+)(?:#.*)?""",
-    option = RegexOption.IGNORE_CASE,
-)
