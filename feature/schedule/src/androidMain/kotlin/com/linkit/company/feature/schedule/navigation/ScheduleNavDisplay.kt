@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -73,6 +72,6 @@ fun ScheduleNavDisplay(
         showNotificationPermissionSheet = showNotificationPermissionSheet,
         onAllowNotifications = allowNotifications,
         onDismissNotificationPrompt = dismissNotificationPrompt,
-        modifier = modifier.systemBarsPadding(),
+        modifier = modifier,
     )
 }

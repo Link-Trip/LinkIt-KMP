@@ -1,5 +1,6 @@
 package com.linkit.company.feature.home.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.linkit.company.core.designsystem.component.navigation.LinkItBottomNavigation
 import com.linkit.company.core.designsystem.component.navigation.LinkItBottomNavigationItem
+import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.core.navigation.LinkItNavDisplay
 import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LinkItNavigator
@@ -93,6 +95,7 @@ fun HomeNavDisplay(
         Scaffold(
             modifier = modifier
                 .fillMaxSize()
+                .background(LinkItTheme.color.semantic.background.normal.normal)
                 .then(
                     if (navigationState.currentRoute == LinkItNavKey.Map) {
                         Modifier
@@ -107,6 +110,7 @@ fun HomeNavDisplay(
                         Modifier.navigationBarsPadding()
                     }
                 ),
+            containerColor = LinkItTheme.color.semantic.background.normal.normal,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             bottomBar = {
                 if (!hideBottomBar) {

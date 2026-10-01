@@ -1,5 +1,6 @@
 package com.linkit.company.feature.intro.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -11,6 +12,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.core.navigation.LinkItNavDisplay
 import com.linkit.company.core.navigation.LinkItNavKey
 import com.linkit.company.core.navigation.LinkItSavedStateConfiguration
@@ -93,7 +95,9 @@ fun IntroNavDisplay(
     }
 
     LinkItNavDisplay(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .background(LinkItTheme.color.semantic.background.normal.normal),
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
         entryProvider = entryProvider,

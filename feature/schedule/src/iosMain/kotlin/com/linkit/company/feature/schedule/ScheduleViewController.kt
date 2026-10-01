@@ -1,6 +1,5 @@
 package com.linkit.company.feature.schedule
 
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -10,7 +9,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
 import com.linkit.company.core.common.AppGraph
 import com.linkit.company.core.designsystem.theme.LinkItTheme
@@ -81,6 +79,5 @@ private fun IosScheduleNavigation(onClose: () -> Unit, startRoute: LinkItNavKey)
             promptViewModel.markPrompted()
             isPromptDismissed = true
         },
-        modifier = Modifier.systemBarsPadding(),
     )
 }
