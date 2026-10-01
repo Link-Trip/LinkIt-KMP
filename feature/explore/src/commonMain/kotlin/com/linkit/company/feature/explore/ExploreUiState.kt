@@ -1,35 +1,37 @@
 package com.linkit.company.feature.explore
 
 import com.linkit.company.core.common.architecture.contract.UiState
+import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
+import com.linkit.company.domain.model.video.DiscoverVideo
 
-enum class ExploreTab {
-    COUNTRY,
-    THEME,
-}
+enum class ExploreTab { COUNTRY, THEME }
 
-enum class ExploreCountry(
-    val label: String,
-    val flag: String,
-) {
-    ALL("전체", "🌐"),
-    JAPAN("일본", "🇯🇵"),
-    CHINA("중국", "🇨🇳"),
-    VIETNAM("베트남", "🇻🇳"),
-    ASIA("아시아", "🌏"),
-    EUROPE("유럽", "🌍"),
-    NORTH_AMERICA("북미", "🇺🇸"),
-}
-
-enum class ExploreTheme(val label: String) {
-    ALL("전체"),
-    FOOD("미식 여행"),
-    HEALING("힐링 여행"),
-    CITY("도심지 여행"),
-    NATURE("자연속 여행"),
+enum class ExploreTheme(val label: String, val query: String?) {
+    ALL("전체", null),
+    FOOD("미식 여행", "맛집여행"),
+    HEALING("힐링 여행", "힐링여행"),
+    ACTIVITY("액티비티", "액티비티"),
 }
 
 data class ExploreUiState(
     val selectedTab: ExploreTab = ExploreTab.COUNTRY,
-    val selectedCountry: ExploreCountry = ExploreCountry.ALL,
+    val selectedCountry: String? = null,
+    val selectedRegion: String? = null,
     val selectedTheme: ExploreTheme = ExploreTheme.ALL,
-) : UiState
+    val countries: List<DiscoverCountry> = emptyList(),
+    val channels: List<DiscoverChannel> = emptyList(),
+    val selectedChannelId: String? = null,
+    val videos: List<DiscoverVideo> = emptyList(),
+    val isLoading: Boolean = true,
+    val isLoadingMore: Boolean = false,
+    val isCatalogLoading: Boolean = true,
+    val errorMessage: String? = null,
+    val catalogErrorMessage: String? = null,
+    val nextCursor: String? = null,
+    val hasNext: Boolean = false,
+    val linkErrorMessage: String? = null,
+) : UiState {
+    val selectedChannel: DiscoverChannel?
+        get() = channels.firstOrNull { it.channelId == selectedChannelId }
+}

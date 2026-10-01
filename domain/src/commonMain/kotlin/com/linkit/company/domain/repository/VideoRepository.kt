@@ -2,9 +2,11 @@ package com.linkit.company.domain.repository
 
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.YouTubeVideoMetadata
+import kotlinx.coroutines.flow.Flow
 
 interface VideoRepository {
 
@@ -18,11 +20,25 @@ interface VideoRepository {
 
     suspend fun getVideoAnalysis(videoAnalysisTaskId: String): VideoAnalysis
 
+    /** 사용자에게 완료/실패를 알릴 때까지 분석 작업 ID를 유지한다. */
+    fun observePendingVideoAnalysisTaskId(): Flow<String?>
+
+    suspend fun savePendingVideoAnalysisTaskId(taskId: String, excludedTripPlanIds: Set<String> = emptySet())
+
+    suspend fun getPendingVideoAnalysisExcludedTripPlanIds(): Set<String>
+
+    /** 이전 작업의 늦은 확인 이벤트가 새 작업을 지우지 않도록 ID가 일치할 때만 지운다. */
+    suspend fun clearPendingVideoAnalysisTaskId(expectedTaskId: String)
+
     suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata
 
     suspend fun getDiscoverVideosByTheme(theme: String, cursor: String?): CursorPage<DiscoverVideo>
 
     suspend fun getDiscoverChannels(): List<DiscoverChannel>
+
+    suspend fun getDiscoverCountries(): List<DiscoverCountry>
+
+    suspend fun getDiscoverVideos(): List<DiscoverVideo>
 
     // country와 region은 서버에서 동시 전달 시 400 에러 — 메서드를 분리해 시그니처로 차단한다
     suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo>

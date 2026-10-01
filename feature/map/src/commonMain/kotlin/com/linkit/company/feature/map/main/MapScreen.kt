@@ -2,6 +2,7 @@ package com.linkit.company.feature.map.main
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -41,13 +42,16 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -90,7 +94,6 @@ import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -100,6 +103,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import coil3.compose.AsyncImage
 import com.linkit.company.core.designsystem.component.badge.BadgeColor
 import com.linkit.company.core.designsystem.component.badge.BadgeSize
 import com.linkit.company.core.designsystem.component.badge.LinkItBadge
@@ -123,6 +128,7 @@ import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.foundation.typography.rememberNanumSquareFontFamily
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.domain.model.onboarding.TutorialStep
+import com.linkit.company.domain.model.video.VideoScheduleCreationState
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.delay
 import linkitcompany.feature.map.generated.resources.Res
@@ -133,7 +139,6 @@ import linkitcompany.feature.map.generated.resources.map_filter_category
 import linkitcompany.feature.map.generated.resources.map_filter_globe
 import linkitcompany.feature.map.generated.resources.map_filter_money
 import linkitcompany.feature.map.generated.resources.map_place_photo
-import linkitcompany.feature.map.generated.resources.map_schedule_thumbnail
 import linkitcompany.feature.map.generated.resources.map_selected_thumb_1
 import linkitcompany.feature.map.generated.resources.map_selected_thumb_2
 import linkitcompany.feature.map.generated.resources.map_selected_thumb_3
@@ -155,11 +160,11 @@ fun MapScreen(
     onPlaceSelectionChanged: (Boolean) -> Unit = {},
     viewModel: MapViewModel = metroViewModel(),
 ) {
-    val debugMapData = rememberMapDebugData()
-    LaunchedEffect(viewModel, debugMapData) {
-        debugMapData?.let(viewModel::useDebugMapData)
-    }
     val uiState by viewModel.uiState.collectAsState()
+    LifecycleResumeEffect(viewModel) {
+        viewModel.onScreenResumed()
+        onPauseOrDispose { viewModel.onScreenPaused() }
+    }
     val latestOnPlaceSelectionChanged = rememberUpdatedState(onPlaceSelectionChanged)
     LaunchedEffect(uiState.selection) {
         latestOnPlaceSelectionChanged.value(uiState.selection == MapSelection.PLACE)
@@ -191,6 +196,22 @@ fun MapContent(
     modifier: Modifier = Modifier,
 ) {
     val mapCenter = MapCoordinateUiModel(uiState.cameraLatitude, uiState.cameraLongitude)
+    val requestCreateFromVideo = {
+        when (val creation = uiState.videoCreationState) {
+            is VideoScheduleCreationState.InProgress ->
+                onIntent(MapIntent.ShowCreationInProgressDialog)
+            is VideoScheduleCreationState.Error -> onIntent(MapIntent.RetryVideoCreation)
+            else -> {
+                if (creation is VideoScheduleCreationState.Completed) {
+                    onIntent(MapIntent.AcknowledgeVideoCreation(creation.taskId))
+                }
+                if (creation is VideoScheduleCreationState.Failed) {
+                    onIntent(MapIntent.AcknowledgeVideoCreation(creation.taskId))
+                }
+                onCreateFromVideo()
+            }
+        }
+    }
     // 튜토리얼 코치마크 대상 좌표(루트 기준). 화면 로컬 상태로만 두고 ViewModel 에는 올리지 않는다
     var createControlBounds by remember { mutableStateOf<Rect?>(null) }
     var videoLinkOptionBounds by remember { mutableStateOf<Rect?>(null) }
@@ -228,110 +249,134 @@ fun MapContent(
             .background(LinkItTheme.color.semantic.background.normal.alternative),
     ) {
         MapCanvas(uiState = uiState, onIntent = onIntent)
-        MapTopActions(
-            showMyPage = !uiState.isOnboardingMode,
-            onOpenMyPage = onOpenMyPage,
-            onToggleMapType = { onIntent(MapIntent.ToggleMapType) },
-        )
+        Box(Modifier.fillMaxSize().statusBarsPadding()) {
+            MapTopActions(
+                showMyPage = !uiState.isOnboardingMode,
+                onOpenMyPage = onOpenMyPage,
+                onToggleMapType = { onIntent(MapIntent.ToggleMapType) },
+            )
 
-        if (uiState.selection == MapSelection.PLACE) {
-            uiState.selectedSchedule?.let { schedule ->
-                SelectedScheduleMapMarker(schedule)
+            if (uiState.selection == MapSelection.PLACE) {
+                uiState.selectedSchedule?.let { schedule ->
+                    SelectedScheduleMapMarker(schedule)
+                }
             }
-        }
 
-        uiState.locationMessage?.let { message ->
-            MapNotice(
-                message = message,
-                topPadding = if (uiState.selection == MapSelection.PLACE) 68.dp else 20.dp,
-            )
-        }
-
-        if (uiState.selection != MapSelection.PLACE) {
-            MapBottomSheetHost(
-                uiState = uiState,
-                onIntent = onIntent,
-                onOpenSchedule = onOpenSchedule,
-                onCreateFromVideo = onCreateFromVideo,
-                onCreateFromStorage = onCreateFromStorage,
-                onCreateManually = onCreateManually,
-                onOpenExplore = onOpenExplore,
-                onCreateControlPositioned = { createControlBounds = it },
-                onVideoLinkOptionPositioned = { videoLinkOptionBounds = it },
-            )
-        } else {
-            val schedule = uiState.selectedSchedule
-            val place = uiState.selectedPlace
-            if (schedule != null && place != null) {
-                PlaceInformationCard(
-                    place = place,
-                    canShowPrevious = uiState.canShowPreviousPlace,
-                    canShowNext = uiState.canShowNextPlace,
-                    onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
-                    onNext = { onIntent(MapIntent.ShowNextPlace) },
-                    onClose = { onIntent(MapIntent.ClosePlace) },
-                    onViewInSchedule = {
-                        onIntent(MapIntent.ScheduleOpened(schedule.id))
-                        onOpenSchedule(schedule.id, schedule.title, place.placeId)
-                    },
-                    onOpenPlaceDetail = { onOpenPlaceDetail(place) },
+            uiState.locationMessage?.let { message ->
+                MapNotice(
+                    message = message,
+                    topPadding = if (uiState.selection == MapSelection.PLACE) 68.dp else 20.dp,
                 )
             }
-        }
 
-        if (uiState.isComingSoonDialogVisible) {
-            LinkItDialog(
-                title = "해당 기능은\n곧 출시 예정이에요!",
-                description = "조금만 기다려 주세요",
-                confirmText = "확인",
-                onConfirmClick = { onIntent(MapIntent.DismissComingSoonDialog) },
-                onDismissRequest = { onIntent(MapIntent.DismissComingSoonDialog) },
-            )
-        }
+            if (uiState.selection != MapSelection.PLACE) {
+                MapBottomSheetHost(
+                    uiState = uiState,
+                    onIntent = onIntent,
+                    onOpenSchedule = onOpenSchedule,
+                    onCreateFromVideo = requestCreateFromVideo,
+                    onCreateFromStorage = onCreateFromStorage,
+                    onCreateManually = onCreateManually,
+                    onOpenExplore = onOpenExplore,
+                    onCreateControlPositioned = { createControlBounds = it },
+                    onVideoLinkOptionPositioned = { videoLinkOptionBounds = it },
+                )
+            } else {
+                val schedule = uiState.selectedSchedule
+                val place = uiState.selectedPlace
+                if (schedule != null && place != null) {
+                    PlaceInformationCard(
+                        place = place,
+                        canShowPrevious = uiState.canShowPreviousPlace,
+                        canShowNext = uiState.canShowNextPlace,
+                        onPrevious = { onIntent(MapIntent.ShowPreviousPlace) },
+                        onNext = { onIntent(MapIntent.ShowNextPlace) },
+                        onClose = { onIntent(MapIntent.ClosePlace) },
+                        onViewInSchedule = {
+                            onIntent(MapIntent.ScheduleOpened(schedule.id))
+                            onOpenSchedule(schedule.id, schedule.title, place.placeId)
+                        },
+                        onOpenPlaceDetail = { onOpenPlaceDetail(place) },
+                    )
+                }
+            }
 
-        uiState.scheduleActionFeedback?.let { feedback ->
-            LinkItToast(
-                text = feedback.message,
-                variant = if (feedback.type == MapScheduleActionFeedbackType.SUCCESS) {
-                    ToastVariant.Positive
-                } else {
-                    ToastVariant.Negative
+            MapVideoCreationNotice(
+                state = uiState.videoCreationState,
+                onRetry = { onIntent(MapIntent.RetryVideoCreation) },
+                onAcknowledge = { onIntent(MapIntent.AcknowledgeVideoCreation(it)) },
+                onOpenSchedule = { id, title ->
+                    onIntent(MapIntent.ScheduleOpened(id))
+                    onOpenSchedule(id, title, null)
                 },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-                    .fillMaxWidth()
-                    .testTag("map-schedule-action-feedback"),
+                onCreateAgain = requestCreateFromVideo,
+                onShowInProgress = { onIntent(MapIntent.ShowCreationInProgressDialog) },
+            )
+
+            if (uiState.isCreationInProgressDialogVisible) {
+                LinkItDialog(
+                    title = "일정을 생성하고 있어요",
+                    description = "현재 일정 생성이 끝난 뒤 새 일정을 만들 수 있어요.",
+                    confirmText = "확인",
+                    onConfirmClick = { onIntent(MapIntent.DismissCreationInProgressDialog) },
+                    onDismissRequest = { onIntent(MapIntent.DismissCreationInProgressDialog) },
+                )
+            }
+
+            if (uiState.isComingSoonDialogVisible) {
+                LinkItDialog(
+                    title = "해당 기능은\n곧 출시 예정이에요!",
+                    description = "조금만 기다려 주세요",
+                    confirmText = "확인",
+                    onConfirmClick = { onIntent(MapIntent.DismissComingSoonDialog) },
+                    onDismissRequest = { onIntent(MapIntent.DismissComingSoonDialog) },
+                )
+            }
+
+            uiState.scheduleActionFeedback?.let { feedback ->
+                LinkItToast(
+                    text = feedback.message,
+                    variant = if (feedback.type == MapScheduleActionFeedbackType.SUCCESS) {
+                        ToastVariant.Positive
+                    } else {
+                        ToastVariant.Negative
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                        .fillMaxWidth()
+                        .testTag("map-schedule-action-feedback"),
+                )
+            }
+
+            when (uiState.scheduleDialog) {
+                MapScheduleDialog.RENAME -> ScheduleRenameDialog(
+                    value = uiState.scheduleNameDraft,
+                    isLoading = uiState.isScheduleActionInProgress,
+                    onValueChange = { onIntent(MapIntent.UpdateScheduleName(it)) },
+                    onConfirm = { onIntent(MapIntent.ConfirmScheduleRename) },
+                    onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
+                )
+                MapScheduleDialog.DELETE -> ScheduleDeleteDialog(
+                    isLoading = uiState.isScheduleActionInProgress,
+                    onConfirm = { onIntent(MapIntent.ConfirmScheduleDelete) },
+                    onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
+                )
+                null -> Unit
+            }
+
+            TutorialOverlay(
+                step = uiState.tutorialStep,
+                createControlBounds = createControlBounds,
+                videoLinkOptionBounds = videoLinkOptionBounds,
+                onCreateControlClick = { onIntent(MapIntent.ToggleCreateMenu) },
+                onVideoLinkOptionClick = {
+                    onIntent(MapIntent.SelectCreateFromVideo)
+                    requestCreateFromVideo()
+                },
+                onSkip = { onIntent(MapIntent.SkipOnboarding) },
             )
         }
-
-        when (uiState.scheduleDialog) {
-            MapScheduleDialog.RENAME -> ScheduleRenameDialog(
-                value = uiState.scheduleNameDraft,
-                isLoading = uiState.isScheduleActionInProgress,
-                onValueChange = { onIntent(MapIntent.UpdateScheduleName(it)) },
-                onConfirm = { onIntent(MapIntent.ConfirmScheduleRename) },
-                onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
-            )
-            MapScheduleDialog.DELETE -> ScheduleDeleteDialog(
-                isLoading = uiState.isScheduleActionInProgress,
-                onConfirm = { onIntent(MapIntent.ConfirmScheduleDelete) },
-                onDismiss = { onIntent(MapIntent.DismissScheduleDialog) },
-            )
-            null -> Unit
-        }
-
-        TutorialOverlay(
-            step = uiState.tutorialStep,
-            createControlBounds = createControlBounds,
-            videoLinkOptionBounds = videoLinkOptionBounds,
-            onCreateControlClick = { onIntent(MapIntent.ToggleCreateMenu) },
-            onVideoLinkOptionClick = {
-                onIntent(MapIntent.SelectCreateFromVideo)
-                onCreateFromVideo()
-            },
-            onSkip = { onIntent(MapIntent.SkipOnboarding) },
-        )
     }
 }
 
@@ -407,7 +452,7 @@ private fun BoxScope.MapCanvas(
 
     PlatformMapBackground(
         mapType = uiState.mapType,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().testTag("map-canvas"),
         markers = markers,
         selectedArea = selectedArea,
         initialCamera = camera,
@@ -549,10 +594,12 @@ private fun MapTopAction(
     icon: ImageVector,
     description: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 22.dp,
 ) {
     val shape = RoundedCornerShape(10.dp)
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(40.dp)
             .shadow(2.dp, shape)
             .clip(shape)
@@ -565,7 +612,7 @@ private fun MapTopAction(
             imageVector = icon,
             contentDescription = description,
             tint = LinkItTheme.color.semantic.label.strong,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(iconSize),
         )
     }
 }
@@ -700,7 +747,7 @@ private fun BoxScope.MapBottomSheetHost(
 
         val flingBehavior = AnchoredDraggableDefaults.flingBehavior(
             state = draggableState,
-            positionalThreshold = { distance -> distance * .5f },
+            positionalThreshold = { with(density) { MapSheetPositionalThreshold.toPx() } },
         )
         @Suppress("DEPRECATION")
         val dragModifier = if (isTutorial) {
@@ -738,11 +785,14 @@ private fun BoxScope.MapBottomSheetHost(
                     stateDescription = draggableState.settledValue.name
                 },
         ) {
-            MapLocationPill(locationLabel)
+            MapLocationPill(
+                text = locationLabel,
+                onCurrentLocation = { onIntent(MapIntent.RequestCurrentLocation) },
+            )
             val sheetSurfaceSizeModifier = if (
                 content == MapSheetContent.SavedSchedules &&
-                uiState.loadState == MapLoadState.CONTENT &&
-                uiState.filteredSchedules.isNotEmpty()
+                (uiState.loadState == MapLoadState.EMPTY ||
+                    uiState.loadState == MapLoadState.CONTENT && uiState.filteredSchedules.isNotEmpty())
             ) {
                 Modifier
                     .fillMaxWidth()
@@ -811,7 +861,7 @@ private fun BoxScope.MapBottomSheetHost(
                         y = MapLocationPillHeight +
                             if (isCollapsed) (-27).dp else 0.dp,
                     )
-                    .size(48.dp)
+                    .size(width = 160.dp, height = 48.dp)
                     .testTag("map-bottom-sheet-handle")
                     .then(dragModifier),
             )
@@ -1025,12 +1075,11 @@ private enum class MapCreateControlMode {
 private val MapLocationPillHeight = 57.dp
 private val MapSheetCollapsedSurfaceHeight = 21.dp
 private val MapSheetTravelRestingSurfaceHeight = 189.dp
+private val MapSheetPositionalThreshold = 56.dp
 // 744dp reference viewport: resting sheet surface 337dp - 15dp handle - 36dp title.
 private val MapSheetRestingStatusHeight = 286.dp
 // Figma's 380dp ruler includes the 76dp app bottom navigation that sits below MapContent.
 private val MapCreateControlIconThreshold = 380.dp - 76.dp
-private val MapCreateControlLabelledWidth = 97.dp
-private val MapCreateControlIconOnlyWidth = 40.dp
 private val MapCreateMenuWidth = 171.dp
 private val ScheduleMoreMenuWidth = 160.dp
 private const val ScheduleActionFeedbackDurationMillis = 3_000L
@@ -1183,24 +1232,32 @@ private fun <T> FilterOptions(
 
 /** 저장 일정 빈 상태(스펙 US1-4): 안내 문구 + `일정 생성하기` + `볼만한 영상 찾아보기` 링크 */
 @Composable
-private fun EmptyScheduleSheetContent(
+private fun ColumnScope.EmptyScheduleSheetContent(
     onCreateSchedule: () -> Unit,
     onExploreVideos: () -> Unit,
 ) {
-    ScheduleSummaryRow(scheduleCount = 0)
-    Spacer(Modifier.height(4.dp))
-    ScheduleStateContent(
-        title = MapEmptyStrings.Title,
-        description = MapEmptyStrings.Body,
-        actionLabel = MapEmptyStrings.Create,
-        onAction = onCreateSchedule,
-        linkLabel = MapEmptyStrings.ExploreLink,
-        onLink = onExploreVideos,
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 24.dp),
-        visual = { EmptyScheduleIllustration() },
-    )
+            .weight(1f)
+            .verticalScroll(rememberScrollState())
+            .testTag("map-empty-schedules-scroll"),
+    ) {
+        ScheduleSummaryRow(scheduleCount = 0)
+        Spacer(Modifier.height(4.dp))
+        ScheduleStateContent(
+            title = MapEmptyStrings.Title,
+            description = MapEmptyStrings.Body,
+            actionLabel = MapEmptyStrings.Create,
+            onAction = onCreateSchedule,
+            linkLabel = MapEmptyStrings.ExploreLink,
+            onLink = onExploreVideos,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            visual = { EmptyScheduleIllustration() },
+        )
+    }
 }
 
 internal object MapEmptyStrings {
@@ -1489,7 +1546,7 @@ private fun ColumnScope.ScheduleList(
 }
 
 @Composable
-private fun MapLocationPill(text: String) {
+private fun MapLocationPill(text: String, onCurrentLocation: () -> Unit) {
     val nanumSquare = rememberNanumSquareFontFamily()
     Box(
         modifier = Modifier.fillMaxWidth().height(MapLocationPillHeight),
@@ -1510,6 +1567,16 @@ private fun MapLocationPill(text: String) {
                 .background(LinkItTheme.color.semantic.static.white.copy(alpha = .75f))
                 .border(1.dp, LinkItTheme.color.semantic.static.white, RoundedCornerShape(100.dp))
                 .padding(horizontal = 14.dp, vertical = 8.dp),
+        )
+        MapTopAction(
+            icon = LinkItIcon.Location.MyLocation,
+            description = "현재 위치로 이동",
+            onClick = onCurrentLocation,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 16.dp)
+                .testTag("map-current-location"),
+            iconSize = 20.dp,
         )
     }
 }
@@ -1559,7 +1626,7 @@ private fun BoxScope.PlaceInformationCard(
                 bottom = navigationBarBottomPadding,
             )
             .fillMaxWidth()
-            .height(233.dp)
+            .heightIn(min = 233.dp)
             .shadow(2.dp, cardShape)
             .clip(cardShape)
             .background(LinkItTheme.color.semantic.background.elevated.normal)
@@ -1589,7 +1656,7 @@ private fun BoxScope.PlaceInformationCard(
             )
         }
         Spacer(Modifier.height(12.dp))
-        Row(modifier = Modifier.fillMaxWidth().height(64.dp)) {
+        Row(modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)) {
             Image(
                 painter = painterResource(Res.drawable.map_place_photo),
                 contentDescription = null,
@@ -1721,18 +1788,8 @@ private fun BoxScope.CreateScheduleControl(
     onControlPositioned: (Rect) -> Unit = {},
     onVideoLinkOptionPositioned: (Rect) -> Unit = {},
 ) {
-    val nanumSquare = rememberNanumSquareFontFamily()
     val visualMode = if (expanded) MapCreateControlMode.IconOnly else mode
     val iconOnly = visualMode == MapCreateControlMode.IconOnly
-    val controlWidth by animateDpAsState(
-        targetValue = if (iconOnly) {
-            MapCreateControlIconOnlyWidth
-        } else {
-            MapCreateControlLabelledWidth
-        },
-        animationSpec = tween(MapCreateControlAnimationDurationMillis),
-        label = "map-create-control-width",
-    )
     val iconSize by animateDpAsState(
         targetValue = if (iconOnly) 24.dp else 20.dp,
         animationSpec = tween(MapCreateControlAnimationDurationMillis),
@@ -1767,7 +1824,7 @@ private fun BoxScope.CreateScheduleControl(
             .clearAndSetSemantics {}
     }
     Column(
-        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 24.dp),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 8.dp),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -1801,9 +1858,8 @@ private fun BoxScope.CreateScheduleControl(
                 )
             }
         }
-        Box(
+        Row(
             modifier = Modifier
-                .width(controlWidth)
                 .height(40.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .then(controlBackground)
@@ -1821,12 +1877,13 @@ private fun BoxScope.CreateScheduleControl(
                         "일정 생성 메뉴 열기"
                     }
                     stateDescription = visualMode.name
-                },
+                }
+                .animateContentSize(tween(MapCreateControlAnimationDurationMillis))
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .offset(x = 8.dp)
                     .size(iconSize),
                 contentAlignment = Alignment.Center,
             ) {
@@ -1874,10 +1931,8 @@ private fun BoxScope.CreateScheduleControl(
             }
             CreateScheduleControlLabel(
                 visible = !iconOnly,
-                nanumSquare = nanumSquare,
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 32.dp),
+                    .padding(start = 4.dp, end = 4.dp),
             )
         }
     }
@@ -1886,7 +1941,6 @@ private fun BoxScope.CreateScheduleControl(
 @Composable
 private fun CreateScheduleControlLabel(
     visible: Boolean,
-    nanumSquare: FontFamily,
     modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
@@ -1897,9 +1951,7 @@ private fun CreateScheduleControlLabel(
     ) {
         Text(
             text = "일정 생성",
-            style = LinkItTheme.typography.label1NormalMedium.copy(
-                fontFamily = nanumSquare,
-            ),
+            style = LinkItTheme.typography.label1NormalMedium,
             color = PaletteTokens.PingoNeutral50,
             maxLines = 1,
             softWrap = false,
@@ -2087,15 +2139,27 @@ private fun ScheduleListRow(
             .semantics { if (schedule.isUnchecked) stateDescription = "확인전" },
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-            Image(
-                painter = painterResource(Res.drawable.map_schedule_thumbnail),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            Box(
                 modifier = Modifier
                     .width(if (compact) 60.dp else 80.dp)
                     .height(if (compact) 75.dp else 100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-            )
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(LinkItTheme.color.semantic.background.normal.alternative),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = LinkItIcon.Location.LocationFill,
+                    contentDescription = null,
+                    tint = LinkItTheme.color.semantic.label.assistive,
+                    modifier = Modifier.size(24.dp),
+                )
+                AsyncImage(
+                    model = schedule.thumbnailUrl,
+                    contentDescription = "${schedule.title} 영상 썸네일",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     schedule.hashtags.take(2).forEach { MiniTag(it.removePrefix("#")) }
@@ -2120,10 +2184,11 @@ private fun ScheduleListRow(
                             .height(12.dp)
                             .background(LinkItTheme.color.semantic.line.solid.normal),
                     )
-                    ScheduleMeta(Res.drawable.map_filter_category, "${schedule.itemCount}곳")
+                    ScheduleMeta(Res.drawable.map_filter_money, schedule.estimatedCostLabel())
                 }
                 Text(
-                    text = "${schedule.regionLabel} · 장소 ${schedule.places.size}개 지도 표시",
+                    text = schedule.analysisSummary?.takeIf(String::isNotBlank)
+                        ?: "${schedule.regionLabel} · 장소 ${schedule.itemCount}개",
                     style = LinkItTheme.typography.caption1Bold,
                     color = LinkItTheme.color.semantic.label.neutral,
                     maxLines = 1,
@@ -2489,6 +2554,8 @@ private fun ScheduleMeta(icon: DrawableResource, text: String) {
             text = text,
             style = LinkItTheme.typography.caption1Bold,
             color = LinkItTheme.color.semantic.label.alternative,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

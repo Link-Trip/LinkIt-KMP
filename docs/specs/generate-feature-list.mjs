@@ -8,7 +8,7 @@ const specInputs = [
   { slug: 'onboarding', file: 'onboarding-screen.md', title: '온보딩/최초진입', area: 'Onboarding', figmaSection: '15091:142439', accent: '#0f9f8f' },
   { slug: 'main', file: 'main-screen.md', title: '메인 지도', area: 'Main Map', figmaSection: '15091:144859', accent: '#2563eb' },
   { slug: 'explore', file: 'explore-feed-screen.md', title: '탐색 & 피드', area: 'Explore', figmaSection: '15091:151607', accent: '#7c3aed' },
-  { slug: 'mypage', file: 'mypage-screen.md', title: '마이페이지', area: 'MyPage', figmaSection: '15091:151966', accent: '#ea580c' },
+  { slug: 'mypage', file: 'mypage-screen.md', title: '마이페이지', area: 'MyPage', figmaSection: '17789:52610', accent: '#ea580c' },
   { slug: 'library', file: 'library-screen.md', title: '보관함', area: 'Library', figmaSection: '15091:152408', accent: '#16a34a' },
 ];
 
@@ -159,9 +159,7 @@ function linkTbds(screenSlug, feature) {
   }
 
   if (screenSlug === 'mypage') {
-    if (/지도|위성|기본/.test(text)) add('TBD-01');
-    if (/피드백|버그/.test(text)) add('TBD-02');
-    if (/초기화|삭제/.test(text)) add('TBD-03');
+    if (feature.featureId === 'TERMS_OPEN') add('TBD-04');
   }
 
   return [...new Set(links)];

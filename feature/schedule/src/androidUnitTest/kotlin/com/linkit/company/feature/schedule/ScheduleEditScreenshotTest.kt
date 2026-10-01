@@ -7,7 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTopPositionInRootIsEqualTo
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasScrollAction
@@ -43,6 +45,15 @@ class ScheduleEditScreenshotTest {
 
     @Test
     fun emptyVideoLink() = capture(contentState())
+
+    @Test
+    fun heroStartsImmediatelyBelowNavigationAndKeepsDesignHeight() {
+        setScheduleContent(ScheduleUiState())
+
+        composeRule.onNodeWithTag("video-link-hero")
+            .assertTopPositionInRootIsEqualTo(56.dp)
+            .assertHeightIsEqualTo(180.dp)
+    }
 
     @Test
     fun filledVideoLink() = capture(
@@ -82,7 +93,7 @@ class ScheduleEditScreenshotTest {
     @Test
     fun recommendedVideosError() {
         val intents = mutableListOf<ScheduleIntent>()
-        setScheduleContent(ScheduleUiState(recommendedVideos = RecommendedVideosState.Error), onIntent = intents::add)
+        setScheduleContent(ScheduleUiState(isLoadingRecommendedVideos = false, recommendedVideosError = ScheduleEditStrings.RecommendedError), onIntent = intents::add)
         composeRule.onNodeWithText(ScheduleEditStrings.RecommendedError).assertIsDisplayed()
         composeRule.onRoot().captureRoboImage()
         composeRule.onNodeWithTag(ScheduleEditTestTags.RecommendedRetry).performClick()
@@ -241,7 +252,8 @@ class ScheduleEditScreenshotTest {
         videoLink = videoLink,
         videoLinkError = videoLinkError,
         existingSchedule = existingSchedule,
-        recommendedVideos = RecommendedVideosState.Content(SampleVideos),
+        recommendedVideos = SampleVideos,
+        isLoadingRecommendedVideos = false,
         tutorialStep = tutorialStep,
         isGuideVisible = isGuideVisible,
         hasClipboardText = hasClipboardText,

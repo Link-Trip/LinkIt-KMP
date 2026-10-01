@@ -31,6 +31,8 @@ import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSource
 import com.linkit.company.data.datasource.tripplan.TripPlanRemoteDataSourceImpl
 import com.linkit.company.data.datasource.video.VideoRemoteDataSource
 import com.linkit.company.data.datasource.video.VideoRemoteDataSourceImpl
+import com.linkit.company.data.datasource.video.VideoAnalysisLocalDataSource
+import com.linkit.company.data.datasource.video.VideoAnalysisLocalDataSourceImpl
 import com.linkit.company.data.repository.AppInfoRepositoryImpl
 import com.linkit.company.data.repository.AppSettingsRepositoryImpl
 import com.linkit.company.data.repository.AuthRepositoryImpl
@@ -49,11 +51,22 @@ import com.linkit.company.domain.repository.OnboardingRepository
 import com.linkit.company.domain.repository.TermsRepository
 import com.linkit.company.domain.repository.TripPlanRepository
 import com.linkit.company.domain.repository.VideoRepository
+import com.linkit.company.feature.explore.ExploreViewModel
+import com.linkit.company.feature.map.main.MapViewModel
+import com.linkit.company.feature.map.mypage.MyPageViewModel
+import com.linkit.company.core.ui.terms.TermsViewModel
+import com.linkit.company.feature.intro.IntroViewModel
+import com.linkit.company.feature.map.main.MapPlaceDetailViewModel
+import com.linkit.company.feature.schedule.NotificationPromptViewModel
+import com.linkit.company.feature.schedule.ScheduleViewModel
+import com.linkit.company.feature.schedule.TripDetailViewModel
+import com.linkit.company.feature.storage.StorageViewModel
 import androidx.lifecycle.ViewModel
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.DependencyGraph
+import dev.zacsweers.metro.IntoMap
 import dev.zacsweers.metro.Provider
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -63,6 +76,7 @@ import dev.zacsweers.metrox.viewmodel.MetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import io.ktor.client.HttpClient
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.Platform
@@ -100,6 +114,36 @@ import platform.UIKit.UIDevice
 )
 interface IosAppGraph : AppGraph {
 
+    @Binds @IntoMap @ViewModelKey(IntroViewModel::class)
+    val IntroViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(MapViewModel::class)
+    val MapViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(MapPlaceDetailViewModel::class)
+    val MapPlaceDetailViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(MyPageViewModel::class)
+    val MyPageViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(TermsViewModel::class)
+    val TermsViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(StorageViewModel::class)
+    val StorageViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(ExploreViewModel::class)
+    val ExploreViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(ScheduleViewModel::class)
+    val ScheduleViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(TripDetailViewModel::class)
+    val TripDetailViewModel.bind: ViewModel
+
+    @Binds @IntoMap @ViewModelKey(NotificationPromptViewModel::class)
+    val NotificationPromptViewModel.bind: ViewModel
+
     @Binds
     val AuthLocalDataSourceImpl.bind: AuthLocalDataSource
 
@@ -120,6 +164,9 @@ interface IosAppGraph : AppGraph {
 
     @Binds
     val VideoRemoteDataSourceImpl.bind: VideoRemoteDataSource
+
+    @Binds
+    val VideoAnalysisLocalDataSourceImpl.bind: VideoAnalysisLocalDataSource
 
     @Binds
     val VideoRepositoryImpl.bind: VideoRepository

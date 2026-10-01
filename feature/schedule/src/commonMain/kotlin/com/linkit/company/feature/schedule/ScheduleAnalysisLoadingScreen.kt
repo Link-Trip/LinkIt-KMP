@@ -36,7 +36,7 @@ import com.linkit.company.core.designsystem.component.navigation.TopNavigationDe
 import com.linkit.company.core.designsystem.foundation.icon.LinkItIcon
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import linkitcompany.feature.schedule.generated.resources.Res
-import linkitcompany.feature.schedule.generated.resources.schedule_analysis_video
+import linkitcompany.feature.schedule.generated.resources.schedule_video_link_hero
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -138,7 +138,7 @@ private fun AttachedVideoCard(
     thumbnailUrl: String?,
     modifier: Modifier = Modifier,
 ) {
-    val fallbackPainter = painterResource(Res.drawable.schedule_analysis_video)
+    val fallbackPainter = painterResource(Res.drawable.schedule_video_link_hero)
     val displayTitle = videoTitle?.takeIf(String::isNotBlank) ?: DefaultVideoTitle
 
     Column(
@@ -174,7 +174,7 @@ private fun AttachedVideoCard(
     }
 }
 
-private const val DefaultVideoTitle = "[알파메일 독신남 정혁이랑 결혼하실 분? | 독신의 삶 ep.06]"
+private const val DefaultVideoTitle = "분석 중인 영상"
 
 @Composable
 private fun NotificationPermissionSheet(

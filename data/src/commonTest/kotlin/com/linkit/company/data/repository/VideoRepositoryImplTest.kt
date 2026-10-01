@@ -1,7 +1,9 @@
 package com.linkit.company.data.repository
 
+import com.linkit.company.data.datasource.video.VideoAnalysisLocalDataSource
 import com.linkit.company.data.datasource.video.VideoRemoteDataSource
 import com.linkit.company.data.dto.video.DiscoverChannelResponse
+import com.linkit.company.data.dto.video.DiscoverCountryResponse
 import com.linkit.company.data.dto.video.DiscoverVideoCursorResponse
 import com.linkit.company.data.dto.video.DiscoverVideoResponse
 import com.linkit.company.data.dto.video.VideoAnalyzeResponse
@@ -11,6 +13,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.flow.Flow
 
 class VideoRepositoryImplTest {
 
@@ -18,7 +21,7 @@ class VideoRepositoryImplTest {
     fun onboardingVideosTakeFirstEightOfWholeDiscoverList() = runImmediate {
         val remote = FakeVideoRemoteDataSource(videos = (1..10).map(::video))
 
-        val result = VideoRepositoryImpl(remote).getOnboardingVideos()
+        val result = VideoRepositoryImpl(remote, UnusedVideoAnalysisLocalDataSource).getOnboardingVideos()
 
         assertEquals((1..8).map { "video-$it" }, result.map { it.videoId })
         assertEquals(listOf<Pair<String?, String?>>(null to null), remote.categoryRequests)
@@ -28,7 +31,7 @@ class VideoRepositoryImplTest {
     fun onboardingVideosKeepShorterListsAsIs() = runImmediate {
         val remote = FakeVideoRemoteDataSource(videos = (1..3).map(::video))
 
-        val result = VideoRepositoryImpl(remote).getOnboardingVideos()
+        val result = VideoRepositoryImpl(remote, UnusedVideoAnalysisLocalDataSource).getOnboardingVideos()
 
         assertEquals(3, result.size)
     }
@@ -74,8 +77,17 @@ private class FakeVideoRemoteDataSource(
 
     override suspend fun getDiscoverChannels(): List<DiscoverChannelResponse> = error("Not used")
 
+    override suspend fun getDiscoverCountries(): List<DiscoverCountryResponse> = error("Not used")
+
     override suspend fun getDiscoverVideosByCategory(country: String?, region: String?): List<DiscoverVideoResponse> {
         categoryRequests += country to region
         return videos
     }
+}
+
+private object UnusedVideoAnalysisLocalDataSource : VideoAnalysisLocalDataSource {
+    override fun observePendingTaskId(): Flow<String?> = error("Not used")
+    override suspend fun savePendingTaskId(taskId: String, excludedTripPlanIds: Set<String>) = error("Not used")
+    override suspend fun getExcludedTripPlanIds(): Set<String> = error("Not used")
+    override suspend fun clearPendingTaskId(expectedTaskId: String) = error("Not used")
 }

@@ -40,6 +40,11 @@ internal fun TripPlanMapData.toMapScheduleUiModel(): MapScheduleUiModel {
         centerLatitude = center?.latitude,
         centerLongitude = center?.longitude,
         places = placeModels,
+        analysisSummary = analysisSummary,
+        estimatedMinCost = estimatedMinCost,
+        estimatedMaxCost = estimatedMaxCost,
+        costBasis = costBasis,
+        thumbnailUrl = thumbnailUrl,
     )
 }
 

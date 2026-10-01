@@ -39,6 +39,7 @@ internal class ScriptedMemberRepository(
     notificationResults: List<Any> = listOf(Unit),
     getNotificationResults: List<Any> = listOf(NotificationSetting(enabled = true)),
 ) : MemberRepository {
+    override suspend fun registerFcmToken(fcmToken: String, platform: String) = error("Not used in this test")
     val events = mutableListOf<String>()
     val notificationCalls = mutableListOf<Boolean>()
     private val withdrawQueue = ArrayDeque(withdrawResults)

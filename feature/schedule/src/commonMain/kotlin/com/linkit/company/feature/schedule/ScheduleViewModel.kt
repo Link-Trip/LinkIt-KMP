@@ -4,9 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linkit.company.core.common.architecture.MviContainer
 import com.linkit.company.core.common.architecture.MviContext
+import com.linkit.company.domain.exception.LinkTripApiException
+import com.linkit.company.domain.model.video.VideoAnalysisStatus
+import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
+import com.linkit.company.domain.usecase.GetExploreVideosUseCase
+import com.linkit.company.domain.usecase.RenameTripPlanUseCase
 import com.linkit.company.domain.model.onboarding.OnboardingCompletion
 import com.linkit.company.domain.model.onboarding.TutorialStep
-import com.linkit.company.domain.model.video.VideoAnalysisStatus
 import com.linkit.company.domain.repository.OnboardingRepository
 import com.linkit.company.domain.repository.VideoRepository
 import com.linkit.company.domain.usecase.CompleteOnboardingUseCase
@@ -21,6 +25,7 @@ import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 /**
  * 영상 링크로 만들기 화면의 상태.
@@ -34,6 +39,9 @@ import kotlinx.coroutines.launch
 @Inject
 class ScheduleViewModel(
     private val startVideoScheduleCreation: StartVideoScheduleCreationUseCase,
+    private val renameTripPlan: RenameTripPlanUseCase,
+    private val deleteTripPlan: DeleteTripPlanUseCase,
+    private val getExploreVideos: GetExploreVideosUseCase,
     private val createOnboardingSchedule: CreateOnboardingScheduleUseCase,
     private val completeOnboarding: CompleteOnboardingUseCase,
     private val onboardingRepository: OnboardingRepository,
@@ -44,7 +52,7 @@ class ScheduleViewModel(
         onIntent = { handleIntent(it) },
     )
     private var submissionJob: Job? = null
-    private var recommendedLoadJob: Job? = null
+    private var recommendationsJob: Job? = null
     private var guideDelayElapsed = false
 
     val uiState = container.uiState
@@ -58,8 +66,12 @@ class ScheduleViewModel(
 
     private fun MviContext<ScheduleUiState, ScheduleSideEffect>.handleIntent(intent: ScheduleIntent) {
         when (intent) {
+            ScheduleIntent.LoadRecommendedVideos -> loadRecommendedVideos()
+            ScheduleIntent.ToggleRecommendedVideos -> reduce {
+                copy(areRecommendedVideosExpanded = !areRecommendedVideosExpanded)
+            }
             is ScheduleIntent.UpdateVideoLink -> {
-                submissionJob?.cancel()
+                if (currentState.isSubmittingVideoLink || submissionJob?.isActive == true) return
                 reduce {
                     copy(
                         videoLink = intent.link,
@@ -91,9 +103,47 @@ class ScheduleViewModel(
             is ScheduleIntent.SelectTripDetailTab -> reduce {
                 copy(tripDetailTab = intent.tab, showTripMapPreview = false)
             }
+            ScheduleIntent.ToggleTripDetailMenu -> reduce {
+                copy(tripDetailMenuExpanded = !tripDetailMenuExpanded)
+            }
+            ScheduleIntent.DismissTripDetailMenu -> reduce {
+                copy(tripDetailMenuExpanded = false)
+            }
+            is ScheduleIntent.ShowTripDetailRenameDialog -> reduce {
+                copy(
+                    tripDetailMenuExpanded = false,
+                    tripDetailDialog = TripDetailDialog.RENAME,
+                    tripDetailActionTripPlanId = intent.tripPlanId,
+                    tripDetailNameDraft = intent.currentTitle,
+                    tripDetailActionError = null,
+                )
+            }
+            is ScheduleIntent.ShowTripDetailDeleteDialog -> reduce {
+                copy(
+                    tripDetailMenuExpanded = false,
+                    tripDetailDialog = TripDetailDialog.DELETE,
+                    tripDetailActionTripPlanId = intent.tripPlanId,
+                    tripDetailActionError = null,
+                )
+            }
+            is ScheduleIntent.UpdateTripDetailName -> reduce {
+                if (
+                    tripDetailDialog == TripDetailDialog.RENAME &&
+                    !isTripDetailActionInProgress
+                ) {
+                    copy(
+                        tripDetailNameDraft = intent.value.take(MaxTripPlanTitleLength),
+                        tripDetailActionError = null,
+                    )
+                } else {
+                    this
+                }
+            }
+            ScheduleIntent.ConfirmTripDetailRename -> confirmTripDetailRename()
+            ScheduleIntent.ConfirmTripDetailDelete -> confirmTripDetailDelete()
+            ScheduleIntent.DismissTripDetailDialog -> dismissTripDetailDialog()
 
             // ---- 추천 영상 · 클립보드 · 튜토리얼 (FR-019 ~ FR-023) ----
-            ScheduleIntent.LoadRecommendedVideos -> loadRecommendedVideos()
             is ScheduleIntent.CopyRecommendedLink -> {
                 postSideEffect(ScheduleSideEffect.WriteClipboard(intent.url))
                 reduce {
@@ -135,25 +185,8 @@ class ScheduleViewModel(
             copy(
                 isGuideVisible = guideDelayElapsed &&
                     tutorialStep == TutorialStep.COPY_LINK &&
-                    recommendedVideos is RecommendedVideosState.Content,
+                    !isLoadingRecommendedVideos && recommendedVideosError == null && recommendedVideos.isNotEmpty(),
             )
-        }
-    }
-
-    private fun loadRecommendedVideos() {
-        if (recommendedLoadJob?.isActive == true) return
-        recommendedLoadJob = viewModelScope.launch {
-            container.mviContext.reduce { copy(recommendedVideos = RecommendedVideosState.Loading, isGuideVisible = false) }
-            val state = try {
-                val videos = videoRepository.getOnboardingVideos()
-                if (videos.isEmpty()) RecommendedVideosState.Error else RecommendedVideosState.Content(videos)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Throwable) {
-                RecommendedVideosState.Error
-            }
-            container.mviContext.reduce { copy(recommendedVideos = state) }
-            updateGuideVisibility()
         }
     }
 
@@ -166,7 +199,7 @@ class ScheduleViewModel(
 
     /** 붙여넣기 칩·클립보드 토스트로 링크를 채운다. 튜토리얼 4단계면 자유 조작 단계로 넘어간다 (FR-023). */
     private fun applyLink(text: String) {
-        submissionJob?.cancel()
+        if (uiState.value.isSubmittingVideoLink || submissionJob?.isActive == true) return
         container.mviContext.reduce {
             copy(
                 videoLink = text,
@@ -233,6 +266,116 @@ class ScheduleViewModel(
         }
     }
 
+    private fun loadRecommendedVideos() {
+        if (recommendationsJob?.isActive == true) return
+        container.mviContext.reduce {
+            copy(isLoadingRecommendedVideos = true, recommendedVideosError = null, isGuideVisible = false)
+        }
+        recommendationsJob = viewModelScope.launch {
+            try {
+                // Wait for persisted tutorial mode before choosing its dedicated recommendation API.
+                val onboarding = onboardingRepository.observeTutorialStep().first() != null
+                val videos = if (onboarding) videoRepository.getOnboardingVideos() else getExploreVideos().items
+                container.mviContext.reduce {
+                    copy(
+                        recommendedVideos = videos,
+                        isLoadingRecommendedVideos = false,
+                        recommendedVideosError = if (onboarding && videos.isEmpty()) ScheduleEditStrings.RecommendedError else null,
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                container.mviContext.reduce {
+                    copy(
+                        isLoadingRecommendedVideos = false,
+                        recommendedVideosError = "추천 영상을 불러오지 못했어요.",
+                    )
+                }
+            }
+            updateGuideVisibility()
+        }
+    }
+
+    private fun MviContext<ScheduleUiState, ScheduleSideEffect>.dismissTripDetailDialog() {
+        if (currentState.isTripDetailActionInProgress) return
+        reduce { clearTripDetailAction() }
+    }
+
+    private fun MviContext<ScheduleUiState, ScheduleSideEffect>.confirmTripDetailRename() {
+        val tripPlanId = currentState.tripDetailActionTripPlanId ?: return
+        val title = currentState.tripDetailNameDraft
+        if (
+            currentState.tripDetailDialog != TripDetailDialog.RENAME ||
+            currentState.isTripDetailActionInProgress ||
+            title.isBlank()
+        ) {
+            return
+        }
+
+        reduce { copy(isTripDetailActionInProgress = true, tripDetailActionError = null) }
+        viewModelScope.launch {
+            try {
+                val updated = renameTripPlan(tripPlanId, title)
+                container.mviContext.reduce {
+                    clearTripDetailAction().copy(
+                        renamedTripPlanId = tripPlanId,
+                        renamedTripPlanTitle = updated.title,
+                    )
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                showTripDetailActionError(error, "일정 이름을 수정하지 못했어요.")
+            }
+        }
+    }
+
+    private fun MviContext<ScheduleUiState, ScheduleSideEffect>.confirmTripDetailDelete() {
+        val tripPlanId = currentState.tripDetailActionTripPlanId ?: return
+        if (
+            currentState.tripDetailDialog != TripDetailDialog.DELETE ||
+            currentState.isTripDetailActionInProgress
+        ) {
+            return
+        }
+
+        reduce { copy(isTripDetailActionInProgress = true, tripDetailActionError = null) }
+        viewModelScope.launch {
+            try {
+                deleteTripPlan(tripPlanId)
+                container.mviContext.reduce { clearTripDetailAction() }
+                container.mviContext.postSideEffect(ScheduleSideEffect.TripPlanDeleted)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                showTripDetailActionError(error, "일정을 삭제하지 못했어요.")
+            }
+        }
+    }
+
+    private fun showTripDetailActionError(error: Throwable, fallback: String) {
+        val message = (error as? LinkTripApiException)
+            ?.message
+            ?.takeIf(String::isNotBlank)
+            ?: fallback
+        container.mviContext.reduce {
+            copy(
+                isTripDetailActionInProgress = false,
+                tripDetailActionError = message,
+            )
+        }
+    }
+
+    private fun ScheduleUiState.clearTripDetailAction() = copy(
+        tripDetailMenuExpanded = false,
+        tripDetailDialog = null,
+        tripDetailActionTripPlanId = null,
+        tripDetailNameDraft = "",
+        isTripDetailActionInProgress = false,
+        tripDetailActionError = null,
+    )
+
     private fun MviContext<ScheduleUiState, ScheduleSideEffect>.submitVideoLink(
         allowDuplicate: Boolean,
     ) {
@@ -258,6 +401,9 @@ class ScheduleViewModel(
                     StartVideoScheduleCreationResult.InvalidFormat -> {
                         showVideoLinkError(VideoLinkError.WRONG_FORMAT)
                     }
+                    is StartVideoScheduleCreationResult.AlreadyInProgress -> {
+                        showVideoLinkError(VideoLinkError.ALREADY_IN_PROGRESS)
+                    }
                     is StartVideoScheduleCreationResult.ExistingSchedule -> {
                         container.mviContext.reduce {
                             copy(
@@ -271,9 +417,8 @@ class ScheduleViewModel(
                     }
                     is StartVideoScheduleCreationResult.AnalysisStarted -> {
                         if (
-                            result.analysis.isValid &&
-                            result.analysis.status != VideoAnalysisStatus.INVALID &&
-                            result.analysis.status != VideoAnalysisStatus.FAILED
+                            result.analysis.isInProgress ||
+                            result.analysis.isValid && result.analysis.status == VideoAnalysisStatus.COMPLETED
                         ) {
                             container.mviContext.reduce { copy(isSubmittingVideoLink = false) }
                             container.mviContext.postSideEffect(
@@ -306,8 +451,12 @@ class ScheduleViewModel(
 
     override fun onCleared() {
         submissionJob?.cancel()
-        recommendedLoadJob?.cancel()
+        recommendationsJob?.cancel()
         container.close()
         super.onCleared()
+    }
+
+    private companion object {
+        const val MaxTripPlanTitleLength = 20
     }
 }

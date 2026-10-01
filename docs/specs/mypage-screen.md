@@ -3,8 +3,8 @@
 > 기준 Figma: [Pingo v3.0.3 - 마이페이지](https://www.figma.com/design/Pym5oUSWQjyWVtN86oj6lb/Pingo--v3.0.3?node-id=17789-52610&m=dev)  
 > 기준 영역: `마이페이지`  
 > 기준 section: `17789:52610` (디자인 설명 기준일 2026-03-12)  
-> 스펙 버전: `v0.3.1`  
-> 작성일: 2026-09-23  
+> 스펙 버전: `v0.3.1`\
+> 작성일: 2026-09-23\
 > 상세 스펙: [specs/001-mypage-screen/spec.md](../../specs/001-mypage-screen/spec.md) (유저 스토리·FR·SC 단일 출처)
 
 ## 1. 한눈에 보기
@@ -60,6 +60,28 @@
 | 앱 초기화 | 행 탭 → `초기화` | 온보딩 시작 화면 + `앱 초기화가 완료되었습니다.` / 실패: 마이페이지 유지 + `앱 초기화에 실패했습니다. 다시 시도해주세요.` |
 | 초기화 취소 | `돌아가기` / 닫기 | 팝업만 닫힘 |
 
+### SCC 기능 식별자
+
+기존 추적 이력을 유지하는 기능 ID다. 동작은 위 v0.3.1 정책을 따르며, `BUG_REPORT_OPEN`은 별도 신고 화면이 아니라 통합 의견 시트의 오류·버그 유형을 가리킨다. 아래 이미지 참조는 이전 디자인 근거이며 현재 화면의 시각 검증 기준은 §2와 `ui-plan.md`다.
+
+| 기능 ID | 기능명 | 트리거 | 반응 | 명세 상태 | 이미지 |
+|---|---|---|---|---|---|
+| `MYPAGE_OPEN` | 마이페이지 진입 | 메인 프로필 버튼 선택 | 하단 탭을 숨기고 마이페이지 표시 | 확정 | IMG-01 |
+| `MAP_TYPE_DEFAULT` | 기본 지도 옵션 | `기본` 선택 | 기본 지도 설정 저장, 모든 지도에 반영 및 토스트 표시 | 확정 | IMG-01 |
+| `MAP_TYPE_SATELLITE` | 위성 지도 옵션 | `위성` 선택 | 위성 지도 설정 저장, 모든 지도에 반영 및 토스트 표시 | 확정 | IMG-01 |
+| `FEEDBACK_OPEN` | 의견 보내기 | 의견 보내기 행 선택 | 유형과 내용을 입력하는 의견 바텀시트 표시 | 확정 | IMG-01 |
+| `BUG_REPORT_OPEN` | 오류·버그 의견 | 의견 시트에서 오류·버그 유형 선택 | 동일 의견 전송 API를 사용하며 별도 신고 화면은 제공하지 않음 | 확정 | IMG-01 |
+| `TERMS_OPEN` | 이용약관 | 이용약관 행 선택 | 4종 목록에서 상세 웹뷰 진입. 운영 URL 확정 필요 | 화면 확정/정책 필요 | IMG-01 |
+| `RESET_CONFIRM_OPEN` | 초기화 확인 | 앱 초기화 행 선택 | 초기화 확인 팝업 표시 | 확정 | IMG-02 |
+| `RESET_CANCEL` | 초기화 취소 | 돌아가기 또는 닫기 선택 | 초기화 요청 전 팝업만 닫음 | 확정 | IMG-02 |
+| `RESET_CONFIRM` | 초기화 실행 | 초기화 확인 선택 | 서버 회원 탈퇴 성공 후 로컬 설정 초기화 및 온보딩 이동. 실패 시 기존 상태 유지 | 확정 | IMG-02 |
+
+| 이미지 ID | 경로 | 설명 |
+|---|---|---|
+| `IMG-01` | `assets/mypage/mypage-default.png` | 이전 마이페이지 기본 디자인 근거 |
+| `IMG-02` | `assets/mypage/mypage-preference-edit.png` | 이전 앱 초기화 확인 디자인 근거 |
+| `IMG-03` | `assets/mypage/mypage-map-preview.png` | 이전 지도 설정 결과 후보 |
+
 ## 5. 구현 위치
 
 | 계층 | 파일 |
@@ -74,9 +96,9 @@
 
 ## 6. 미정/정책 필요
 
-| ID | 항목 | 내용 |
+| 미정 ID | 항목 | 내용 |
 |---|---|---|
-| `TBD-04` | 약관 웹페이지 주소 | 운영 측 확정 전 자리 표시 URL(`https://linktrip.cloud/terms/{service\|privacy\|oss\|location}`) 사용 중 |
+| `TBD-04` | 약관 웹페이지 주소 | 운영 측 확정 전 자리 표시 주소 사용 중. `https://linktrip.cloud/terms/` 아래 `service`, `privacy`, `oss`, `location` 경로 |
 | ~~`TBD-06`~~ | 알림 수신 설정 서버 조회 | **해소(v0.3.1)**: 2026-09-23 서버에 `GET /members/me/notification`(Swagger `Member/getNotificationSetting`)이 배포됐다. 마이페이지 진입 시 조회해 로컬 `notification_enabled`를 서버 값으로 맞춘다. 한 번도 바꾸지 않은 회원도 `true`로 내려온다. 같은 기기 재설치(Android `ANDROID_ID` 기반 회원)처럼 로컬만 초기화된 경우도 서버 값으로 복원된다 |
 | ~~`TBD-05`~~ | 온보딩 완료 플래그 기록 시점 | **해소(002, v0.2.1)**: `CompleteOnboardingUseCase`가 `바로 시작하기`·튜토리얼 `건너뛰기`·분석 완료 `생성된 일정 확인하기` 세 곳에서 `true`를 기록한다. 키는 `OnboardingLocalDataSource`(`onboarding_completed`·`terms_agreed_at`)로 이관됐고, 앱 초기화는 앱 설정 2키 → 온보딩 2키·튜토리얼 단계 → 확인전 일정 집합 순으로 지운다. 초기화 완료 토스트는 온보딩 시작 화면(`OnboardingStartScreen`)이 표시한다 |
 
@@ -88,6 +110,7 @@
 | `v0.1.1` | 2026-06-14 | Codex | 서브에이전트 리뷰 반영. 지도 타입 옵션과 반영 정책을 분리하고 sitemap의 프로필 페이지 명칭 차이 명시 | Spec Document Reviewer Agent 1차 리뷰 |
 | `v0.1.2` | 2026-06-14 | Codex | 재리뷰 반영. 기본 진입 시 기본 지도 옵션 선택 상태 설명 보강 | Spec Document Reviewer Agent 2차 리뷰 |
 | `v0.2.0` | 2026-09-21 | Claude | Figma v3.0.3 노드 `17789-52610` 기준으로 전면 개정. 알림 카드·알림설정·의견 바텀시트·약관 4종 추가, `TBD-01~03` 해소(지도 설정 영속화·인앱 의견 API·회원 탈퇴 기반 초기화), 구현 위치 표 추가 | specs/001-mypage-screen, 이슈 #41/#44/#45 |
+| `v0.2.1` | 2026-09-21 | Codex | 최신 정책을 유지하며 기존 SCC 기능 ID 9개와 이전 이미지 참조 복원. 미정 표 헤더 오검출 및 경로 잘림 방지 | develop 병합 후 SCC 재생성 검증 |
 | `v0.2.1` | 2026-09-21 | Claude | 온보딩 플로우(002) 조정 반영. `TBD-05` 해소(완료 플래그는 `CompleteOnboardingUseCase` 3곳에서 기록), 초기화 범위에 약관 동의 시각·튜토리얼 단계·확인전 일정 집합 추가, 완료 토스트 위치를 온보딩 시작 화면으로, 약관 상세·웹뷰·`TermsViewModel` 구현 위치를 `core:ui`로 갱신 | specs/002-onboarding-flow research R9, 이슈 #47/#49/#50 |
 | `v0.3.0` | 2026-09-23 | Claude | 알림설정을 2계층으로 개정. 권한 꺼짐 시 토글 disabled·off + 안내 카드, 권한 켜짐 시 토글 enabled + 앱 알림 수신 설정(DataStore `notification_enabled`) on/off 표시·전환, 전환 시 `PUT /members/me/notification` 반영(실패 시 되돌림·토스트). 기기 권한 변화의 서버 동기화 제거, `TBD-06`(서버 조회 API 부재) 추가 | 요구사항 재정의(2026-09-23), Swagger `Member/updateNotificationSetting` |
 | `v0.3.1` | 2026-09-23 | Claude | `TBD-06` 해소. 서버 `GET /members/me/notification` 배포에 맞춰 마이페이지 진입 시 알림 수신 설정을 서버 값으로 동기화(`FetchNotificationSettingUseCase`), 로컬 `notification_enabled`는 표시용 캐시로 전환. 조회 실패는 무시, 조회 중 토글 조작 시 조회 결과 폐기 | Swagger `Member/getNotificationSetting`(2026-09-23 재조회), 이슈 #53 |

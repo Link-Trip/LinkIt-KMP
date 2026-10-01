@@ -1,11 +1,23 @@
 package com.linkit.company.feature.map.main
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MapAreaTest {
+    @Test
+    fun nativeMapSkipsCameraEchoButAcceptsAnExternalCameraChange() {
+        val initial = DefaultMapCamera
+        val moved = initial.copy(center = MapCoordinateUiModel(35.0, 139.0))
+
+        assertTrue(initial.shouldApplyToNativeMap(null, null))
+        assertFalse(moved.shouldApplyToNativeMap(initial, moved))
+        assertTrue(initial.shouldApplyToNativeMap(moved, moved))
+    }
+
     @Test
     fun convexHullKeepsOnlyOutermostCoordinates() {
         val corners = setOf(

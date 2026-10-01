@@ -2,6 +2,8 @@ package com.linkit.company.feature.map.main
 
 import com.linkit.company.core.common.architecture.contract.UiState
 import com.linkit.company.domain.model.onboarding.TutorialStep
+import com.linkit.company.domain.model.video.CostBasis
+import com.linkit.company.domain.model.video.VideoScheduleCreationState
 import com.linkit.company.domain.model.settings.MapDisplayType
 
 enum class MapSelection {
@@ -88,6 +90,11 @@ data class MapScheduleUiModel(
     val centerLatitude: Double?,
     val centerLongitude: Double?,
     val places: List<MapPlaceUiModel>,
+    val analysisSummary: String? = null,
+    val estimatedMinCost: Long? = null,
+    val estimatedMaxCost: Long? = null,
+    val costBasis: CostBasis? = null,
+    val thumbnailUrl: String? = null,
     /** 생성 후 아직 상세를 열지 않은 `확인전` 일정이면 true (FR-030). `uncheckedScheduleIds` 로 계산한다 */
     val isUnchecked: Boolean = false,
 )
@@ -122,6 +129,8 @@ data class MapUiState(
     val isScheduleActionInProgress: Boolean = false,
     val scheduleActionFeedback: MapScheduleActionFeedback? = null,
     val isComingSoonDialogVisible: Boolean = false,
+    val videoCreationState: VideoScheduleCreationState = VideoScheduleCreationState.Idle,
+    val isCreationInProgressDialogVisible: Boolean = false,
     val mapType: MapDisplayType = MapDisplayType.DEFAULT,
     val expandedFilter: MapFilterType? = null,
     val selectedRegion: String? = null,

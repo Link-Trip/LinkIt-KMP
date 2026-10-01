@@ -1,34 +1,48 @@
 package com.linkit.company.feature.map.main
 
+import android.view.View
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.compose.ui.test.assertHeightIsEqualTo
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.assertValueEquals
+import androidx.compose.ui.test.assertWidthIsEqualTo
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.linkit.company.core.designsystem.component.coachmark.CoachMarkDefaults
 import com.linkit.company.core.designsystem.theme.LinkItTheme
 import com.linkit.company.domain.model.onboarding.TutorialStep
 import org.jetbrains.compose.resources.PreviewContextConfigurationEffect
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,6 +58,42 @@ class MapScreenshotTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun mapExtendsBehindStatusBarWhileTopActionsStayBelowIt() {
+        lateinit var composeView: View
+        composeRule.setContent {
+            composeView = LocalView.current
+            CompositionLocalProvider(LocalInspectionMode provides true) {
+                PreviewContextConfigurationEffect()
+                LinkItTheme {
+                    Box(Modifier.requiredSize(375.dp, 744.dp)) {
+                        MapContent(uiState = MapTestFixtures.contentState(), onIntent = {})
+                    }
+                }
+            }
+        }
+        val statusBarHeight = with(composeRule.density) { 48.dp.roundToPx() }
+        composeRule.runOnIdle {
+            ViewCompat.dispatchApplyWindowInsets(
+                composeView,
+                WindowInsetsCompat.Builder()
+                    .setInsets(WindowInsetsCompat.Type.statusBars(), Insets.of(0, statusBarHeight, 0, 0))
+                    .build(),
+            )
+        }
+
+        val mapBounds = composeRule.onNodeWithTag("map-canvas")
+            .assertHeightIsEqualTo(744.dp)
+            .fetchSemanticsNode().boundsInRoot
+        val profileBounds = composeRule.onNodeWithContentDescription("마이페이지")
+            .assertIsDisplayed()
+            .fetchSemanticsNode().boundsInRoot
+        val actionTopMargin = with(composeRule.density) { 20.dp.toPx() }
+        assertEquals(0f, mapBounds.top, 1f)
+        assertTrue(profileBounds.top >= statusBarHeight + actionTopMargin)
+        composeRule.onRoot().captureRoboImage()
+    }
+
+    @Test
     fun defaultMap() = capture(
         state = MapTestFixtures.contentState(),
         createControlExpectation = CreateControlExpectation.IconOnly,
@@ -57,11 +107,22 @@ class MapScreenshotTest {
     )
 
     @Test
-    fun defaultMapCollapsed() = capture(
-        state = MapTestFixtures.contentState(),
-        sheetGesture = SheetGesture.COLLAPSE,
-        createControlExpectation = CreateControlExpectation.Labelled,
-    )
+    fun defaultMapCollapsed() {
+        capture(
+            state = MapTestFixtures.contentState(),
+            sheetGesture = SheetGesture.COLLAPSE,
+            createControlExpectation = CreateControlExpectation.Labelled,
+        )
+        assertCreateControlPadding()
+    }
+
+    @Test
+    fun collapsedCreateControlKeepsPaddingWithLargerText() {
+        setMapContent(state = MapTestFixtures.contentState(), fontScale = 1.3f)
+        settleSheet(SheetGesture.COLLAPSE)
+        assertCreateControlPadding()
+        composeRule.onRoot().captureRoboImage()
+    }
 
     @Test
     fun scheduleSelected() = capture(
@@ -460,6 +521,31 @@ class MapScreenshotTest {
     )
 
     @Test
+    fun compactEmptyMapCanScrollToEntireCreateButtonWithoutMovingSheet() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapUiState(loadState = MapLoadState.EMPTY, mapCenterLocationLabel = DefaultMapCenterLabel),
+            onIntent = intents::add,
+            height = 640.dp,
+        )
+        val button = composeRule.onNodeWithText("일정 생성하기")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .assertHeightIsEqualTo(40.dp)
+        val bounds = button.fetchSemanticsNode().boundsInRoot
+        val viewport = composeRule.onNodeWithTag("map-empty-schedules-scroll").fetchSemanticsNode().boundsInRoot
+        assertTrue(bounds.top >= viewport.top)
+        assertTrue(bounds.bottom <= viewport.bottom)
+        composeRule.onNodeWithTag("map-bottom-sheet").assertValueEquals("Resting")
+        composeRule.onRoot().captureRoboImage()
+
+        button.performTouchInput { click() }
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.ToggleCreateMenu), intents)
+        }
+    }
+
+    @Test
     fun errorMap() = capture(
         state = MapUiState(
             loadState = MapLoadState.ERROR,
@@ -493,7 +579,44 @@ class MapScreenshotTest {
 
         assertEquals(1, composeRule.onAllNodesWithContentDescription("마이페이지").fetchSemanticsNodes().size)
         assertEquals(1, composeRule.onAllNodesWithContentDescription("지도 종류 변경").fetchSemanticsNodes().size)
-        assertEquals(0, composeRule.onAllNodesWithContentDescription("현재 위치로 이동").fetchSemanticsNodes().size)
+        assertEquals(1, composeRule.onAllNodesWithContentDescription("현재 위치로 이동").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun emptyMapCurrentLocationButtonMatchesFigmaAndRequestsLocation() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(
+            state = MapUiState(loadState = MapLoadState.EMPTY, mapCenterLocationLabel = DefaultMapCenterLabel),
+            onIntent = intents::add,
+        )
+
+        val button = composeRule.onNodeWithTag("map-current-location")
+            .assertIsDisplayed()
+            .assertWidthIsEqualTo(40.dp)
+            .assertHeightIsEqualTo(40.dp)
+            .assertContentDescriptionEquals("현재 위치로 이동")
+        val bounds = button.fetchSemanticsNode().boundsInRoot
+        val sheetBounds = composeRule.onNodeWithTag("map-bottom-sheet").fetchSemanticsNode().boundsInRoot
+        assertEquals(sheetBounds.right - 16f, bounds.right, 1f)
+        assertEquals(sheetBounds.top, bounds.top, 1f)
+
+        button.performClick()
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.RequestCurrentLocation), intents)
+        }
+    }
+
+    @Test
+    fun currentLocationButtonFollowsCollapsedSheetAndStillRequestsLocation() {
+        val intents = mutableListOf<MapIntent>()
+        setMapContent(state = MapTestFixtures.contentState(), onIntent = intents::add)
+        settleSheet(SheetGesture.COLLAPSE)
+
+        composeRule.onNodeWithTag("map-current-location").assertIsDisplayed().performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(listOf(MapIntent.RequestCurrentLocation), intents)
+        }
     }
 
     @Test
@@ -527,12 +650,18 @@ class MapScreenshotTest {
     private fun setMapContent(
         state: MapUiState,
         onIntent: (MapIntent) -> Unit = {},
+        height: Dp = 744.dp,
+        fontScale: Float? = null,
     ) {
         composeRule.setContent {
-            CompositionLocalProvider(LocalInspectionMode provides true) {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalInspectionMode provides true,
+                LocalDensity provides Density(density.density, fontScale ?: density.fontScale),
+            ) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
-                    Box(Modifier.requiredSize(375.dp, 744.dp)) {
+                    Box(Modifier.requiredSize(375.dp, height)) {
                         MapContent(uiState = state, onIntent = onIntent)
                     }
                 }
@@ -563,6 +692,17 @@ class MapScreenshotTest {
         }
     }
 
+    private fun assertCreateControlPadding() {
+        val controlBounds = composeRule.onNodeWithTag(CreateControlTag).fetchSemanticsNode().boundsInRoot
+        val labelBounds = composeRule.onNodeWithText("일정 생성", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val mapBounds = composeRule.onNodeWithTag("map-canvas").fetchSemanticsNode().boundsInRoot
+        with(composeRule.density) {
+            assertEquals(12.dp.toPx(), controlBounds.right - labelBounds.right, 1f)
+            assertEquals(20.dp.toPx(), mapBounds.right - controlBounds.right, 1f)
+        }
+    }
+
     private fun assertCreateControl(expectation: CreateControlExpectation?) {
         when (expectation) {
             CreateControlExpectation.Labelled ->
@@ -574,11 +714,13 @@ class MapScreenshotTest {
                 composeRule
                     .onNodeWithTag(CreateControlTag)
                     .assertValueEquals("IconOnly")
+                    .assertWidthIsEqualTo(40.dp)
                     .assertContentDescriptionEquals(CreateMenuOpenDescription)
             CreateControlExpectation.IconOnlyClose ->
                 composeRule
                     .onNodeWithTag(CreateControlTag)
                     .assertValueEquals("IconOnly")
+                    .assertWidthIsEqualTo(40.dp)
                     .assertContentDescriptionEquals(CreateMenuCloseDescription)
             CreateControlExpectation.Absent ->
                 assertEquals(

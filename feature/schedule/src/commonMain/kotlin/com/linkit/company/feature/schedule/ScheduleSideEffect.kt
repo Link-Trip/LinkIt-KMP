@@ -13,6 +13,7 @@ sealed interface ScheduleSideEffect : SideEffect {
         val title: String,
     ) : ScheduleSideEffect
 
+    data object TripPlanDeleted : ScheduleSideEffect
     /** 시스템 클립보드에 [text] 를 쓴다(화면의 `LocalClipboardManager`) */
     data class WriteClipboard(val text: String) : ScheduleSideEffect
 

@@ -93,7 +93,13 @@ fun HomeNavDisplay(
         Scaffold(
             modifier = modifier
                 .fillMaxSize()
-                .statusBarsPadding()
+                .then(
+                    if (navigationState.currentRoute == LinkItNavKey.Map) {
+                        Modifier
+                    } else {
+                        Modifier.statusBarsPadding()
+                    }
+                )
                 .then(
                     if (isMapPlaceSelected) {
                         Modifier

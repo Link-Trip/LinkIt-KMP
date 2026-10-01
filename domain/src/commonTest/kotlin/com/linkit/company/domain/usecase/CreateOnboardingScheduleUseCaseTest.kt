@@ -7,6 +7,7 @@ import com.linkit.company.domain.fake.ScriptedTripPlanRepository
 import com.linkit.company.domain.fake.tripPlanSummary
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.video.DiscoverChannel
+import com.linkit.company.domain.model.video.DiscoverCountry
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
 import com.linkit.company.domain.model.video.VideoAnalysisStatus
@@ -17,6 +18,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlinx.coroutines.flow.Flow
 
 class CreateOnboardingScheduleUseCaseTest {
 
@@ -218,6 +220,15 @@ private class ScriptedVideoRepository(
         return checkNotNull(lastAnalysis)
     }
 
+    override fun observePendingVideoAnalysisTaskId(): Flow<String?> = error("Not used in this test")
+
+    override suspend fun savePendingVideoAnalysisTaskId(taskId: String, excludedTripPlanIds: Set<String>) =
+        error("Not used in this test")
+
+    override suspend fun getPendingVideoAnalysisExcludedTripPlanIds(): Set<String> = error("Not used in this test")
+
+    override suspend fun clearPendingVideoAnalysisTaskId(expectedTaskId: String) = error("Not used in this test")
+
     override suspend fun getYouTubeVideoMetadata(youtubeUrl: String): YouTubeVideoMetadata =
         error("Not used in this test")
 
@@ -225,6 +236,10 @@ private class ScriptedVideoRepository(
         error("Not used in this test")
 
     override suspend fun getDiscoverChannels(): List<DiscoverChannel> = error("Not used in this test")
+
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used in this test")
+
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used in this test")
 
     override suspend fun getDiscoverVideosByCountry(country: String): List<DiscoverVideo> =
         error("Not used in this test")

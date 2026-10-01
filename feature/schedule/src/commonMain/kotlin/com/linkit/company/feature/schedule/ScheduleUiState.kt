@@ -12,6 +12,12 @@ enum class TripDetailTab {
 enum class VideoLinkError {
     WRONG_FORMAT,
     INVALID_LINK,
+    ALREADY_IN_PROGRESS,
+}
+
+enum class TripDetailDialog {
+    RENAME,
+    DELETE,
 }
 
 data class ExistingScheduleUiModel(
@@ -19,22 +25,25 @@ data class ExistingScheduleUiModel(
     val title: String,
 )
 
-/** 추천 영상 목록 로드 상태(FR-019). 빈 목록·실패는 [Error] 로 안내와 `다시 시도` 를 보여준다. */
-sealed interface RecommendedVideosState {
-    data object Loading : RecommendedVideosState
-    data class Content(val videos: List<DiscoverVideo>) : RecommendedVideosState
-    data object Error : RecommendedVideosState
-}
-
 data class ScheduleUiState(
+    val recommendedVideos: List<DiscoverVideo> = emptyList(),
+    val isLoadingRecommendedVideos: Boolean = true,
+    val recommendedVideosError: String? = null,
+    val areRecommendedVideosExpanded: Boolean = false,
     val videoLink: String = "",
     val videoLinkError: VideoLinkError? = null,
     val isSubmittingVideoLink: Boolean = false,
     val existingSchedule: ExistingScheduleUiModel? = null,
     val tripDetailTab: TripDetailTab = TripDetailTab.ITINERARY,
     val showTripMapPreview: Boolean = true,
-    /** 서버 추천 영상(`VideoRepository.getOnboardingVideos()`, 상위 8개) */
-    val recommendedVideos: RecommendedVideosState = RecommendedVideosState.Loading,
+    val tripDetailMenuExpanded: Boolean = false,
+    val tripDetailDialog: TripDetailDialog? = null,
+    val tripDetailActionTripPlanId: String? = null,
+    val tripDetailNameDraft: String = "",
+    val renamedTripPlanId: String? = null,
+    val renamedTripPlanTitle: String? = null,
+    val isTripDetailActionInProgress: Boolean = false,
+    val tripDetailActionError: String? = null,
     /** 튜토리얼 단계(`OnboardingRepository.observeTutorialStep()`). null 이면 일반 모드 */
     val tutorialStep: TutorialStep? = null,
     /** 진입 후 `TutorialGuideDelayMillis` 지연 뒤 true → 3단계 코치마크 표시(FR-020) */
@@ -53,7 +62,7 @@ data class ScheduleUiState(
     val isOnboardingMode: Boolean
         get() = tutorialStep != null
 
-    /** 추천 영상 URL 목록(온보딩 링크 검증용). Content 가 아니면 빈 목록 */
+    /** 현재 추천 영상 URL 목록(온보딩 링크 검증용). */
     val recommendedVideoUrls: List<String>
-        get() = (recommendedVideos as? RecommendedVideosState.Content)?.videos?.map(DiscoverVideo::videoUrl).orEmpty()
+        get() = recommendedVideos.map(DiscoverVideo::videoUrl)
 }

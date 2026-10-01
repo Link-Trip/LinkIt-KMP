@@ -3,17 +3,27 @@ package com.linkit.company.feature.schedule
 import com.linkit.company.core.common.architecture.contract.Intent
 
 sealed interface ScheduleIntent : Intent {
+    data object LoadRecommendedVideos : ScheduleIntent
+    data object ToggleRecommendedVideos : ScheduleIntent
     data class UpdateVideoLink(val link: String) : ScheduleIntent
     data object SubmitVideoLink : ScheduleIntent
     data object CreateDuplicateVideoSchedule : ScheduleIntent
     data object OpenExistingSchedule : ScheduleIntent
     data object DismissExistingSchedule : ScheduleIntent
     data class SelectTripDetailTab(val tab: TripDetailTab) : ScheduleIntent
+    data object ToggleTripDetailMenu : ScheduleIntent
+    data object DismissTripDetailMenu : ScheduleIntent
+    data class ShowTripDetailRenameDialog(
+        val tripPlanId: String,
+        val currentTitle: String,
+    ) : ScheduleIntent
+    data class ShowTripDetailDeleteDialog(val tripPlanId: String) : ScheduleIntent
+    data class UpdateTripDetailName(val value: String) : ScheduleIntent
+    data object ConfirmTripDetailRename : ScheduleIntent
+    data object ConfirmTripDetailDelete : ScheduleIntent
+    data object DismissTripDetailDialog : ScheduleIntent
 
     // 추천 영상 · 클립보드 · 튜토리얼 (data-model.md §4.3)
-
-    /** 화면 진입·`다시 시도` 시 추천 영상 조회 */
-    data object LoadRecommendedVideos : ScheduleIntent
 
     /** 추천 영상 카드 `링크복사` */
     data class CopyRecommendedLink(val url: String) : ScheduleIntent

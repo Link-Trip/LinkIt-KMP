@@ -508,6 +508,7 @@ private class ScriptedMemberRepository(
     /** 지정하면 GET 응답을 이 Deferred가 완료될 때까지 보류한다. */
     private val getNotificationGate: CompletableDeferred<NotificationSetting>? = null,
 ) : MemberRepository {
+    override suspend fun registerFcmToken(fcmToken: String, platform: String) = error("Not used in this test")
     val events = mutableListOf<String>()
     val notificationCalls = mutableListOf<Boolean>()
     private val withdrawQueue = ArrayDeque(withdrawResults)

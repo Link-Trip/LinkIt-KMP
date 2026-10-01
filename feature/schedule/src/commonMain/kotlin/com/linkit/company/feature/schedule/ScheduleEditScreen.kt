@@ -100,6 +100,7 @@ fun ScheduleEditScreen(
                 is ScheduleSideEffect.WriteClipboard -> clipboardManager.setText(AnnotatedString(effect.text))
                 ScheduleSideEffect.NavigateToAnalysisComplete -> onNavigateToAnalysisComplete()
                 ScheduleSideEffect.FinishOnboarding -> onFinishOnboarding()
+                ScheduleSideEffect.TripPlanDeleted -> Unit
             }
         }
     }
@@ -135,9 +136,11 @@ fun ScheduleEditContent(
     var pasteChipBounds by remember { mutableStateOf<Rect?>(null) }
 
     // 진입 후 잠시 뒤 3단계 코치마크 (FR-020). 지연 전에 이미 복사했으면 단계가 넘어가 있어 표시하지 않는다
-    LaunchedEffect(Unit) {
-        delay(TutorialGuideDelayMillis)
-        onIntent(ScheduleIntent.GuideDelayElapsed)
+    LaunchedEffect(uiState.isOnboardingMode) {
+        if (uiState.isOnboardingMode) {
+            delay(TutorialGuideDelayMillis)
+            onIntent(ScheduleIntent.GuideDelayElapsed)
+        }
     }
     LaunchedEffect(uiState.clipboardToastUrl) {
         if (uiState.clipboardToastUrl != null) {
@@ -184,9 +187,11 @@ fun ScheduleEditContent(
             ) {
                 VideoLinkHero()
                 RecommendedVideos(
-                    state = uiState.recommendedVideos,
-                    onCopy = { url -> onIntent(ScheduleIntent.CopyRecommendedLink(url)) },
+                    uiState = uiState,
                     onRetry = { onIntent(ScheduleIntent.LoadRecommendedVideos) },
+                    onToggleExpanded = { onIntent(ScheduleIntent.ToggleRecommendedVideos) },
+                    onSelect = { onIntent(ScheduleIntent.UpdateVideoLink(it)) },
+                    onCopy = { onIntent(ScheduleIntent.CopyRecommendedLink(it)) },
                     onFirstCopyButtonPositioned = { copyButtonBounds = it },
                 )
                 VideoLinkInput(
@@ -265,6 +270,7 @@ fun ScheduleEditContent(
         uiState.clipboardToastUrl?.let { url ->
             ClipboardToast(
                 url = url,
+                enabled = !uiState.isSubmittingVideoLink,
                 onApply = { onIntent(ScheduleIntent.ApplyClipboardToast) },
                 onDismiss = { onIntent(ScheduleIntent.DismissClipboardToast) },
                 modifier = Modifier
@@ -292,8 +298,9 @@ private fun VideoLinkHero() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+            .padding(horizontal = 20.dp)
             .height(180.dp)
+            .testTag("video-link-hero")
             .clip(RoundedCornerShape(20.dp))
             .background(LinkItTheme.color.semantic.background.normal.alternative),
         contentAlignment = Alignment.Center,
@@ -310,46 +317,52 @@ private fun VideoLinkHero() {
 /** 추천 영상(FR-019): 로딩 / 가로 목록 / 실패 + 다시 시도 */
 @Composable
 private fun RecommendedVideos(
-    state: RecommendedVideosState,
-    onCopy: (youtubeUrl: String) -> Unit,
+    uiState: ScheduleUiState,
     onRetry: () -> Unit,
+    onToggleExpanded: () -> Unit,
+    onSelect: (youtubeUrl: String) -> Unit,
+    onCopy: (youtubeUrl: String) -> Unit,
     onFirstCopyButtonPositioned: (Rect) -> Unit,
 ) {
-    Text(
-        text = ScheduleEditStrings.Recommended,
-        style = LinkItTheme.typography.label1NormalMedium,
-        color = PaletteTokens.PingoNeutral700,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, top = 12.dp, end = 20.dp),
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 24.dp, end = 20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = ScheduleEditStrings.Recommended,
+            style = LinkItTheme.typography.label1NormalMedium,
+            color = PaletteTokens.PingoNeutral700,
+        )
+        if (!uiState.isOnboardingMode && uiState.recommendedVideos.size > RecommendedPreviewCount) Text(
+            text = if (uiState.areRecommendedVideosExpanded) "접기" else "더보기",
+            style = LinkItTheme.typography.caption1Bold,
+            color = LinkItTheme.color.semantic.primary.normal,
+            modifier = Modifier.clickable(onClick = onToggleExpanded)
+                .testTag("recommended-video-expand"),
+        )
+    }
 
-    when (state) {
-        RecommendedVideosState.Loading -> Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp)
-                .height(RecommendedVideoCardHeight)
+    when {
+        uiState.isLoadingRecommendedVideos -> Box(
+            modifier = Modifier.fillMaxWidth().height(130.dp)
                 .testTag(ScheduleEditTestTags.RecommendedLoading),
             contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator(
                 color = LinkItTheme.color.semantic.primary.normal,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(24.dp).testTag("recommended-video-loading"),
             )
         }
-        RecommendedVideosState.Error -> Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp)
-                .height(RecommendedVideoCardHeight)
+        uiState.recommendedVideosError != null -> Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp)
                 .testTag(ScheduleEditTestTags.RecommendedError),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = ScheduleEditStrings.RecommendedError,
-                style = LinkItTheme.typography.label2Medium,
+                text = uiState.recommendedVideosError,
+                style = LinkItTheme.typography.caption1Regular,
                 color = LinkItTheme.color.semantic.label.alternative,
                 textAlign = TextAlign.Center,
             )
@@ -359,25 +372,53 @@ private fun RecommendedVideos(
                 variant = ButtonVariant.Outlined,
                 color = ButtonColor.Assistive,
                 size = ButtonSize.Small,
-                modifier = Modifier
-                    .padding(top = 10.dp)
-                    .testTag(ScheduleEditTestTags.RecommendedRetry),
+                modifier = Modifier.testTag(ScheduleEditTestTags.RecommendedRetry),
             )
         }
-        is RecommendedVideosState.Content -> LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp)
+        uiState.recommendedVideos.isEmpty() -> Text(
+            text = "추천 영상이 아직 없어요.",
+            style = LinkItTheme.typography.caption1Regular,
+            color = LinkItTheme.color.semantic.label.alternative,
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+        )
+        uiState.areRecommendedVideosExpanded -> Column(
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)
+                .testTag(RecommendedVideoListTestTag),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            uiState.recommendedVideos.chunked(2).forEachIndexed { rowIndex, row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEachIndexed { columnIndex, video ->
+                        RecommendedVideoCard(
+                            video = video,
+                            selectionEnabled = !uiState.isSubmittingVideoLink,
+                            onSelect = { onSelect(video.videoUrl) },
+                            onCopy = { onCopy(video.videoUrl) },
+                            modifier = Modifier.weight(1f),
+                            onCopyButtonPositioned = if (rowIndex == 0 && columnIndex == 0) {
+                                onFirstCopyButtonPositioned
+                            } else null,
+                        )
+                    }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+        else -> LazyRow(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
                 .testTag(RecommendedVideoListTestTag),
             contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             itemsIndexed(
-                items = state.videos,
+                items = if (uiState.isOnboardingMode) uiState.recommendedVideos
+                    else uiState.recommendedVideos.take(RecommendedPreviewCount),
                 key = { _, video -> video.videoId },
             ) { index, video ->
                 RecommendedVideoCard(
                     video = video,
+                    selectionEnabled = !uiState.isSubmittingVideoLink,
+                    onSelect = { onSelect(video.videoUrl) },
                     onCopy = { onCopy(video.videoUrl) },
                     onCopyButtonPositioned = if (index == 0) onFirstCopyButtonPositioned else null,
                 )
@@ -389,16 +430,19 @@ private fun RecommendedVideos(
 @Composable
 private fun RecommendedVideoCard(
     video: DiscoverVideo,
+    selectionEnabled: Boolean,
+    onSelect: () -> Unit,
     onCopy: () -> Unit,
-    onCopyButtonPositioned: ((Rect) -> Unit)?,
+    modifier: Modifier = Modifier,
+    onCopyButtonPositioned: ((Rect) -> Unit)? = null,
 ) {
-    Column(Modifier.width(160.dp)) {
+    Column(
+        modifier.width(160.dp).clickable(enabled = selectionEnabled, onClick = onSelect)
+            .testTag("recommended-video-${video.videoId}"),
+    ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(90.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(LinkItTheme.color.semantic.fill.normal),
+            modifier = Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(8.dp))
+                .background(LinkItTheme.color.semantic.background.normal.alternative),
         ) {
             if (!LocalInspectionMode.current) {
                 AsyncImage(
@@ -409,19 +453,16 @@ private fun RecommendedVideoCard(
                 )
             }
             Row(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(8.dp)
+                modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .background(ToastDefaults.containerColor)
                     .background(ToastDefaults.overlayColor)
                     .clickable(role = Role.Button, onClick = onCopy)
+                    .testTag("recommended-video-copy-${video.videoId}")
                     .then(
                         if (onCopyButtonPositioned != null) {
                             Modifier.onGloballyPositioned { onCopyButtonPositioned(it.boundsInRoot()) }
-                        } else {
-                            Modifier
-                        },
+                        } else Modifier,
                     )
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -466,18 +507,18 @@ private fun VideoLinkInput(
     onPasteChipPositioned: (Rect) -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(start = 20.dp, top = 34.dp, end = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.padding(start = 20.dp, top = 24.dp, end = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.Start,
     ) {
         // `복사한 링크 붙여넣기` 칩: 클립보드에 텍스트가 있을 때만 활성 (FR-022)
         LinkItButton(
             onClick = onPaste,
             text = ScheduleEditStrings.Paste,
+            enabled = uiState.hasClipboardText && !uiState.isSubmittingVideoLink,
             size = ButtonSize.Small,
             color = ButtonColor.Assistive,
-            enabled = uiState.hasClipboardText,
-            modifier = Modifier
+            modifier = Modifier.padding(vertical = 10.dp)
                 .onGloballyPositioned { onPasteChipPositioned(it.boundsInRoot()) }
                 .testTag(ScheduleEditTestTags.PasteChip),
         )
@@ -498,6 +539,7 @@ private fun VideoLinkInput(
 @Composable
 private fun ClipboardToast(
     url: String,
+    enabled: Boolean,
     onApply: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -514,7 +556,7 @@ private fun ClipboardToast(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(role = Role.Button, onClick = onApply)
+                .clickable(enabled = enabled, role = Role.Button, onClick = onApply)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
@@ -624,7 +666,10 @@ private val VideoLinkError.supportingText: String
     get() = when (this) {
         VideoLinkError.WRONG_FORMAT -> "올바른 링크 형식이 아닙니다."
         VideoLinkError.INVALID_LINK -> "유효한 링크가 아닙니다."
+        VideoLinkError.ALREADY_IN_PROGRESS -> "이미 생성 중인 일정이 있어요. 메인 화면에서 진행 상태를 확인해 주세요."
     }
+
+private const val RecommendedPreviewCount = 3
 
 /** 조회수 표기: 1만 이상은 `113만회`, 그 미만은 `9,800회` */
 internal fun Long.toViewCountLabel(): String {
@@ -673,8 +718,6 @@ internal const val TutorialGuideDelayMillis = 600L
 
 /** 클립보드·오류 토스트 표시 시간(Map `ScheduleActionFeedbackDurationMillis` 와 동일) */
 internal const val ScheduleToastDurationMillis = 3_000L
-
-private val RecommendedVideoCardHeight = 134.dp
 
 /** 상단 네비 `actions` 슬롯 안에서 `건너뛰기` 오른쪽 여백. 슬롯 자체 패딩과 합쳐 화면 가장자리에서 20dp 가 되게 한다 */
 private val SkipButtonNavigationEndPadding = 12.dp

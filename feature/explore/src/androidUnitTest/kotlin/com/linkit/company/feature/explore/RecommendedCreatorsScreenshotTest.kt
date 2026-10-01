@@ -32,7 +32,7 @@ class RecommendedCreatorsScreenshotTest {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, 812.dp)) {
-                        RecommendedCreatorsContent(onBack = {})
+                        RecommendedCreatorsContent(onBack = {}, uiState = exploreFixtureState())
                     }
                 }
             }

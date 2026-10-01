@@ -6,6 +6,7 @@
 
 | 날짜 | 내용 |
 |------|------|
+| 2026-09-21 | iOS 조립 지점: app-shared/iosMain의 단일 DI 그래프와 MainViewController에서 Intro/Home/Schedule 연결 |
 | 2026-09-21 | 마이페이지 데이터 연동: AppSettings/Member/Feedback/Terms/AppInfo 저장소, IntroNavigator 추가 (이슈 #41/#45) |
 | 2026-04-06 | Feature 모듈 간 Navigator 패턴 추가 (이슈 #21) |
 | 2026-04-03 | 멀티 액티비티 구조, Navigation3 멀티 백스택, Metro DI ViewModel 연동 반영 |
@@ -55,7 +56,8 @@ app-android
 app-shared
 ├── core:common
 ├── domain
-└── data
+├── data
+└── iosMain 전용: core:navigation, core:ui, feature:intro/home/map/storage/explore/schedule
 
 feature:home (바텀네비 호스트)
 ├── core:common, core:ui, core:designsystem, core:navigation
@@ -74,6 +76,7 @@ feature:map, feature:storage, feature:explore, feature:schedule, feature:intro
 **허용:**
 - `app-android` → `app-shared`, `feature:*`, `core:*`
 - `app-shared` → `core:common`, `domain`, `data`
+- `app-shared/iosMain` → `core:navigation`, `core:ui`, `feature:*` (iOS 앱 조립·ViewModel 수동 등록에 한정; Android/common 의존성은 유지)
 - `feature:home` → `feature:map`, `feature:storage`, `feature:explore` (탭 호스팅 관계)
 - `feature:*` → `core:*`, `domain`
 - `data` → `domain`, `core:*`
@@ -94,7 +97,7 @@ feature:map, feature:storage, feature:explore, feature:schedule, feature:intro
 |-------------|---------|-----|
 | `feature:intro` | `IntroActivity` | `IntroViewController` |
 | `feature:home` | `HomeActivity` | `HomeViewController` |
-| `feature:schedule` | `ScheduleActivity` | - |
+| `feature:schedule` | `ScheduleActivity` | `ScheduleViewController` |
 
 - Activity는 각 feature 모듈의 `androidMain`에 위치
 - ViewController는 각 feature 모듈의 `iosMain`에 위치
@@ -138,6 +141,8 @@ class IntroActivity(
 ```
 
 > iOS에서는 Navigator 패턴 대신 ViewController 함수의 콜백 람다 파라미터로 화면 전환을 처리합니다.
+
+`app-shared/iosMain/MainViewController.kt`는 기존 feature ViewController를 숨긴 `UINavigationController`로 조립하는 Swift 진입점입니다. 온보딩 완료 시 홈으로 루트를 교체하고, 일정 생성·상세는 push한 뒤 종료 시 홈으로 pop합니다. 앱 초기화 완료 시 온보딩으로 스택을 교체합니다. 화면마다 그래프를 만들지 않고 앱 단일 `IosAppGraph`를 공유하여 DataStore 중복 생성을 방지합니다. Swift에는 `UIViewController`만 반환하므로 feature framework 전체 export는 하지 않습니다.
 
 ---
 

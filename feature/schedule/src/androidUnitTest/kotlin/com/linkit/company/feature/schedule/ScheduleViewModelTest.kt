@@ -1,12 +1,38 @@
 package com.linkit.company.feature.schedule
 
 import android.os.Looper
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import com.linkit.company.core.designsystem.theme.LinkItTheme
+import com.linkit.company.core.navigation.LinkItNavKey
+import com.linkit.company.feature.schedule.navigation.ScheduleNavigationHost
+import dev.zacsweers.metro.Provider
+import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.MetroViewModelFactory
+import dev.zacsweers.metrox.viewmodel.ViewModelAssistedFactory
 import com.linkit.company.domain.model.auth.Auth
 import com.linkit.company.domain.model.common.CursorPage
 import com.linkit.company.domain.model.onboarding.TutorialStep
 import com.linkit.company.domain.model.tripplan.TripPlanDetail
 import com.linkit.company.domain.model.tripplan.TripPlanItemOrder
 import com.linkit.company.domain.model.tripplan.TripPlanSummary
+import com.linkit.company.domain.model.video.DiscoverCountry
+import com.linkit.company.domain.usecase.DeleteTripPlanUseCase
+import com.linkit.company.domain.usecase.GetExploreVideosUseCase
+import com.linkit.company.domain.usecase.RenameTripPlanUseCase
 import com.linkit.company.domain.model.video.DiscoverChannel
 import com.linkit.company.domain.model.video.DiscoverVideo
 import com.linkit.company.domain.model.video.VideoAnalysis
@@ -25,15 +51,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.PreviewContextConfigurationEffect
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.Rule
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+import kotlin.reflect.KClass
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -47,7 +77,7 @@ class ScheduleViewModelTest {
     fun recommendedVideosGoFromLoadingToContent() {
         val video = FakeVideoRepository(onboardingVideos = listOf(discoverVideo("rec1")))
         val viewModel = createViewModel(video = video)
-        assertEquals(RecommendedVideosState.Loading, viewModel.uiState.value.recommendedVideos)
+        assertTrue(viewModel.uiState.value.isLoadingRecommendedVideos)
 
         viewModel.onIntent(ScheduleIntent.LoadRecommendedVideos)
         idle()
@@ -60,12 +90,14 @@ class ScheduleViewModelTest {
         val failing = createViewModel(video = FakeVideoRepository(onboardingError = IllegalStateException("offline")))
         failing.onIntent(ScheduleIntent.LoadRecommendedVideos)
         idle()
-        assertEquals(RecommendedVideosState.Error, failing.uiState.value.recommendedVideos)
+        assertFalse(failing.uiState.value.isLoadingRecommendedVideos)
+        assertTrue(failing.uiState.value.recommendedVideosError != null)
 
         val empty = createViewModel(video = FakeVideoRepository(onboardingVideos = emptyList()))
         empty.onIntent(ScheduleIntent.LoadRecommendedVideos)
         idle()
-        assertEquals(RecommendedVideosState.Error, empty.uiState.value.recommendedVideos)
+        assertFalse(empty.uiState.value.isLoadingRecommendedVideos)
+        assertEquals(ScheduleEditStrings.RecommendedError, empty.uiState.value.recommendedVideosError)
     }
 
     @Test
@@ -273,7 +305,7 @@ class ScheduleViewModelTest {
     }
 
     private fun createViewModel(
-        onboarding: FakeOnboardingRepository = FakeOnboardingRepository(null),
+        onboarding: FakeOnboardingRepository = FakeOnboardingRepository(TutorialStep.COPY_LINK),
         video: FakeVideoRepository = FakeVideoRepository(),
         tripPlans: FakeTripPlanRepository = FakeTripPlanRepository(),
     ): ScheduleViewModel {
@@ -284,6 +316,9 @@ class ScheduleViewModelTest {
                 tripPlanRepository = tripPlans,
                 videoRepository = video,
             ),
+            renameTripPlan = RenameTripPlanUseCase(ensureAuthenticated, tripPlans),
+            deleteTripPlan = DeleteTripPlanUseCase(ensureAuthenticated, tripPlans),
+            getExploreVideos = GetExploreVideosUseCase(ensureAuthenticated, video),
             createOnboardingSchedule = CreateOnboardingScheduleUseCase(
                 ensureAuthenticated = ensureAuthenticated,
                 videoRepository = video,
@@ -336,6 +371,92 @@ class ScheduleViewModelTest {
     )
 }
 
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(manifest = Config.NONE, sdk = [35], qualifiers = "w375dp-h812dp-mdpi")
+class ScheduleOnboardingNavigationTest {
+    @get:Rule val composeRule = createComposeRule()
+
+    @Test
+    fun successfulTutorialSubmissionOpensCompletionThenClosesPlatformHost() {
+        val onboarding = FakeOnboardingRepository(TutorialStep.FREE)
+        val recommendedVideo = ScheduleRecommendationFixtures.first()
+        val videos = FakeVideoRepository(onboardingVideos = listOf(recommendedVideo))
+        val trips = FakeTripPlanRepository(
+            plans = listOf(
+                TripPlanSummary(
+                    id = "onboarding-plan",
+                    title = "첫 일정",
+                    videoAnalysisTaskId = "analysis-rec1",
+                    youtubeUrl = recommendedVideo.videoUrl,
+                    itemCount = 1,
+                    nights = 0,
+                    days = 1,
+                    hashtags = emptyList(),
+                    createdAt = "",
+                    updatedAt = "",
+                ),
+            ),
+        )
+        val authentication = EnsureAuthenticatedUseCase(FakeAuthRepository())
+        val factory = object : MetroViewModelFactory() {
+            override val viewModelProviders: Map<KClass<out ViewModel>, Provider<ViewModel>> = mapOf(
+                ScheduleViewModel::class to Provider {
+                    ScheduleViewModel(
+                        startVideoScheduleCreation = StartVideoScheduleCreationUseCase(authentication, trips, videos),
+                        renameTripPlan = RenameTripPlanUseCase(authentication, trips),
+                        deleteTripPlan = DeleteTripPlanUseCase(authentication, trips),
+                        getExploreVideos = GetExploreVideosUseCase(authentication, videos),
+                        createOnboardingSchedule = CreateOnboardingScheduleUseCase(authentication, videos, trips),
+                        completeOnboarding = CompleteOnboardingUseCase(onboarding),
+                        onboardingRepository = onboarding,
+                        videoRepository = videos,
+                    )
+                },
+            )
+            override val assistedFactoryProviders = emptyMap<KClass<out ViewModel>, Provider<ViewModelAssistedFactory>>()
+            override val manualAssistedFactoryProviders =
+                emptyMap<KClass<out ManualViewModelAssistedFactory>, Provider<ManualViewModelAssistedFactory>>()
+        }
+        var closeCalls = 0
+        composeRule.setContent {
+            CompositionLocalProvider(
+                LocalInspectionMode provides true,
+                LocalMetroViewModelFactory provides factory,
+            ) {
+                PreviewContextConfigurationEffect()
+                LinkItTheme {
+                    Box(Modifier.requiredSize(375.dp, 812.dp)) {
+                        ScheduleNavigationHost(
+                            onClose = { closeCalls++ },
+                            startRoute = LinkItNavKey.ScheduleEdit,
+                            showNotificationPermissionSheet = { false },
+                            onAllowNotifications = {},
+                            onDismissNotificationPrompt = {},
+                        )
+                    }
+                }
+            }
+        }
+
+        composeRule.onNode(hasSetTextAction()).performTextInput(recommendedVideo.videoUrl)
+        composeRule.onNodeWithText(ScheduleEditStrings.Create).performClick()
+
+        composeRule.onNodeWithTag(ScheduleCompleteTestTags.Confirm).assertIsDisplayed()
+        composeRule.onNodeWithText("메인화면으로 돌아가기").assertDoesNotExist()
+        composeRule.runOnIdle {
+            assertEquals(setOf("onboarding-plan"), trips.uncheckedIds.value)
+            assertEquals(0, closeCalls)
+        }
+        composeRule.onNodeWithTag(ScheduleCompleteTestTags.Confirm).performClick()
+        composeRule.runOnIdle {
+            assertEquals(1, closeCalls)
+            assertTrue(onboarding.onboardingCompleted)
+            assertNull(onboarding.tutorialStep.value)
+        }
+    }
+}
+
 private class FakeOnboardingRepository(initialStep: TutorialStep?) : OnboardingRepository {
     val events = mutableListOf<String>()
     var onboardingCompleted = false
@@ -375,6 +496,19 @@ private class FakeVideoRepository(
     private val onboardingError: Throwable? = null,
     private val analysisStatus: VideoAnalysisStatus = VideoAnalysisStatus.COMPLETED,
 ) : VideoRepository {
+    private val pendingTaskId = MutableStateFlow<String?>(null)
+
+    override fun observePendingVideoAnalysisTaskId(): Flow<String?> = pendingTaskId
+    override suspend fun savePendingVideoAnalysisTaskId(taskId: String, excludedTripPlanIds: Set<String>) {
+        pendingTaskId.value = taskId
+    }
+    override suspend fun getPendingVideoAnalysisExcludedTripPlanIds(): Set<String> = emptySet()
+    override suspend fun clearPendingVideoAnalysisTaskId(expectedTaskId: String) {
+        if (pendingTaskId.value == expectedTaskId) pendingTaskId.value = null
+    }
+    override suspend fun getDiscoverCountries(): List<DiscoverCountry> = error("Not used")
+    override suspend fun getDiscoverVideos(): List<DiscoverVideo> = error("Not used")
+
     override suspend fun analyzeVideo(youtubeUrl: String): VideoAnalysis = VideoAnalysis(
         id = "analysis-rec1",
         youtubeUrl = youtubeUrl,
