@@ -2,6 +2,7 @@ package com.linkit.company.feature.map.main
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -1079,8 +1080,6 @@ private val MapSheetPositionalThreshold = 56.dp
 private val MapSheetRestingStatusHeight = 286.dp
 // Figma's 380dp ruler includes the 76dp app bottom navigation that sits below MapContent.
 private val MapCreateControlIconThreshold = 380.dp - 76.dp
-private val MapCreateControlLabelledWidth = 97.dp
-private val MapCreateControlIconOnlyWidth = 40.dp
 private val MapCreateMenuWidth = 171.dp
 private val ScheduleMoreMenuWidth = 160.dp
 private const val ScheduleActionFeedbackDurationMillis = 3_000L
@@ -1791,15 +1790,6 @@ private fun BoxScope.CreateScheduleControl(
 ) {
     val visualMode = if (expanded) MapCreateControlMode.IconOnly else mode
     val iconOnly = visualMode == MapCreateControlMode.IconOnly
-    val controlWidth by animateDpAsState(
-        targetValue = if (iconOnly) {
-            MapCreateControlIconOnlyWidth
-        } else {
-            MapCreateControlLabelledWidth
-        },
-        animationSpec = tween(MapCreateControlAnimationDurationMillis),
-        label = "map-create-control-width",
-    )
     val iconSize by animateDpAsState(
         targetValue = if (iconOnly) 24.dp else 20.dp,
         animationSpec = tween(MapCreateControlAnimationDurationMillis),
@@ -1868,9 +1858,8 @@ private fun BoxScope.CreateScheduleControl(
                 )
             }
         }
-        Box(
+        Row(
             modifier = Modifier
-                .width(controlWidth)
                 .height(40.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .then(controlBackground)
@@ -1888,12 +1877,13 @@ private fun BoxScope.CreateScheduleControl(
                         "일정 생성 메뉴 열기"
                     }
                     stateDescription = visualMode.name
-                },
+                }
+                .animateContentSize(tween(MapCreateControlAnimationDurationMillis))
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .offset(x = 8.dp)
                     .size(iconSize),
                 contentAlignment = Alignment.Center,
             ) {
@@ -1942,8 +1932,7 @@ private fun BoxScope.CreateScheduleControl(
             CreateScheduleControlLabel(
                 visible = !iconOnly,
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = 32.dp),
+                    .padding(start = 4.dp, end = 4.dp),
             )
         }
     }

@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertHeightIsEqualTo
@@ -30,6 +31,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
@@ -105,11 +107,22 @@ class MapScreenshotTest {
     )
 
     @Test
-    fun defaultMapCollapsed() = capture(
-        state = MapTestFixtures.contentState(),
-        sheetGesture = SheetGesture.COLLAPSE,
-        createControlExpectation = CreateControlExpectation.Labelled,
-    )
+    fun defaultMapCollapsed() {
+        capture(
+            state = MapTestFixtures.contentState(),
+            sheetGesture = SheetGesture.COLLAPSE,
+            createControlExpectation = CreateControlExpectation.Labelled,
+        )
+        assertCreateControlPadding()
+    }
+
+    @Test
+    fun collapsedCreateControlKeepsPaddingWithLargerText() {
+        setMapContent(state = MapTestFixtures.contentState(), fontScale = 1.3f)
+        settleSheet(SheetGesture.COLLAPSE)
+        assertCreateControlPadding()
+        composeRule.onRoot().captureRoboImage()
+    }
 
     @Test
     fun scheduleSelected() = capture(
@@ -638,9 +651,14 @@ class MapScreenshotTest {
         state: MapUiState,
         onIntent: (MapIntent) -> Unit = {},
         height: Dp = 744.dp,
+        fontScale: Float? = null,
     ) {
         composeRule.setContent {
-            CompositionLocalProvider(LocalInspectionMode provides true) {
+            val density = LocalDensity.current
+            CompositionLocalProvider(
+                LocalInspectionMode provides true,
+                LocalDensity provides Density(density.density, fontScale ?: density.fontScale),
+            ) {
                 PreviewContextConfigurationEffect()
                 LinkItTheme {
                     Box(Modifier.requiredSize(375.dp, height)) {
@@ -674,6 +692,17 @@ class MapScreenshotTest {
         }
     }
 
+    private fun assertCreateControlPadding() {
+        val controlBounds = composeRule.onNodeWithTag(CreateControlTag).fetchSemanticsNode().boundsInRoot
+        val labelBounds = composeRule.onNodeWithText("일정 생성", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        val mapBounds = composeRule.onNodeWithTag("map-canvas").fetchSemanticsNode().boundsInRoot
+        with(composeRule.density) {
+            assertEquals(12.dp.toPx(), controlBounds.right - labelBounds.right, 1f)
+            assertEquals(20.dp.toPx(), mapBounds.right - controlBounds.right, 1f)
+        }
+    }
+
     private fun assertCreateControl(expectation: CreateControlExpectation?) {
         when (expectation) {
             CreateControlExpectation.Labelled ->
@@ -685,11 +714,13 @@ class MapScreenshotTest {
                 composeRule
                     .onNodeWithTag(CreateControlTag)
                     .assertValueEquals("IconOnly")
+                    .assertWidthIsEqualTo(40.dp)
                     .assertContentDescriptionEquals(CreateMenuOpenDescription)
             CreateControlExpectation.IconOnlyClose ->
                 composeRule
                     .onNodeWithTag(CreateControlTag)
                     .assertValueEquals("IconOnly")
+                    .assertWidthIsEqualTo(40.dp)
                     .assertContentDescriptionEquals(CreateMenuCloseDescription)
             CreateControlExpectation.Absent ->
                 assertEquals(
